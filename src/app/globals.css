@@ -44,6 +44,7 @@ body {
   color: white;
   opacity: 0.8;
   animation: snowfall linear infinite;
+  font-size: 20px;
 }
 
 .snow::after {
@@ -69,14 +70,14 @@ body {
   }
 }
 
-/* Adjusted animation durations to be slower */
+/* Even slower animation durations */
 .snow:nth-child(odd) {
-  animation-duration: 12s; /* Increased from 8s */
-  animation-delay: calc(random() * -12s);
+  animation-duration: 15s;
+  animation-delay: calc(random() * -15s);
 }
 
 .snow:nth-child(even) {
-  animation-duration: 9s; /* Increased from 6s */
-  animation-delay: calc(random() * -9s);
+  animation-duration: 12s;
+  animation-delay: calc(random() * -12s);
   left: calc(random() * 100vw);
 }
