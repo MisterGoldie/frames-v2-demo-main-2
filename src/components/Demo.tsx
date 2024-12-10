@@ -12,7 +12,7 @@ type GameState = 'menu' | 'game';
 type MenuStep = 'game' | 'piece' | 'difficulty';
 type Difficulty = 'easy' | 'medium' | 'hard';
 
-export default function Demo({ title }: { title?: string } = { title: "Tic-tac-toe Frame" }) {
+export default function Demo() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [gameState, setGameState] = useState<GameState>('menu');
   const [menuStep, setMenuStep] = useState<MenuStep>('game');
@@ -49,7 +49,7 @@ export default function Demo({ title }: { title?: string } = { title: "Tic-tac-t
     setIsXNext(true);
     setSelectedPiece(piece);
     setDifficulty(diff);
-  }, [playClick, stopHalloweenMusic]);
+  }, [playClick, stopHalloweenMusic, isXNext]);
 
   const getComputerMove = useCallback((currentBoard: Board): number => {
     const availableSpots = currentBoard
@@ -154,6 +154,7 @@ export default function Demo({ title }: { title?: string } = { title: "Tic-tac-t
                 playClick();
                 setMenuStep('piece');
               }}
+              onMouseEnter={() => playHover()}
               className="w-3/4 py-4 text-xl mb-4 bg-purple-700 hover:bg-purple-800"
             >
               Tic-Tac-Toe
