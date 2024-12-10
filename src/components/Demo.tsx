@@ -151,49 +151,61 @@ export default function Demo() {
   }, [difficulty, selectedPiece]);
 
   const handleMove = useCallback((index: number) => {
-    // Prevent any moves if timer has run out
     if (timeLeft === 0 || board[index] || calculateWinner(board) || !isXNext) return;
-    
-    playClick();
-    const newBoard = board.slice();
+
+    if (!timerStarted) {
+      setTimerStarted(true);
+    }
+
+    const newBoard = [...board];
     newBoard[index] = selectedPiece;
     setBoard(newBoard);
     setIsXNext(false);
+    playClick();
 
-    // Check if player won
-    if (calculateWinner(newBoard) === selectedPiece) {
+    if (calculateWinner(newBoard)) {
       stopGameJingle();
       stopCountdownSound();
       playWinning();
       return;
     }
 
-    // Computer's turn
+    // Computer's turn in a separate effect to avoid timer interference
     setTimeout(() => {
-      // Double check timer hasn't run out during timeout
-      if (timeLeft === 0) return;
+      if (timeLeft === 0 || calculateWinner(newBoard)) return;
       
-      if (!calculateWinner(newBoard) && !newBoard.every(square => square !== null)) {
-        const computerMove = getComputerMove(newBoard);
-        newBoard[computerMove] = 'X';
-        setBoard([...newBoard]);
+      const computerMove = getComputerMove(newBoard);
+      if (computerMove !== -1) {
+        const nextBoard = [...newBoard];
+        nextBoard[computerMove] = 'X';
+        setBoard(nextBoard);
         setIsXNext(true);
 
-        // Check if computer won
-        if (calculateWinner(newBoard) === 'X') {
+        if (calculateWinner(nextBoard)) {
           stopGameJingle();
           stopCountdownSound();
           playLosing();
-        } 
-        // Check for draw
-        else if (newBoard.every(square => square !== null)) {
+        } else if (nextBoard.every(square => square !== null)) {
           stopGameJingle();
           stopCountdownSound();
           playDrawing();
         }
       }
     }, 500);
-  }, [board, selectedPiece, getComputerMove, isXNext, timeLeft, playClick, playWinning, playLosing, playDrawing, stopGameJingle, stopCountdownSound]);
+  }, [
+    board,
+    timeLeft,
+    timerStarted,
+    isXNext,
+    selectedPiece,
+    getComputerMove,
+    playClick,
+    playWinning,
+    playLosing,
+    playDrawing,
+    stopGameJingle,
+    stopCountdownSound
+  ]);
 
   const resetGame = useCallback(() => {
     stopGameJingle();
@@ -224,16 +236,9 @@ export default function Demo() {
   }, [gameState, playHalloweenMusic, stopHalloweenMusic]);
 
   useEffect(() => {
-    if (timerStarted && gameState === 'game') {
+    if (timerStarted && gameState === 'game' && !calculateWinner(board)) {
       const timer = setInterval(() => {
-        setTimeLeft((prevTime) => {
-          // Check for winner before updating timer
-          if (calculateWinner(board)) {
-            clearInterval(timer);
-            stopCountdownSound();
-            return prevTime;
-          }
-
+        setTimeLeft(prevTime => {
           if (prevTime <= 6 && prevTime > 1) {
             playCountdownSound();
           }
