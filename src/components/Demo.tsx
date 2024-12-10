@@ -223,7 +223,7 @@ export default function Demo() {
   }, [gameState, playHalloweenMusic, stopHalloweenMusic]);
 
   useEffect(() => {
-    if (timerStarted && gameState === 'game' && isXNext) {
+    if (timerStarted && gameState === 'game' && !calculateWinner(board) && !board.every(square => square !== null)) {
       const timer = setInterval(() => {
         setTimeLeft((prevTime) => {
           if (prevTime <= 6 && prevTime > 1) {
@@ -252,7 +252,7 @@ export default function Demo() {
         stopCountdownSound();
       };
     }
-  }, [timerStarted, gameState, isXNext, playCountdownSound, stopCountdownSound, playLosing]);
+  }, [timerStarted, gameState, board, playCountdownSound, stopCountdownSound, playLosing]);
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
@@ -262,7 +262,7 @@ export default function Demo() {
     <div className="w-[300px] h-[600px] mx-auto flex items-center justify-center relative">
       <div 
         onClick={() => setIsMuted(!isMuted)} 
-        className="absolute top-4 left-4 cursor-pointer text-white z-10 w-8 h-8 flex items-center justify-center"
+        className="absolute top-6 left-4 cursor-pointer text-white z-10 w-8 h-8 flex items-center justify-center"
       >
         {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
       </div>
@@ -353,20 +353,12 @@ export default function Demo() {
           )}
 
           {menuStep !== 'game' && (
-            <div className="flex justify-between w-full mt-4">
+            <div className="flex justify-center w-full mt-4">
               <Button 
                 onClick={() => setMenuStep(menuStep === 'difficulty' ? 'piece' : 'game')}
-                className="w-[45%]"
+                className="w-3/4"
               >
                 Back
-              </Button>
-              <Button 
-                onClick={() => setIsMuted(!isMuted)}
-                className={`w-[45%] flex items-center justify-center ${
-                  isMuted ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'
-                }`}
-              >
-                {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
               </Button>
             </div>
           )}
