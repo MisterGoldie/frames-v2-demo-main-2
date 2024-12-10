@@ -69,6 +69,8 @@ export default function Demo() {
     setIsXNext(true);
     setSelectedPiece(piece);
     setDifficulty(diff);
+    setTimeLeft(15);
+    setTimerStarted(true);
   }, [playClick, stopHalloweenMusic, playGameJingle]);
 
   const getComputerMove = useCallback((currentBoard: Board): number => {
@@ -129,8 +131,6 @@ export default function Demo() {
     newBoard[index] = selectedPiece;
     setBoard(newBoard);
     setIsXNext(false);
-    setTimeLeft(15);
-    setTimerStarted(true);
 
     // Check if player won
     if (calculateWinner(newBoard) === selectedPiece) {
@@ -167,6 +167,8 @@ export default function Demo() {
     setMenuStep('game');
     setBoard(Array(9).fill(null));
     setIsXNext(true);
+    setTimerStarted(false);
+    setTimeLeft(15);
   }, [stopGameJingle]);
 
   useEffect(() => {
@@ -318,15 +320,18 @@ export default function Demo() {
         </div>
       ) : (
         <div className="flex flex-col items-center">
+          <div className="absolute top-4 right-4 text-white text-sm bg-purple-800 px-3 py-1 rounded-full">
+            {timeLeft}s
+          </div>
+          
           <div className="text-center mb-4 text-white text-xl">
             {calculateWinner(board) 
               ? `Winner: ${calculateWinner(board) === 'X' ? 'Maxi' : 
                   frameContext?.user?.username || selectedPiece}`
               : board.every(square => square) 
               ? "Game is a draw!" 
-              : timeLeft > 0 
-              ? `Time left: ${timeLeft}s`
-              : "Time's up! Maxi wins!"}
+              : `Next player: ${isXNext ? 'Maxi' : 
+                  frameContext?.user?.username || selectedPiece}`}
           </div>
           
           <div className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4">
@@ -355,6 +360,14 @@ export default function Demo() {
               </button>
             ))}
           </div>
+
+          {timeLeft === 0 && !calculateWinner(board) && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="text-white text-2xl font-bold">
+                Time's up! Maxi wins!
+              </div>
+            </div>
+          )}
 
           <Button
             onClick={resetGame}
