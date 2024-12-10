@@ -68,3 +68,15 @@ body {
     opacity: 0.3;
   }
 }
+
+/* Adjusted animation durations to be slower */
+.snow:nth-child(odd) {
+  animation-duration: 12s; /* Increased from 8s */
+  animation-delay: calc(random() * -12s);
+}
+
+.snow:nth-child(even) {
+  animation-duration: 9s; /* Increased from 6s */
+  animation-delay: calc(random() * -9s);
+  left: calc(random() * 100vw);
+}
