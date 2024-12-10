@@ -3,9 +3,6 @@
 import { useEffect, useCallback, useState, useMemo } from "react";
 import sdk from "@farcaster/frame-sdk";
 import { Button } from "~/components/ui/Button";
-import { Canvas, useThree } from '@react-three/fiber';
-import { Text } from '@react-three/drei';
-import * as THREE from 'three';
 import useSound from 'use-sound';
 
 type Square = 'X' | 'O' | null;
@@ -21,6 +18,13 @@ export default function Demo({ title }: { title?: string } = { title: "Tic-tac-t
   const [isXNext, setIsXNext] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [selectedPiece, setSelectedPiece] = useState<'X' | 'O'>('X');
+  const [playHover] = useSound('/sounds/hover.mp3', { volume: 0.5, soundEnabled: !isMuted });
+  const [playClick] = useSound('/sounds/click.mp3', { volume: 0.5, soundEnabled: !isMuted });
+  const [playHalloweenMusic, { stop: stopHalloweenMusic }] = useSound('/sounds/halloween.mp3', { 
+    volume: 0.3, 
+    loop: true, 
+    soundEnabled: !isMuted 
+  });
 
   // SDK initialization
   useEffect(() => {
@@ -35,11 +39,13 @@ export default function Demo({ title }: { title?: string } = { title: "Tic-tac-t
   }, [isSDKLoaded]);
 
   const handleStartGame = useCallback((difficulty: string, piece: string) => {
+    playClick();
+    stopHalloweenMusic();
     setGameState('game');
     setBoard(Array(9).fill(null));
     setIsXNext(true);
     setSelectedPiece(piece === 'X' ? 'X' : 'O');
-  }, []);
+  }, [playClick, stopHalloweenMusic]);
 
   // Game logic remains the same
   const handleMove = useCallback((index: number) => {
@@ -58,6 +64,13 @@ export default function Demo({ title }: { title?: string } = { title: "Tic-tac-t
     setIsXNext(true);
   }, []);
 
+  useEffect(() => {
+    if (gameState === 'menu') {
+      playHalloweenMusic();
+      return () => stopHalloweenMusic();
+    }
+  }, [gameState, playHalloweenMusic, stopHalloweenMusic]);
+
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
   }
@@ -67,14 +80,16 @@ export default function Demo({ title }: { title?: string } = { title: "Tic-tac-t
       {gameState === 'menu' ? (
         <div className="w-full bg-purple-600 rounded-lg p-4">
           <h1 className="text-2xl font-bold text-center text-white mb-4">
-            {menuStep === 'game' ? 'Select Game' :
-             menuStep === 'piece' ? 'Select Piece' :
-             'Choose Difficulty'}
+            {title}
           </h1>
           
           {menuStep === 'game' && (
             <Button 
-              onClick={() => setMenuStep('piece')}
+              onClick={() => {
+                playClick();
+                setMenuStep('piece');
+              }}
+              onMouseEnter={() => playHover()}
               className="w-full mb-2"
             >
               Tic-Tac-Toe
@@ -128,12 +143,14 @@ export default function Demo({ title }: { title?: string } = { title: "Tic-tac-t
           )}
 
           {menuStep !== 'game' && (
-            <Button 
-              onClick={() => setMenuStep(menuStep === 'difficulty' ? 'piece' : 'game')}
-              className="w-full mt-4"
-            >
-              Back
-            </Button>
+            <div className="flex justify-between mt-4">
+              <Button onClick={() => setMenuStep(menuStep === 'difficulty' ? 'piece' : 'game')}>
+                Back
+              </Button>
+              <Button onClick={() => setIsMuted(!isMuted)}>
+                {isMuted ? 'Unmute' : 'Mute'}
+              </Button>
+            </div>
           )}
         </div>
       ) : (
