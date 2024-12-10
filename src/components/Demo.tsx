@@ -107,15 +107,15 @@ export default function Demo() {
     const newBoard = board.slice();
     newBoard[index] = selectedPiece;
     setBoard(newBoard);
-    setIsXNext(true);
+    setIsXNext(false);
 
     // Computer's turn
     setTimeout(() => {
       if (!calculateWinner(newBoard) && !newBoard.every(square => square !== null)) {
         const computerMove = getComputerMove(newBoard);
         newBoard[computerMove] = 'X';
-        setBoard(newBoard);
-        setIsXNext(false);
+        setBoard([...newBoard]);
+        setIsXNext(true);
       }
     }, 500);
   }, [board, selectedPiece, getComputerMove, isXNext]);
@@ -244,10 +244,18 @@ export default function Demo() {
             {board.map((square, index) => (
               <button
                 key={index}
-                className="w-20 h-20 bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-2xl font-bold"
+                className="w-20 h-20 bg-gray-800 flex items-center justify-center text-2xl font-bold"
                 onClick={() => handleMove(index)}
               >
-                {square}
+                {square === 'X' ? (
+                  <span className="text-white">X</span>
+                ) : square ? (
+                  <img 
+                    src={`/${square}.png`} 
+                    alt={square} 
+                    className="w-12 h-12 object-contain"
+                  />
+                ) : null}
               </button>
             ))}
           </div>
