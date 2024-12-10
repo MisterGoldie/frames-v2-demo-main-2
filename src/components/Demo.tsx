@@ -24,6 +24,10 @@ export default function Demo() {
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [playHover] = useSound('/sounds/hover.mp3', { volume: 0.5, soundEnabled: !isMuted });
   const [playClick] = useSound('/sounds/click.mp3', { volume: 0.5, soundEnabled: !isMuted });
+  const [playJingle] = useSound('/sounds/jingle.mp3', { volume: 0.5, soundEnabled: !isMuted });
+  const [playWinning] = useSound('/sounds/winning.mp3', { volume: 0.5, soundEnabled: !isMuted });
+  const [playLosing] = useSound('/sounds/losing.mp3', { volume: 0.5, soundEnabled: !isMuted });
+  const [playDrawing] = useSound('/sounds/drawing.mp3', { volume: 0.5, soundEnabled: !isMuted });
   const [playHalloweenMusic, { stop: stopHalloweenMusic }] = useSound('/sounds/halloween.mp3', { 
     volume: 0.3, 
     loop: true, 
@@ -52,12 +56,13 @@ export default function Demo() {
   const handleStartGame = useCallback((diff: Difficulty, piece: PlayerPiece) => {
     playClick();
     stopHalloweenMusic();
+    playJingle();
     setGameState('game');
     setBoard(Array(9).fill(null));
     setIsXNext(true);
     setSelectedPiece(piece);
     setDifficulty(diff);
-  }, [playClick, stopHalloweenMusic]);
+  }, [playClick, stopHalloweenMusic, playJingle]);
 
   const getComputerMove = useCallback((currentBoard: Board): number => {
     const availableSpots = currentBoard
@@ -117,6 +122,12 @@ export default function Demo() {
     setBoard(newBoard);
     setIsXNext(false);
 
+    // Check if player won
+    if (calculateWinner(newBoard) === selectedPiece) {
+      playWinning();
+      return;
+    }
+
     // Computer's turn
     setTimeout(() => {
       if (!calculateWinner(newBoard) && !newBoard.every(square => square !== null)) {
@@ -124,9 +135,18 @@ export default function Demo() {
         newBoard[computerMove] = 'X';
         setBoard([...newBoard]);
         setIsXNext(true);
+
+        // Check if computer won
+        if (calculateWinner(newBoard) === 'X') {
+          playLosing();
+        } 
+        // Check for draw
+        else if (newBoard.every(square => square !== null)) {
+          playDrawing();
+        }
       }
     }, 500);
-  }, [board, selectedPiece, getComputerMove, isXNext]);
+  }, [board, selectedPiece, getComputerMove, isXNext, playWinning, playLosing, playDrawing]);
 
   const resetGame = useCallback(() => {
     setGameState('menu');
