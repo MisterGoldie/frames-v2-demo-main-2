@@ -68,6 +68,7 @@ export default function Demo() {
     soundEnabled: !isMuted 
   });
   const [startTime, setStartTime] = useState<number | null>(null);
+  const [isPlayingCountdown, setIsPlayingCountdown] = useState(false);
 
   // SDK initialization
   useEffect(() => {
@@ -249,7 +250,8 @@ export default function Demo() {
         const elapsedSeconds = Math.floor((currentTime - (startTime || currentTime)) / 1000);
         const newTimeLeft = Math.max(15 - elapsedSeconds, 0);
 
-        if (newTimeLeft <= 6 && newTimeLeft > 1) {
+        if (newTimeLeft <= 6 && newTimeLeft > 1 && !isPlayingCountdown) {
+          setIsPlayingCountdown(true);
           playCountdownSound();
         }
         
@@ -259,17 +261,19 @@ export default function Demo() {
           stopGameJingle();
           playLosing();
           setTimeLeft(0);
+          setIsPlayingCountdown(false);
         } else {
           setTimeLeft(newTimeLeft);
         }
-      }, 10); // Update more frequently to prevent visible pauses
+      }, 100);
 
       return () => {
         clearInterval(timerInterval);
         stopCountdownSound();
+        setIsPlayingCountdown(false);
       };
     }
-  }, [timerStarted, gameState, board, startTime, playCountdownSound, stopCountdownSound, playLosing, stopGameJingle]);
+  }, [timerStarted, gameState, board, startTime, playCountdownSound, stopCountdownSound, playLosing, stopGameJingle, isPlayingCountdown]);
 
   const getGameStatus = () => {
     if (timeLeft === 0) {
