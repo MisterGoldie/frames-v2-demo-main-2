@@ -336,47 +336,38 @@ export default function Demo() {
           )}
 
           {menuStep === 'piece' && (
-            <div className="w-full flex flex-col gap-4">
-              <Button
+            <>
+              <Button 
                 onClick={() => {
+                  playClick();
                   setSelectedPiece('scarygary');
                   setMenuStep('difficulty');
-                  playClick();
                 }}
-                className="w-full py-4 text-2xl bg-purple-600 hover:bg-purple-700"
+                className="w-full mb-2"
               >
                 Scary Gary
               </Button>
-              <Button
+              <Button 
                 onClick={() => {
+                  playClick();
                   setSelectedPiece('chili');
                   setMenuStep('difficulty');
-                  playClick();
                 }}
-                className="w-full py-4 text-2xl bg-purple-600 hover:bg-purple-700"
+                className="w-full mb-2"
               >
-                Chili Pepper
+                Chili
               </Button>
-              <Button
+              <Button 
                 onClick={() => {
+                  playClick();
                   setSelectedPiece('podplaylogo');
                   setMenuStep('difficulty');
-                  playClick();
                 }}
-                className="w-full py-4 text-2xl bg-purple-600 hover:bg-purple-700"
+                className="w-full mb-2"
               >
                 Pod Logo
               </Button>
-              <Button
-                onClick={() => {
-                  setMenuStep('game');
-                  playClick();
-                }}
-                className="w-full py-4 text-2xl bg-purple-600 hover:bg-purple-700"
-              >
-                Back
-              </Button>
-            </div>
+            </>
           )}
 
           {menuStep === 'difficulty' && (
@@ -493,4 +484,3 @@ function calculateWinner(squares: Square[]): Square {
   }
   return null;
 }
-//
