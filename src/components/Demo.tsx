@@ -65,8 +65,8 @@ export default function Demo() {
   const [timeLeft, setTimeLeft] = useState(15);
   const [timerStarted, setTimerStarted] = useState(false);
   const [playCountdownSound, { stop: stopCountdownSound }] = useSound('/sounds/countdown.mp3', { 
-    volume: 0.8,
-    soundEnabled: !isMuted,
+    volume: 0, 
+    soundEnabled: false,
     interrupt: true,
     playbackRate: 1.0,
     sprite: {
@@ -258,7 +258,7 @@ export default function Demo() {
 
         if (newTimeLeft <= 5 && newTimeLeft > 0 && !isPlayingCountdown) {
           setIsPlayingCountdown(true);
-          playCountdownSound();
+          // playCountdownSound();  // Temporarily commented out
         }
         
         if (newTimeLeft <= 0) {
