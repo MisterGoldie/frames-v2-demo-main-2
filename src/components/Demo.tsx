@@ -179,6 +179,16 @@ export default function Demo() {
     setTimeLeft(15);
   }, [stopGameJingle, stopCountdownSound]);
 
+  const handlePlayAgain = useCallback(() => {
+    playClick();
+    stopCountdownSound();
+    setBoard(Array(9).fill(null));
+    setIsXNext(true);
+    setTimeLeft(15);
+    setTimerStarted(true);
+    playGameJingle();
+  }, [playClick, stopCountdownSound, playGameJingle]);
+
   useEffect(() => {
     if (gameState === 'menu') {
       playHalloweenMusic();
@@ -379,12 +389,20 @@ export default function Demo() {
             </div>
           )}
 
-          <Button
-            onClick={resetGame}
-            className="w-3/4 py-4 text-xl bg-purple-700 hover:bg-purple-800"
-          >
-            Back to Menu
-          </Button>
+          <div className="flex justify-between w-full gap-4 mt-4">
+            <Button
+              onClick={handlePlayAgain}
+              className="w-1/2 py-4 text-xl bg-green-600 hover:bg-green-700"
+            >
+              Play Again
+            </Button>
+            <Button
+              onClick={resetGame}
+              className="w-1/2 py-4 text-xl bg-purple-700 hover:bg-purple-800"
+            >
+              Back to Menu
+            </Button>
+          </div>
         </div>
       )}
     </div>
