@@ -47,7 +47,6 @@ export default function Demo() {
   const [isMuted, setIsMuted] = useState(true);
   const [selectedPiece, setSelectedPiece] = useState<PlayerPiece>('chili');
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
-  const [playHover] = useSound('/sounds/hover.mp3', { volume: 0.5, soundEnabled: !isMuted });
   const [playClick] = useSound('/sounds/click.mp3', { volume: 0.5, soundEnabled: !isMuted });
   const [playGameJingle, { stop: stopGameJingle }] = useSound('/sounds/jingle.mp3', { 
     volume: 0.3, 
