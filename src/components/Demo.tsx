@@ -5,6 +5,7 @@ import sdk, { FrameContext } from "@farcaster/frame-sdk";
 import { Button } from "~/components/ui/Button";
 import useSound from 'use-sound';
 import Image from 'next/image';
+import Snow from './Snow';
 
 type PlayerPiece = 'scarygary' | 'chili' | 'podplaylogo';
 type Square = 'X' | PlayerPiece | null;
@@ -301,6 +302,7 @@ export default function Demo() {
 
   return (
     <div className="w-[300px] h-[600px] mx-auto flex items-start justify-center relative pt-48">
+      {gameState === 'menu' && <Snow />}
       <div 
         onClick={() => {
           setIsMuted(!isMuted);

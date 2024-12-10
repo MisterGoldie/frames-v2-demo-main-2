@@ -28,3 +28,45 @@ body {
 *::-webkit-scrollbar {
   display: none;
 }
+
+.snow-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.snow {
+  position: fixed;
+  width: 4px;
+  height: 4px;
+  background: white;
+  border-radius: 50%;
+  opacity: 0;
+  animation: snowfall linear infinite;
+}
+
+@keyframes snowfall {
+  0% {
+    transform: translateY(-100vh) translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) translateX(20px);
+    opacity: 0.3;
+  }
+}
+
+.snow:nth-child(odd) {
+  animation-duration: 8s;
+  animation-delay: calc(random() * -8s);
+}
+
+.snow:nth-child(even) {
+  animation-duration: 6s;
+  animation-delay: calc(random() * -6s);
+  left: calc(random() * 100vw);
+}
