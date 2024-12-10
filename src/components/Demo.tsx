@@ -7,7 +7,6 @@ import useSound from 'use-sound';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Line, Text } from '@react-three/drei';
 import * as THREE from 'three';
-import Image from 'next/image';
 
 type PlayerPiece = 'scarygary' | 'chili' | 'podplaylogo';
 type Square = 'X' | PlayerPiece | null;
@@ -15,24 +14,24 @@ type Board = Square[];
 type GameState = 'menu' | 'game';
 type MenuStep = 'game' | 'piece' | 'difficulty';
 type Difficulty = 'easy' | 'medium' | 'hard';
-type BoardRef = THREE.Group | null;
+type BoardRef = THREE.Group;
 
 interface Board3DProps {
   board: Square[];
   onMove: (index: number) => void;
   selectedPiece: PlayerPiece;
   difficulty: Difficulty;
-  isXNext: boolean;
+  currentPlayer: 'X' | 'O';
+  winner: Square | null;
 }
 
-function Board3D({ board, onMove, selectedPiece, difficulty, isXNext }: Board3DProps) {
+function Board3D({ board, onMove, selectedPiece, difficulty, currentPlayer, winner }: Board3DProps) {
   const boardRef = useRef<BoardRef>(null);
   const [timeLeft, setTimeLeft] = useState(15);
   const [timerStarted, setTimerStarted] = useState(false);
-  const winner = calculateWinner(board);
   const isDraw = !winner && board.every(Boolean);
 
-  useFrame((state) => {
+  useFrame(() => {
     if (boardRef.current && difficulty === 'hard') {
       const rotationSpeed = 0.01 + (board.filter(Boolean).length * 0.002);
       boardRef.current.rotation.y += rotationSpeed;
@@ -40,7 +39,7 @@ function Board3D({ board, onMove, selectedPiece, difficulty, isXNext }: Board3DP
   });
 
   useEffect(() => {
-    if (timerStarted && !winner && !isDraw) {
+    if (timerStarted && !winner && !isDraw && currentPlayer === 'O') {
       const timer = setInterval(() => {
         setTimeLeft((prevTime) => {
           if (prevTime <= 1) {
@@ -54,14 +53,7 @@ function Board3D({ board, onMove, selectedPiece, difficulty, isXNext }: Board3DP
 
       return () => clearInterval(timer);
     }
-  }, [timerStarted, winner, isDraw, onMove]);
-
-  const handleCellClick = (index: number) => {
-    if (!timerStarted) {
-      setTimerStarted(true);
-    }
-    onMove(index);
-  };
+  }, [timerStarted, winner, isDraw, onMove, currentPlayer]);
 
   return (
     <group ref={boardRef} scale={[1.1, 1.1, 1]}>
@@ -80,25 +72,21 @@ function Board3D({ board, onMove, selectedPiece, difficulty, isXNext }: Board3DP
             (1 - Math.floor(index / 3)) * 1.06,
             0
           ]}
-          onClick={() => handleCellClick(index)}
+          onClick={() => {
+            if (!timerStarted) setTimerStarted(true);
+            onMove(index);
+          }}
         >
-          <planeGeometry args={[0.95, 0.95]} />
-          <meshStandardMaterial transparent opacity={0} />
-          {value && (
-            <Text
-              position={[0, 0, 0.1]}
-              fontSize={0.5}
-              color="#ffffff"
-              anchorX="center"
-              anchorY="middle"
-            >
-              {value}
-            </Text>
-          )}
+          <boxGeometry args={[0.9, 0.9, 0.1]} />
+          <meshStandardMaterial 
+            color={value === 'X' ? '#ffd700' : value ? '#ff0000' : '#ffffff'} 
+            transparent
+            opacity={0.8}
+          />
         </mesh>
       ))}
 
-      {/* Timer */}
+      {/* Timer and status text */}
       <Text
         position={[0, 1.9, 0]}
         fontSize={0.28}
@@ -109,7 +97,6 @@ function Board3D({ board, onMove, selectedPiece, difficulty, isXNext }: Board3DP
         {timerStarted ? `Time: ${timeLeft}s` : 'Maxi goes first'}
       </Text>
 
-      {/* Game over text */}
       {(winner || isDraw || timeLeft === 0) && (
         <Text
           position={[0, 0, 1]}
@@ -358,18 +345,17 @@ export default function Demo() {
                 onMove={handleMove}
                 selectedPiece={selectedPiece}
                 difficulty={difficulty}
-                isXNext={isXNext}
+                currentPlayer={isXNext ? 'X' : 'O'}
+                winner={calculateWinner(board)}
               />
             </Canvas>
           </div>
-          <div className="mt-4 flex gap-4">
-            <button
-              onClick={resetGame}
-              className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
-            >
-              Reset Game
-            </button>
-          </div>
+          <Button
+            onClick={resetGame}
+            className="mt-4 w-3/4 py-4 text-xl bg-purple-700 hover:bg-purple-800"
+          >
+            Back to Menu
+          </Button>
         </div>
       )}
     </div>
