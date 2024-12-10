@@ -64,7 +64,7 @@ export default function Demo() {
   const [timeLeft, setTimeLeft] = useState(15);
   const [timerStarted, setTimerStarted] = useState(false);
   const [playCountdownSound, { stop: stopCountdownSound }] = useSound('/sounds/countdown.mp3', { 
-    volume: 0.5, 
+    volume: 0.8, 
     soundEnabled: !isMuted 
   });
   const [startTime, setStartTime] = useState<number | null>(null);
