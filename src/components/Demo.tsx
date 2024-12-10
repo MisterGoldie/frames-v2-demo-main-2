@@ -227,9 +227,16 @@ export default function Demo() {
   }, [gameState, playHalloweenMusic, stopHalloweenMusic]);
 
   useEffect(() => {
-    if (timerStarted && gameState === 'game' && !calculateWinner(board)) {
+    if (timerStarted && gameState === 'game') {
       const timer = setInterval(() => {
         setTimeLeft((prevTime) => {
+          // Check for winner before updating timer
+          if (calculateWinner(board)) {
+            clearInterval(timer);
+            stopCountdownSound();
+            return prevTime;
+          }
+
           if (prevTime <= 6 && prevTime > 1) {
             playCountdownSound();
           }
@@ -249,7 +256,7 @@ export default function Demo() {
         stopCountdownSound();
       };
     }
-  }, [timerStarted, gameState, playCountdownSound, stopCountdownSound, playLosing, stopGameJingle]);
+  }, [timerStarted, gameState, board, playCountdownSound, stopCountdownSound, playLosing, stopGameJingle]);
 
   const getGameStatus = () => {
     if (timeLeft === 0) {
@@ -271,38 +278,36 @@ export default function Demo() {
   }
 
   return (
-    <div className="w-[300px] h-[600px] mx-auto flex items-center justify-center relative">
+    <div className="w-[300px] h-[500px] mx-auto flex items-center justify-center relative">
       <div 
         onClick={() => {
           setIsMuted(!isMuted);
           if (isMuted) {
-            // Resume all sounds when unmuting
             if (gameState === 'menu') {
               playHalloweenMusic();
             } else if (gameState === 'game' && !calculateWinner(board) && timeLeft > 0) {
               playGameJingle();
             }
           } else {
-            // Stop all sounds when muting
             stopGameJingle();
             stopHalloweenMusic();
             stopCountdownSound();
           }
         }} 
-        className="absolute top-8 left-4 cursor-pointer text-white z-10 w-8 h-8 flex items-center justify-center hover:opacity-80 transition-opacity"
+        className="absolute top-4 left-4 cursor-pointer text-white z-10 w-8 h-8 flex items-center justify-center hover:opacity-80 transition-opacity"
       >
         {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
       </div>
 
       {gameState === 'menu' ? (
-        <div className="w-full flex flex-col items-center">
+        <div className="w-full flex flex-col items-center mt-8">
           {menuStep === 'game' && frameContext?.user?.username && (
             <div className="text-white text-xl mb-4">
               Welcome, {frameContext.user.username}! 
             </div>
           )}
           
-          <h1 className="text-3xl font-bold text-center text-white mb-8">
+          <h1 className="text-3xl font-bold text-center text-white mb-6">
             {menuStep === 'game' ? 'Select Game' :
              menuStep === 'piece' ? 'Select Piece' :
              'Choose Difficulty'}
@@ -391,7 +396,7 @@ export default function Demo() {
           )}
         </div>
       ) : (
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center mt-8">
           <div className="absolute top-4 right-4 text-white text-sm bg-purple-800 px-3 py-1 rounded-full">
             {timeLeft}s
           </div>
@@ -431,16 +436,16 @@ export default function Demo() {
             ))}
           </div>
 
-          <div className="flex justify-between w-full gap-4 mt-4">
+          <div className="flex justify-between w-full gap-4 mt-2">
             <Button
               onClick={handlePlayAgain}
-              className="w-1/2 py-4 text-xl bg-green-600 hover:bg-green-700"
+              className="w-1/2 py-3 text-xl bg-green-600 hover:bg-green-700"
             >
               Play Again
             </Button>
             <Button
               onClick={resetGame}
-              className="w-1/2 py-4 text-xl bg-purple-700 hover:bg-purple-800"
+              className="w-1/2 py-3 text-xl bg-purple-700 hover:bg-purple-800"
             >
               Back to Menu
             </Button>
