@@ -272,7 +272,7 @@ export default function Demo() {
               </Button>
               <Button 
                 onClick={() => setIsMuted(!isMuted)}
-                className="w-[45%]"
+                className={`w-[45%] ${isMuted ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
               >
                 {isMuted ? 'Unmute' : 'Mute'}
               </Button>
