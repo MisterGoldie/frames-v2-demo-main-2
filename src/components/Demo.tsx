@@ -6,7 +6,6 @@ import {
   useAccount,
   useSendTransaction,
   useSignMessage,
-  useSignTypedData,
   useWaitForTransactionReceipt,
   useDisconnect,
   useConnect,
@@ -24,7 +23,6 @@ type Board = Square[];
 
 export default function Demo({ title }: { title?: string } = { title: "Tic-tac-toe Frame" }) {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
-  const [context, setContext] = useState<FrameContext>();
   const [board, setBoard] = useState<Board>(Array(9).fill(null));
   const [isXNext, setIsXNext] = useState(true);
   
@@ -36,7 +34,7 @@ export default function Demo({ title }: { title?: string } = { title: "Tic-tac-t
 
   useEffect(() => {
     const load = async () => {
-      setContext(await sdk.context);
+      await sdk.context;
       sdk.actions.ready();
     };
     if (sdk && !isSDKLoaded) {
@@ -120,6 +118,9 @@ export default function Demo({ title }: { title?: string } = { title: "Tic-tac-t
           <>
             <div className="mb-4">
               <SignMessage />
+            </div>
+            <div className="mb-4">
+              <SendEth />
             </div>
           </>
         )}
