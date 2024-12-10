@@ -336,38 +336,47 @@ export default function Demo() {
           )}
 
           {menuStep === 'piece' && (
-            <>
-              <Button 
+            <div className="w-full flex flex-col gap-4">
+              <Button
                 onClick={() => {
-                  playClick();
                   setSelectedPiece('scarygary');
                   setMenuStep('difficulty');
+                  playClick();
                 }}
-                className="w-full mb-2"
+                className="w-full py-4 text-2xl bg-purple-600 hover:bg-purple-700"
               >
                 Scary Gary
               </Button>
-              <Button 
+              <Button
                 onClick={() => {
-                  playClick();
                   setSelectedPiece('chili');
                   setMenuStep('difficulty');
-                }}
-                className="w-full mb-2"
-              >
-                Chili
-              </Button>
-              <Button 
-                onClick={() => {
                   playClick();
+                }}
+                className="w-full py-4 text-2xl bg-purple-600 hover:bg-purple-700"
+              >
+                Chili Pepper
+              </Button>
+              <Button
+                onClick={() => {
                   setSelectedPiece('podplaylogo');
                   setMenuStep('difficulty');
+                  playClick();
                 }}
-                className="w-full mb-2"
+                className="w-full py-4 text-2xl bg-purple-600 hover:bg-purple-700"
               >
                 Pod Logo
               </Button>
-            </>
+              <Button
+                onClick={() => {
+                  setMenuStep('game');
+                  playClick();
+                }}
+                className="w-full py-4 text-2xl bg-purple-600 hover:bg-purple-700"
+              >
+                Back
+              </Button>
+            </div>
           )}
 
           {menuStep === 'difficulty' && (
