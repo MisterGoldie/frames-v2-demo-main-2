@@ -231,35 +231,48 @@ export default function Demo() {
           )}
         </div>
       ) : (
-        // Game board UI remains the same
-        <div className="mb-4">
-          <div className="text-center mb-2">
+        <div className="flex flex-col items-center">
+          <div className="text-center mb-4 text-white text-xl">
             {calculateWinner(board) 
-              ? `Winner: ${calculateWinner(board)}`
+              ? `Winner: ${calculateWinner(board) === 'X' ? 'Maxi' : selectedPiece}`
               : board.every(square => square) 
               ? "Game is a draw!" 
-              : `Next player: ${isXNext ? 'X' : 'O'}`}
+              : `Next player: ${isXNext ? 'Maxi' : selectedPiece}`}
           </div>
-          <div className="grid grid-cols-3 gap-2 mb-4">
+          
+          <div className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4">
+            <div className="absolute left-0 top-[33%] w-full h-[2px] bg-white shadow-glow" />
+            <div className="absolute left-0 top-[66%] w-full h-[2px] bg-white shadow-glow" />
+            
             {board.map((square, index) => (
               <button
                 key={index}
-                className="w-20 h-20 bg-gray-800 flex items-center justify-center text-2xl font-bold"
+                className="h-[100px] flex items-center justify-center text-2xl font-bold bg-transparent"
                 onClick={() => handleMove(index)}
               >
                 {square === 'X' ? (
-                  <span className="text-white">X</span>
+                  <img 
+                    src="/maxi.png" 
+                    alt="Maxi" 
+                    className="w-16 h-16 object-contain"
+                  />
                 ) : square ? (
                   <img 
                     src={`/${square}.png`} 
                     alt={square} 
-                    className="w-12 h-12 object-contain"
+                    className="w-16 h-16 object-contain"
                   />
                 ) : null}
               </button>
             ))}
           </div>
-          <Button onClick={resetGame}>Back to Menu</Button>
+
+          <Button
+            onClick={resetGame}
+            className="w-3/4 py-4 text-xl bg-purple-700 hover:bg-purple-800"
+          >
+            Back to Menu
+          </Button>
         </div>
       )}
     </div>
