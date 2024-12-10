@@ -1,22 +1,9 @@
 "use client";
 
 import { useEffect, useCallback, useState } from "react";
-import sdk from "@farcaster/frame-sdk";
+import sdk, { FrameContext } from "@farcaster/frame-sdk";
 import { Button } from "~/components/ui/Button";
 import useSound from 'use-sound';
-
-// Define proper FrameContext type
-interface FrameContext {
-  untrustedData: {
-    fid: number;
-    username: string;
-    displayName: string;
-    pfp: {
-      url: string;
-    };
-    custody: string;
-  };
-}
 
 type PlayerPiece = 'scarygary' | 'chili' | 'podplaylogo';
 type Square = 'X' | PlayerPiece | null;
@@ -27,7 +14,7 @@ type Difficulty = 'easy' | 'medium' | 'hard';
 
 export default function Demo() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
-  const [context, setContext] = useState<FrameContext>();
+  const [frameContext, setFrameContext] = useState<FrameContext>();
   const [gameState, setGameState] = useState<GameState>('menu');
   const [menuStep, setMenuStep] = useState<MenuStep>('game');
   const [board, setBoard] = useState<Board>(Array(9).fill(null));
@@ -45,14 +32,20 @@ export default function Demo() {
 
   // SDK initialization
   useEffect(() => {
-    const load = async () => {
-      const userContext = await sdk.context as unknown as FrameContext;
-      setContext(userContext);
-      sdk.actions.ready();
+    const loadFrameSDK = async () => {
+      try {
+        const context = await sdk.context;
+        console.log("Frame context:", context); // Debug log
+        setFrameContext(context);
+        sdk.actions.ready();
+      } catch (error) {
+        console.error("Error loading Frame SDK:", error);
+      }
     };
-    if (sdk && !isSDKLoaded) {
+
+    if (!isSDKLoaded) {
       setIsSDKLoaded(true);
-      load();
+      loadFrameSDK();
     }
   }, [isSDKLoaded]);
 
@@ -250,11 +243,11 @@ export default function Demo() {
           <div className="text-center mb-4 text-white text-xl">
             {calculateWinner(board) 
               ? `Winner: ${calculateWinner(board) === 'X' ? 'Maxi' : 
-                  context?.untrustedData ? context.untrustedData.displayName : selectedPiece}`
+                  frameContext?.user?.username || selectedPiece}`
               : board.every(square => square) 
               ? "Game is a draw!" 
               : `Next player: ${isXNext ? 'Maxi' : 
-                  context?.untrustedData ? context.untrustedData.displayName : selectedPiece}`}
+                  frameContext?.user?.username || selectedPiece}`}
           </div>
           
           <div className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4">
