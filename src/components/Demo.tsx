@@ -301,7 +301,7 @@ export default function Demo() {
   }
 
   return (
-    <div className="w-[300px] h-[600px] mx-auto flex items-start justify-center relative pt-48">
+    <div className="w-full h-[695px] flex flex-col items-center justify-center bg-black relative">
       {gameState === 'menu' && <Snow />}
       <div 
         onClick={() => {
@@ -318,104 +318,96 @@ export default function Demo() {
             stopCountdownSound();
           }
         }} 
-        className="absolute top-16 left-4 cursor-pointer text-white z-10 w-8 h-8 flex items-center justify-center hover:opacity-80 transition-opacity"
+        className="absolute top-4 left-4 cursor-pointer text-white z-10 w-8 h-8 flex items-center justify-center hover:opacity-80 transition-opacity"
       >
         {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
       </div>
+      
+      <div className="text-white text-2xl mb-4">
+        Welcome, {frameContext?.user?.username || 'Player'}!
+      </div>
+      
+      <div className="text-white text-4xl font-bold mb-8">
+        Select Game
+      </div>
+      
+      <Button 
+        onClick={() => setMenuStep('piece')}
+        className="w-full py-4 text-2xl bg-purple-600 hover:bg-purple-700"
+      >
+        Tic-Tac-Maxi
+      </Button>
 
-      {gameState === 'menu' ? (
-        <div className="w-full flex flex-col items-center">
-          {menuStep === 'game' && frameContext?.user?.username && (
-            <div className="text-white text-xl mb-4">
-              Welcome, {frameContext.user.username}! 
-            </div>
-          )}
-          
-          <h1 className="text-3xl font-bold text-center text-white mb-12">
-            {menuStep === 'game' ? 'Select Game' :
-             menuStep === 'piece' ? 'Select Piece' :
-             'Choose Difficulty'}
-          </h1>
-          
-          {menuStep === 'game' && (
-            <Button
-              onClick={() => setMenuStep('piece')}
-              className="w-full py-4 text-2xl bg-purple-600 hover:bg-purple-700"
-            >
-              Tic-Tac-Maxi
-            </Button>
-          )}
+      {menuStep === 'piece' && (
+        <>
+          <Button 
+            onClick={() => {
+              playClick();
+              setSelectedPiece('scarygary');
+              setMenuStep('difficulty');
+            }}
+            className="w-full mb-2"
+          >
+            Scary Gary
+          </Button>
+          <Button 
+            onClick={() => {
+              playClick();
+              setSelectedPiece('chili');
+              setMenuStep('difficulty');
+            }}
+            className="w-full mb-2"
+          >
+            Chili
+          </Button>
+          <Button 
+            onClick={() => {
+              playClick();
+              setSelectedPiece('podplaylogo');
+              setMenuStep('difficulty');
+            }}
+            className="w-full mb-2"
+          >
+            Pod Logo
+          </Button>
+        </>
+      )}
 
-          {menuStep === 'piece' && (
-            <>
-              <Button 
-                onClick={() => {
-                  playClick();
-                  setSelectedPiece('scarygary');
-                  setMenuStep('difficulty');
-                }}
-                className="w-full mb-2"
-              >
-                Scary Gary
-              </Button>
-              <Button 
-                onClick={() => {
-                  playClick();
-                  setSelectedPiece('chili');
-                  setMenuStep('difficulty');
-                }}
-                className="w-full mb-2"
-              >
-                Chili
-              </Button>
-              <Button 
-                onClick={() => {
-                  playClick();
-                  setSelectedPiece('podplaylogo');
-                  setMenuStep('difficulty');
-                }}
-                className="w-full mb-2"
-              >
-                Pod Logo
-              </Button>
-            </>
-          )}
+      {menuStep === 'difficulty' && (
+        <>
+          <Button 
+            onClick={() => handleStartGame('easy', selectedPiece)}
+            className="w-full mb-2"
+          >
+            Easy
+          </Button>
+          <Button 
+            onClick={() => handleStartGame('medium', selectedPiece)}
+            className="w-full mb-2"
+          >
+            Medium
+          </Button>
+          <Button 
+            onClick={() => handleStartGame('hard', selectedPiece)}
+            className="w-full mb-2"
+          >
+            Hard
+          </Button>
+        </>
+      )}
 
-          {menuStep === 'difficulty' && (
-            <>
-              <Button 
-                onClick={() => handleStartGame('easy', selectedPiece)}
-                className="w-full mb-2"
-              >
-                Easy
-              </Button>
-              <Button 
-                onClick={() => handleStartGame('medium', selectedPiece)}
-                className="w-full mb-2"
-              >
-                Medium
-              </Button>
-              <Button 
-                onClick={() => handleStartGame('hard', selectedPiece)}
-                className="w-full mb-2"
-              >
-                Hard
-              </Button>
-            </>
-          )}
-
-          {menuStep !== 'game' && (
-            <div className="flex justify-center w-full mt-4">
-              <Button 
-                onClick={() => setMenuStep(menuStep === 'difficulty' ? 'piece' : 'game')}
-                className="w-3/4"
-              >
-                Back
-              </Button>
-            </div>
-          )}
+      {menuStep !== 'game' && (
+        <div className="flex justify-center w-full mt-4">
+          <Button 
+            onClick={() => setMenuStep(menuStep === 'difficulty' ? 'piece' : 'game')}
+            className="w-3/4"
+          >
+            Back
+          </Button>
         </div>
-      ) : (
+      )}
+
+      {gameState === 'game' && (
         <div className="flex flex-col items-center -mt-20">
           <div className="absolute top-16 right-4 text-white text-sm bg-purple-800 px-3 py-1 rounded-full">
             {timeLeft}s
