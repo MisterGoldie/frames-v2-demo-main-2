@@ -4,6 +4,7 @@ import { useEffect, useCallback, useState } from "react";
 import sdk, { FrameContext } from "@farcaster/frame-sdk";
 import { Button } from "~/components/ui/Button";
 import useSound from 'use-sound';
+import Image from 'next/image';
 
 type PlayerPiece = 'scarygary' | 'chili' | 'podplaylogo';
 type Square = 'X' | PlayerPiece | null;
@@ -345,16 +346,20 @@ export default function Demo() {
                 onClick={() => handleMove(index)}
               >
                 {square === 'X' ? (
-                  <img 
+                  <Image 
                     src="/maxi.png" 
                     alt="Maxi" 
-                    className="w-16 h-16 object-contain"
+                    width={64}
+                    height={64}
+                    className="object-contain"
                   />
                 ) : square ? (
-                  <img 
+                  <Image 
                     src={`/${square}.png`} 
                     alt={square} 
-                    className="w-16 h-16 object-contain"
+                    width={64}
+                    height={64}
+                    className="object-contain"
                   />
                 ) : null}
               </button>
@@ -362,10 +367,8 @@ export default function Demo() {
           </div>
 
           {timeLeft === 0 && !calculateWinner(board) && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
-              <div className="text-white text-2xl font-bold">
-                Time's up! Maxi wins!
-              </div>
+            <div className="text-white text-2xl font-bold">
+              Time&apos;s up! Maxi wins!
             </div>
           )}
 
