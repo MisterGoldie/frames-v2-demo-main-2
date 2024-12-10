@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import sdk from "@farcaster/frame-sdk";
 import { Button } from "~/components/ui/Button";
 import useSound from 'use-sound';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Line, Text } from '@react-three/drei';
+import * as THREE from 'three';
 
 type PlayerPiece = 'scarygary' | 'chili' | 'podplaylogo';
 type Square = 'X' | PlayerPiece | null;
@@ -11,6 +14,74 @@ type Board = Square[];
 type GameState = 'menu' | 'game';
 type MenuStep = 'game' | 'piece' | 'difficulty';
 type Difficulty = 'easy' | 'medium' | 'hard';
+type BoardRef = THREE.Group | null;
+
+interface Board3DProps {
+  board: Square[];
+  onMove: (index: number) => void;
+  selectedPiece: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  isXNext: boolean;
+}
+
+function Board3D({ board, onMove, selectedPiece, difficulty, isXNext }: Board3DProps) {
+  const boardRef = useRef<BoardRef>(null);
+  const [timeLeft, setTimeLeft] = useState(15);
+  const [timerStarted, setTimerStarted] = useState(false);
+  const winner = calculateWinner(board);
+  const isDraw = !winner && board.every(Boolean);
+
+  // Spinning animation for hard mode
+  useFrame((state) => {
+    if (boardRef.current && difficulty === 'hard') {
+      const rotationSpeed = 0.01 + (board.filter(Boolean).length * 0.002);
+      boardRef.current.rotation.y += rotationSpeed;
+    }
+  });
+
+  // Timer logic
+  useEffect(() => {
+    if (timerStarted && !winner && !isDraw) {
+      const timer = setInterval(() => {
+        setTimeLeft((prevTime) => {
+          if (prevTime <= 1) {
+            clearInterval(timer);
+            // Handle time's up
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [timerStarted, winner, isDraw]);
+
+  const handleCellClick = (index: number) => {
+    if (!timerStarted) {
+      setTimerStarted(true);
+    }
+    onMove(index);
+  };
+
+  return (
+    <group ref={boardRef} scale={[1.1, 1.1, 1]}>
+      {/* Grid lines */}
+      <Line points={[-1.6, -0.53, 0, 1.6, -0.53, 0]} color="#ffffff" lineWidth={7} />
+      <Line points={[-1.6, 0.53, 0, 1.6, 0.53, 0]} color="#ffffff" lineWidth={7} />
+      <Line points={[-0.53, -1.6, 0, -0.53, 1.6, 0]} color="#ffffff" lineWidth={7} />
+      <Line points={[0.53, -1.6, 0, 0.53, 1.6, 0]} color="#ffffff" lineWidth={7} />
+
+      {/* Board cells */}
+      {board.map((value, index) => (
+        <mesh key={index} position={[index % 3 - 1, Math.floor(index / 3) - 1, 0]}>
+          <boxGeometry args={[0.9, 0.9, 0.1]} />
+          <meshStandardMaterial color={value === 'X' ? '#ffd700' : value ? '#ff0000' : '#ffffff'} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
 
 export default function Demo() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
@@ -157,7 +228,7 @@ export default function Demo() {
               onMouseEnter={() => playHover()}
               className="w-3/4 py-4 text-xl mb-4 bg-purple-700 hover:bg-purple-800"
             >
-              Tic-Tac-Toe
+              Tic-Tac-Maxi
             </Button>
           )}
 
