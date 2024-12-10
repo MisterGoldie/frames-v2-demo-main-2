@@ -154,7 +154,8 @@ export default function Demo() {
   }, [difficulty, selectedPiece]);
 
   const handleMove = useCallback((index: number) => {
-    if (board[index] || calculateWinner(board) || !isXNext) return;
+    // Prevent any moves if timer has run out
+    if (timeLeft === 0 || board[index] || calculateWinner(board) || !isXNext) return;
     
     playClick();
     const newBoard = board.slice();
@@ -172,6 +173,9 @@ export default function Demo() {
 
     // Computer's turn
     setTimeout(() => {
+      // Double check timer hasn't run out during timeout
+      if (timeLeft === 0) return;
+      
       if (!calculateWinner(newBoard) && !newBoard.every(square => square !== null)) {
         const computerMove = getComputerMove(newBoard);
         newBoard[computerMove] = 'X';
@@ -192,7 +196,7 @@ export default function Demo() {
         }
       }
     }, 500);
-  }, [board, selectedPiece, getComputerMove, isXNext, playClick, playWinning, playLosing, playDrawing, stopGameJingle, stopCountdownSound]);
+  }, [board, selectedPiece, getComputerMove, isXNext, timeLeft, playClick, playWinning, playLosing, playDrawing, stopGameJingle, stopCountdownSound]);
 
   const resetGame = useCallback(() => {
     stopGameJingle();
@@ -223,7 +227,7 @@ export default function Demo() {
   }, [gameState, playHalloweenMusic, stopHalloweenMusic]);
 
   useEffect(() => {
-    if (timerStarted && gameState === 'game' && !calculateWinner(board) && !board.every(square => square !== null)) {
+    if (timerStarted && gameState === 'game') {
       const timer = setInterval(() => {
         setTimeLeft((prevTime) => {
           if (prevTime <= 6 && prevTime > 1) {
@@ -232,15 +236,8 @@ export default function Demo() {
           if (prevTime <= 1) {
             clearInterval(timer);
             stopCountdownSound();
+            stopGameJingle();
             playLosing();
-            setBoard(prevBoard => {
-              const newBoard = [...prevBoard];
-              const emptySpot = newBoard.findIndex(spot => spot === null);
-              if (emptySpot !== -1) {
-                newBoard[emptySpot] = 'X';
-              }
-              return newBoard;
-            });
             return 0;
           }
           return prevTime - 1;
@@ -252,7 +249,22 @@ export default function Demo() {
         stopCountdownSound();
       };
     }
-  }, [timerStarted, gameState, board, playCountdownSound, stopCountdownSound, playLosing]);
+  }, [timerStarted, gameState, playCountdownSound, stopCountdownSound, playLosing, stopGameJingle]);
+
+  const getGameStatus = () => {
+    if (timeLeft === 0) {
+      return "Time's up! Maxi wins!";
+    }
+    if (calculateWinner(board)) {
+      return `Winner: ${calculateWinner(board) === 'X' ? 'Maxi' : 
+        frameContext?.user?.username || selectedPiece}`;
+    }
+    if (board.every(square => square)) {
+      return "Game is a draw!";
+    }
+    return `Next player: ${isXNext ? 'Maxi' : 
+      frameContext?.user?.username || selectedPiece}`;
+  };
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
@@ -261,8 +273,18 @@ export default function Demo() {
   return (
     <div className="w-[300px] h-[600px] mx-auto flex items-center justify-center relative">
       <div 
-        onClick={() => setIsMuted(!isMuted)} 
-        className="absolute top-6 left-4 cursor-pointer text-white z-10 w-8 h-8 flex items-center justify-center"
+        onClick={() => {
+          setIsMuted(!isMuted);
+          if (isMuted) {
+            // Resume all sounds when unmuting
+            playGameJingle();
+          } else {
+            // Stop all sounds when muting
+            stopGameJingle();
+            stopCountdownSound();
+          }
+        }} 
+        className="absolute top-6 left-4 cursor-pointer text-white z-10 w-8 h-8 flex items-center justify-center hover:opacity-80 transition-opacity"
       >
         {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
       </div>
@@ -370,13 +392,7 @@ export default function Demo() {
           </div>
           
           <div className="text-center mb-4 text-white text-xl">
-            {calculateWinner(board) 
-              ? `Winner: ${calculateWinner(board) === 'X' ? 'Maxi' : 
-                  frameContext?.user?.username || selectedPiece}`
-              : board.every(square => square) 
-              ? "Game is a draw!" 
-              : `Next player: ${isXNext ? 'Maxi' : 
-                  frameContext?.user?.username || selectedPiece}`}
+            {getGameStatus()}
           </div>
           
           <div className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4">
@@ -409,12 +425,6 @@ export default function Demo() {
               </button>
             ))}
           </div>
-
-          {timeLeft === 0 && !calculateWinner(board) && (
-            <div className="text-white text-2xl font-bold">
-              Time&apos;s up! Maxi wins!
-            </div>
-          )}
 
           <div className="flex justify-between w-full gap-4 mt-4">
             <Button
