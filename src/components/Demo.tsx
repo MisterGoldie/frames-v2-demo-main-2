@@ -250,7 +250,7 @@ export default function Demo() {
         const elapsedSeconds = Math.floor((currentTime - (startTime || currentTime)) / 1000);
         const newTimeLeft = Math.max(15 - elapsedSeconds, 0);
 
-        if (newTimeLeft <= 6 && newTimeLeft > 1 && !isPlayingCountdown) {
+        if (newTimeLeft <= 5 && newTimeLeft > 0 && !isPlayingCountdown) {
           setIsPlayingCountdown(true);
           playCountdownSound();
         }
