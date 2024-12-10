@@ -234,11 +234,17 @@ export default function Demo() {
           )}
 
           {menuStep !== 'game' && (
-            <div className="flex justify-between mt-4">
-              <Button onClick={() => setMenuStep(menuStep === 'difficulty' ? 'piece' : 'game')}>
+            <div className="flex justify-between w-full mt-4">
+              <Button 
+                onClick={() => setMenuStep(menuStep === 'difficulty' ? 'piece' : 'game')}
+                className="w-[45%]"
+              >
                 Back
               </Button>
-              <Button onClick={() => setIsMuted(!isMuted)}>
+              <Button 
+                onClick={() => setIsMuted(!isMuted)}
+                className="w-[45%]"
+              >
                 {isMuted ? 'Unmute' : 'Mute'}
               </Button>
             </div>
