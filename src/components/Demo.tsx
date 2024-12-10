@@ -37,6 +37,9 @@ export default function Demo() {
     loop: true, 
     soundEnabled: !isMuted 
   });
+  const [timeLeft, setTimeLeft] = useState(15);
+  const [timerStarted, setTimerStarted] = useState(false);
+  const [playCountdownSound] = useSound('/sounds/countdown.mp3', { volume: 0.5, soundEnabled: !isMuted });
 
   // SDK initialization
   useEffect(() => {
@@ -126,6 +129,8 @@ export default function Demo() {
     newBoard[index] = selectedPiece;
     setBoard(newBoard);
     setIsXNext(false);
+    setTimeLeft(15);
+    setTimerStarted(true);
 
     // Check if player won
     if (calculateWinner(newBoard) === selectedPiece) {
@@ -170,6 +175,38 @@ export default function Demo() {
       return () => stopHalloweenMusic();
     }
   }, [gameState, playHalloweenMusic, stopHalloweenMusic]);
+
+  useEffect(() => {
+    if (timerStarted && gameState === 'game' && isXNext) {
+      const timer = setInterval(() => {
+        setTimeLeft((prevTime) => {
+          if (prevTime <= 6 && prevTime > 1) {
+            playCountdownSound();
+          }
+          if (prevTime <= 1) {
+            clearInterval(timer);
+            // Handle time running out
+            playLosing();
+            setBoard(prevBoard => {
+              const newBoard = [...prevBoard];
+              // Find first empty spot and mark it as X's win
+              const emptySpot = newBoard.findIndex(spot => spot === null);
+              if (emptySpot !== -1) {
+                newBoard[emptySpot] = 'X';
+              }
+              return newBoard;
+            });
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+
+      return () => {
+        clearInterval(timer);
+      };
+    }
+  }, [timerStarted, gameState, isXNext, playCountdownSound, playLosing]);
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
@@ -287,8 +324,9 @@ export default function Demo() {
                   frameContext?.user?.username || selectedPiece}`
               : board.every(square => square) 
               ? "Game is a draw!" 
-              : `Next player: ${isXNext ? 'Maxi' : 
-                  frameContext?.user?.username || selectedPiece}`}
+              : timeLeft > 0 
+              ? `Time left: ${timeLeft}s`
+              : "Time's up! Maxi wins!"}
           </div>
           
           <div className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4">
