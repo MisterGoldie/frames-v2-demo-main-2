@@ -49,7 +49,7 @@ export default function Demo() {
     setIsXNext(true);
     setSelectedPiece(piece);
     setDifficulty(diff);
-  }, [playClick, stopHalloweenMusic, isXNext]);
+  }, [playClick, stopHalloweenMusic]);
 
   const getComputerMove = useCallback((currentBoard: Board): number => {
     const availableSpots = currentBoard
@@ -117,8 +117,8 @@ export default function Demo() {
         setBoard(newBoard);
         setIsXNext(false);
       }
-    }, 500); // Half second delay for computer's move
-  }, [board, selectedPiece, getComputerMove]);
+    }, 500);
+  }, [board, selectedPiece, getComputerMove, isXNext]);
 
   const resetGame = useCallback(() => {
     setGameState('menu');
