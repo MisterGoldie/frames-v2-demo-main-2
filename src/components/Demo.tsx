@@ -149,7 +149,13 @@ export default function Demo() {
   return (
     <div className="w-[300px] h-[600px] mx-auto flex items-center justify-center">
       {gameState === 'menu' ? (
-        <div className="w-full h-[300px] bg-purple-600 rounded-lg p-6 flex flex-col items-center justify-center">
+        <div className="w-full flex flex-col items-center">
+          {menuStep === 'game' && frameContext?.user?.username && (
+            <div className="text-white text-xl mb-4">
+              Welcome, {frameContext.user.username}! 
+            </div>
+          )}
+          
           <h1 className="text-3xl font-bold text-center text-white mb-8">
             {menuStep === 'game' ? 'Select Game' :
              menuStep === 'piece' ? 'Select Piece' :
