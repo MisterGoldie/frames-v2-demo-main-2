@@ -67,6 +67,7 @@ export default function Demo() {
     volume: 0.5, 
     soundEnabled: !isMuted 
   });
+  const [startTime, setStartTime] = useState<number | null>(null);
 
   // SDK initialization
   useEffect(() => {
@@ -208,25 +209,27 @@ export default function Demo() {
   ]);
 
   const resetGame = useCallback(() => {
-    stopGameJingle();
-    stopCountdownSound();
     setGameState('menu');
     setMenuStep('game');
     setBoard(Array(9).fill(null));
     setIsXNext(true);
-    setTimerStarted(false);
     setTimeLeft(15);
-  }, [stopGameJingle, stopCountdownSound]);
+    setTimerStarted(false);
+    setStartTime(null);
+    stopCountdownSound();
+    stopGameJingle();
+    playHalloweenMusic();
+  }, [stopCountdownSound, stopGameJingle, playHalloweenMusic]);
 
   const handlePlayAgain = useCallback(() => {
-    playClick();
-    stopCountdownSound();
     setBoard(Array(9).fill(null));
     setIsXNext(true);
     setTimeLeft(15);
-    setTimerStarted(true);
+    setTimerStarted(false);
+    setStartTime(null);
+    stopCountdownSound();
     playGameJingle();
-  }, [playClick, stopCountdownSound, playGameJingle]);
+  }, [stopCountdownSound, playGameJingle]);
 
   useEffect(() => {
     if (gameState === 'menu') {
@@ -237,28 +240,36 @@ export default function Demo() {
 
   useEffect(() => {
     if (timerStarted && gameState === 'game' && !calculateWinner(board)) {
-      const timer = setInterval(() => {
-        setTimeLeft(prevTime => {
-          if (prevTime <= 6 && prevTime > 1) {
-            playCountdownSound();
-          }
-          if (prevTime <= 1) {
-            clearInterval(timer);
-            stopCountdownSound();
-            stopGameJingle();
-            playLosing();
-            return 0;
-          }
-          return prevTime - 1;
-        });
-      }, 1000);
+      if (!startTime) {
+        setStartTime(Date.now());
+      }
+
+      const timerInterval = setInterval(() => {
+        const currentTime = Date.now();
+        const elapsedSeconds = Math.floor((currentTime - (startTime || currentTime)) / 1000);
+        const newTimeLeft = Math.max(15 - elapsedSeconds, 0);
+
+        if (newTimeLeft <= 6 && newTimeLeft > 1) {
+          playCountdownSound();
+        }
+        
+        if (newTimeLeft <= 0) {
+          clearInterval(timerInterval);
+          stopCountdownSound();
+          stopGameJingle();
+          playLosing();
+          setTimeLeft(0);
+        } else {
+          setTimeLeft(newTimeLeft);
+        }
+      }, 10); // Update more frequently to prevent visible pauses
 
       return () => {
-        clearInterval(timer);
+        clearInterval(timerInterval);
         stopCountdownSound();
       };
     }
-  }, [timerStarted, gameState, board, playCountdownSound, stopCountdownSound, playLosing, stopGameJingle]);
+  }, [timerStarted, gameState, board, startTime, playCountdownSound, stopCountdownSound, playLosing, stopGameJingle]);
 
   const getGameStatus = () => {
     if (timeLeft === 0) {
