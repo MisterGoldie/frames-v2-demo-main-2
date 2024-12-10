@@ -312,15 +312,11 @@ export default function Demo() {
           </h1>
           
           {menuStep === 'game' && (
-            <Button 
-              onClick={() => {
-                playClick();
-                setMenuStep('piece');
-              }}
-              onMouseEnter={() => playHover()}
-              className="w-3/4 py-4 text-xl mb-4 bg-purple-700 hover:bg-purple-800"
+            <Button
+              onClick={() => setMenuStep('piece')}
+              className="w-full py-4 text-2xl bg-purple-600 hover:bg-purple-700"
             >
-              Tic-Tac-Toe
+              Tic-Tac-Maxi
             </Button>
           )}
 
