@@ -13,7 +13,7 @@ const frame = {
       name: "Farcaster Frames v2 Demo",
       url: appUrl,
       splashImageUrl: `${appUrl}/splash.png`,
-      splashBackgroundColor: "#f7f7f7",
+      splashBackgroundColor: "#9d00ff",
     },
   },
 };
