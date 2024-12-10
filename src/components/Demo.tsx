@@ -40,7 +40,10 @@ export default function Demo() {
   });
   const [timeLeft, setTimeLeft] = useState(15);
   const [timerStarted, setTimerStarted] = useState(false);
-  const [playCountdownSound] = useSound('/sounds/countdown.mp3', { volume: 0.5, soundEnabled: !isMuted });
+  const [playCountdownSound, { stop: stopCountdownSound }] = useSound('/sounds/countdown.mp3', { 
+    volume: 0.5, 
+    soundEnabled: !isMuted 
+  });
 
   // SDK initialization
   useEffect(() => {
@@ -136,6 +139,7 @@ export default function Demo() {
     // Check if player won
     if (calculateWinner(newBoard) === selectedPiece) {
       stopGameJingle();
+      stopCountdownSound();
       playWinning();
       return;
     }
@@ -151,26 +155,29 @@ export default function Demo() {
         // Check if computer won
         if (calculateWinner(newBoard) === 'X') {
           stopGameJingle();
+          stopCountdownSound();
           playLosing();
         } 
         // Check for draw
         else if (newBoard.every(square => square !== null)) {
           stopGameJingle();
+          stopCountdownSound();
           playDrawing();
         }
       }
     }, 500);
-  }, [board, selectedPiece, getComputerMove, isXNext, playClick, playWinning, playLosing, playDrawing, stopGameJingle]);
+  }, [board, selectedPiece, getComputerMove, isXNext, playClick, playWinning, playLosing, playDrawing, stopGameJingle, stopCountdownSound]);
 
   const resetGame = useCallback(() => {
     stopGameJingle();
+    stopCountdownSound();
     setGameState('menu');
     setMenuStep('game');
     setBoard(Array(9).fill(null));
     setIsXNext(true);
     setTimerStarted(false);
     setTimeLeft(15);
-  }, [stopGameJingle]);
+  }, [stopGameJingle, stopCountdownSound]);
 
   useEffect(() => {
     if (gameState === 'menu') {
@@ -188,11 +195,10 @@ export default function Demo() {
           }
           if (prevTime <= 1) {
             clearInterval(timer);
-            // Handle time running out
+            stopCountdownSound();
             playLosing();
             setBoard(prevBoard => {
               const newBoard = [...prevBoard];
-              // Find first empty spot and mark it as X's win
               const emptySpot = newBoard.findIndex(spot => spot === null);
               if (emptySpot !== -1) {
                 newBoard[emptySpot] = 'X';
@@ -207,9 +213,10 @@ export default function Demo() {
 
       return () => {
         clearInterval(timer);
+        stopCountdownSound();
       };
     }
-  }, [timerStarted, gameState, isXNext, playCountdownSound, playLosing]);
+  }, [timerStarted, gameState, isXNext, playCountdownSound, stopCountdownSound, playLosing]);
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
