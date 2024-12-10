@@ -24,7 +24,11 @@ export default function Demo() {
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [playHover] = useSound('/sounds/hover.mp3', { volume: 0.5, soundEnabled: !isMuted });
   const [playClick] = useSound('/sounds/click.mp3', { volume: 0.5, soundEnabled: !isMuted });
-  const [playJingle] = useSound('/sounds/jingle.mp3', { volume: 0.5, soundEnabled: !isMuted });
+  const [playGameJingle, { stop: stopGameJingle }] = useSound('/sounds/jingle.mp3', { 
+    volume: 0.3, 
+    loop: true, 
+    soundEnabled: !isMuted 
+  });
   const [playWinning] = useSound('/sounds/winning.mp3', { volume: 0.5, soundEnabled: !isMuted });
   const [playLosing] = useSound('/sounds/losing.mp3', { volume: 0.5, soundEnabled: !isMuted });
   const [playDrawing] = useSound('/sounds/drawing.mp3', { volume: 0.5, soundEnabled: !isMuted });
@@ -56,13 +60,13 @@ export default function Demo() {
   const handleStartGame = useCallback((diff: Difficulty, piece: PlayerPiece) => {
     playClick();
     stopHalloweenMusic();
-    playJingle();
+    playGameJingle();
     setGameState('game');
     setBoard(Array(9).fill(null));
     setIsXNext(true);
     setSelectedPiece(piece);
     setDifficulty(diff);
-  }, [playClick, stopHalloweenMusic, playJingle]);
+  }, [playClick, stopHalloweenMusic, playGameJingle]);
 
   const getComputerMove = useCallback((currentBoard: Board): number => {
     const availableSpots = currentBoard
@@ -117,6 +121,7 @@ export default function Demo() {
   const handleMove = useCallback((index: number) => {
     if (board[index] || calculateWinner(board) || !isXNext) return;
     
+    playClick();
     const newBoard = board.slice();
     newBoard[index] = selectedPiece;
     setBoard(newBoard);
@@ -124,6 +129,7 @@ export default function Demo() {
 
     // Check if player won
     if (calculateWinner(newBoard) === selectedPiece) {
+      stopGameJingle();
       playWinning();
       return;
     }
@@ -138,22 +144,25 @@ export default function Demo() {
 
         // Check if computer won
         if (calculateWinner(newBoard) === 'X') {
+          stopGameJingle();
           playLosing();
         } 
         // Check for draw
         else if (newBoard.every(square => square !== null)) {
+          stopGameJingle();
           playDrawing();
         }
       }
     }, 500);
-  }, [board, selectedPiece, getComputerMove, isXNext, playWinning, playLosing, playDrawing]);
+  }, [board, selectedPiece, getComputerMove, isXNext, playClick, playWinning, playLosing, playDrawing, stopGameJingle]);
 
   const resetGame = useCallback(() => {
+    stopGameJingle();
     setGameState('menu');
     setMenuStep('game');
     setBoard(Array(9).fill(null));
     setIsXNext(true);
-  }, []);
+  }, [stopGameJingle]);
 
   useEffect(() => {
     if (gameState === 'menu') {
