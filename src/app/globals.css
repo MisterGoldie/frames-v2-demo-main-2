@@ -44,7 +44,7 @@ body {
   color: white;
   opacity: 0.8;
   animation: snowfall linear infinite;
-  font-size: 20px;
+  font-size: 22px;
 }
 
 .snow::after {
@@ -72,12 +72,12 @@ body {
 
 /* Even slower animation durations */
 .snow:nth-child(odd) {
-  animation-duration: 15s;
-  animation-delay: calc(random() * -15s);
+  animation-duration: 20s;
+  animation-delay: calc(random() * -20s);
 }
 
 .snow:nth-child(even) {
-  animation-duration: 12s;
-  animation-delay: calc(random() * -12s);
+  animation-duration: 16s;
+  animation-delay: calc(random() * -16s);
   left: calc(random() * 100vw);
 }
