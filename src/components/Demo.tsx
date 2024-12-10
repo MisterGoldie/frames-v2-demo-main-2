@@ -245,7 +245,14 @@ export default function Demo() {
   }
 
   return (
-    <div className="w-[300px] h-[600px] mx-auto flex items-center justify-center">
+    <div className="w-[300px] h-[600px] mx-auto flex items-center justify-center relative">
+      <div 
+        onClick={() => setIsMuted(!isMuted)} 
+        className="absolute top-4 left-4 cursor-pointer text-white z-10"
+      >
+        {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
+      </div>
+
       {gameState === 'menu' ? (
         <div className="w-full flex flex-col items-center">
           {menuStep === 'game' && frameContext?.user?.username && (
