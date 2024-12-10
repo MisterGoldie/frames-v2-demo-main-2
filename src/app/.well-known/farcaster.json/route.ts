@@ -14,7 +14,7 @@ export async function GET() {
       name: "Frames v2 Demo",
       iconUrl: `${appUrl}/icon.png`,
       splashImageUrl: `${appUrl}/splash.png`,
-      splashBackgroundColor: "#f7f7f7",
+      splashBackgroundColor: "#7e22ce",
       homeUrl: appUrl,
       webhookUrl: `${appUrl}/api/webhook`,
     },
