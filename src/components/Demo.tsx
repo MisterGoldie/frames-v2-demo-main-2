@@ -5,10 +5,12 @@ import sdk from "@farcaster/frame-sdk";
 import { Button } from "~/components/ui/Button";
 import useSound from 'use-sound';
 
-type Square = 'X' | 'O' | null;
+type PlayerPiece = 'scarygary' | 'chili' | 'podplaylogo';
+type Square = 'X' | PlayerPiece | null;
 type Board = Square[];
 type GameState = 'menu' | 'game';
 type MenuStep = 'game' | 'piece' | 'difficulty';
+type Difficulty = 'easy' | 'medium' | 'hard';
 
 export default function Demo({ title }: { title?: string } = { title: "Tic-tac-toe Frame" }) {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
@@ -17,7 +19,8 @@ export default function Demo({ title }: { title?: string } = { title: "Tic-tac-t
   const [board, setBoard] = useState<Board>(Array(9).fill(null));
   const [isXNext, setIsXNext] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
-  const [selectedPiece, setSelectedPiece] = useState<'X' | 'O'>('X');
+  const [selectedPiece, setSelectedPiece] = useState<PlayerPiece>('chili');
+  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [playHover] = useSound('/sounds/hover.mp3', { volume: 0.5, soundEnabled: !isMuted });
   const [playClick] = useSound('/sounds/click.mp3', { volume: 0.5, soundEnabled: !isMuted });
   const [playHalloweenMusic, { stop: stopHalloweenMusic }] = useSound('/sounds/halloween.mp3', { 
@@ -38,24 +41,84 @@ export default function Demo({ title }: { title?: string } = { title: "Tic-tac-t
     }
   }, [isSDKLoaded]);
 
-  const handleStartGame = useCallback((difficulty: string, piece: string) => {
+  const handleStartGame = useCallback((diff: Difficulty, piece: PlayerPiece) => {
     playClick();
     stopHalloweenMusic();
     setGameState('game');
     setBoard(Array(9).fill(null));
     setIsXNext(true);
-    setSelectedPiece(piece === 'X' ? 'X' : 'O');
+    setSelectedPiece(piece);
+    setDifficulty(diff);
   }, [playClick, stopHalloweenMusic]);
 
-  // Game logic remains the same
+  const getComputerMove = useCallback((currentBoard: Board): number => {
+    const availableSpots = currentBoard
+      .map((spot, index) => spot === null ? index : null)
+      .filter((spot): spot is number => spot !== null);
+
+    if (difficulty === 'easy') {
+      // Random move
+      return availableSpots[Math.floor(Math.random() * availableSpots.length)];
+    }
+
+    if (difficulty === 'hard') {
+      // Try to win
+      for (const spot of availableSpots) {
+        const boardCopy = [...currentBoard];
+        boardCopy[spot] = 'X';
+        if (calculateWinner(boardCopy) === 'X') {
+          return spot;
+        }
+      }
+
+      // Block player from winning
+      for (const spot of availableSpots) {
+        const boardCopy = [...currentBoard];
+        boardCopy[spot] = selectedPiece;
+        if (calculateWinner(boardCopy) === selectedPiece) {
+          return spot;
+        }
+      }
+    }
+
+    // Medium difficulty or fallback
+    // Mix of random moves and blocking
+    if (Math.random() > 0.5) {
+      // Try blocking
+      for (const spot of availableSpots) {
+        const boardCopy = [...currentBoard];
+        boardCopy[spot] = selectedPiece;
+        if (calculateWinner(boardCopy) === selectedPiece) {
+          return spot;
+        }
+      }
+    }
+
+    // Take center if available
+    if (availableSpots.includes(4)) return 4;
+    
+    // Random move
+    return availableSpots[Math.floor(Math.random() * availableSpots.length)];
+  }, [difficulty, selectedPiece]);
+
   const handleMove = useCallback((index: number) => {
-    if (board[index] || calculateWinner(board)) return;
+    if (board[index] || calculateWinner(board) || !isXNext) return;
     
     const newBoard = board.slice();
-    newBoard[index] = isXNext ? 'X' : 'O';
+    newBoard[index] = selectedPiece;
     setBoard(newBoard);
-    setIsXNext(!isXNext);
-  }, [board, isXNext]);
+    setIsXNext(true);
+
+    // Computer's turn
+    setTimeout(() => {
+      if (!calculateWinner(newBoard) && !newBoard.every(square => square !== null)) {
+        const computerMove = getComputerMove(newBoard);
+        newBoard[computerMove] = 'X';
+        setBoard(newBoard);
+        setIsXNext(false);
+      }
+    }, 500); // Half second delay for computer's move
+  }, [board, selectedPiece, getComputerMove]);
 
   const resetGame = useCallback(() => {
     setGameState('menu');
@@ -76,11 +139,13 @@ export default function Demo({ title }: { title?: string } = { title: "Tic-tac-t
   }
 
   return (
-    <div className="w-[300px] mx-auto py-4 px-2">
+    <div className="w-[300px] h-[600px] mx-auto flex items-center justify-center">
       {gameState === 'menu' ? (
-        <div className="w-full bg-purple-600 rounded-lg p-4">
-          <h1 className="text-2xl font-bold text-center text-white mb-4">
-            {title}
+        <div className="w-full h-[300px] bg-purple-600 rounded-lg p-6 flex flex-col items-center justify-center">
+          <h1 className="text-3xl font-bold text-center text-white mb-8">
+            {menuStep === 'game' ? 'Select Game' :
+             menuStep === 'piece' ? 'Select Piece' :
+             'Choose Difficulty'}
           </h1>
           
           {menuStep === 'game' && (
@@ -89,8 +154,7 @@ export default function Demo({ title }: { title?: string } = { title: "Tic-tac-t
                 playClick();
                 setMenuStep('piece');
               }}
-              onMouseEnter={() => playHover()}
-              className="w-full mb-2"
+              className="w-3/4 py-4 text-xl mb-4 bg-purple-700 hover:bg-purple-800"
             >
               Tic-Tac-Toe
             </Button>
@@ -100,21 +164,33 @@ export default function Demo({ title }: { title?: string } = { title: "Tic-tac-t
             <>
               <Button 
                 onClick={() => {
-                  setSelectedPiece('X');
+                  playClick();
+                  setSelectedPiece('scarygary');
                   setMenuStep('difficulty');
                 }}
                 className="w-full mb-2"
               >
-                X
+                Scary Gary
               </Button>
               <Button 
                 onClick={() => {
-                  setSelectedPiece('O');
+                  playClick();
+                  setSelectedPiece('chili');
                   setMenuStep('difficulty');
                 }}
                 className="w-full mb-2"
               >
-                O
+                Chili
+              </Button>
+              <Button 
+                onClick={() => {
+                  playClick();
+                  setSelectedPiece('podplaylogo');
+                  setMenuStep('difficulty');
+                }}
+                className="w-full mb-2"
+              >
+                Pod Logo
               </Button>
             </>
           )}
