@@ -41,32 +41,30 @@ body {
 
 .snow {
   position: fixed;
-  width: 4px;
-  height: 4px;
-  background: white;
-  border-radius: 50%;
-  opacity: 0;
+  color: white;
+  opacity: 0.8;
   animation: snowfall linear infinite;
+}
+
+.snow::after {
+  content: "❄";
+}
+
+.snow-1::after {
+  content: "❅";
+}
+
+.snow-2::after {
+  content: "❆";
 }
 
 @keyframes snowfall {
   0% {
-    transform: translateY(-100vh) translateX(0);
+    transform: translateY(-100vh) translateX(-10px) rotate(0deg);
     opacity: 1;
   }
   100% {
-    transform: translateY(100vh) translateX(20px);
+    transform: translateY(100vh) translateX(10px) rotate(360deg);
     opacity: 0.3;
   }
-}
-
-.snow:nth-child(odd) {
-  animation-duration: 8s;
-  animation-delay: calc(random() * -8s);
-}
-
-.snow:nth-child(even) {
-  animation-duration: 6s;
-  animation-delay: calc(random() * -6s);
-  left: calc(random() * 100vw);
 }
