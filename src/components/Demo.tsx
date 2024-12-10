@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useState, useMemo } from "react";
+import { useEffect, useCallback, useState } from "react";
 import sdk from "@farcaster/frame-sdk";
 import { Button } from "~/components/ui/Button";
 import useSound from 'use-sound';
