@@ -7,6 +7,7 @@ import useSound from 'use-sound';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Line, Text } from '@react-three/drei';
 import * as THREE from 'three';
+import Image from 'next/image';
 
 type PlayerPiece = 'scarygary' | 'chili' | 'podplaylogo';
 type Square = 'X' | PlayerPiece | null;
@@ -19,8 +20,8 @@ type BoardRef = THREE.Group | null;
 interface Board3DProps {
   board: Square[];
   onMove: (index: number) => void;
-  selectedPiece: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  selectedPiece: PlayerPiece;
+  difficulty: Difficulty;
   isXNext: boolean;
 }
 
@@ -31,7 +32,6 @@ function Board3D({ board, onMove, selectedPiece, difficulty, isXNext }: Board3DP
   const winner = calculateWinner(board);
   const isDraw = !winner && board.every(Boolean);
 
-  // Spinning animation for hard mode
   useFrame((state) => {
     if (boardRef.current && difficulty === 'hard') {
       const rotationSpeed = 0.01 + (board.filter(Boolean).length * 0.002);
@@ -39,14 +39,13 @@ function Board3D({ board, onMove, selectedPiece, difficulty, isXNext }: Board3DP
     }
   });
 
-  // Timer logic
   useEffect(() => {
     if (timerStarted && !winner && !isDraw) {
       const timer = setInterval(() => {
         setTimeLeft((prevTime) => {
           if (prevTime <= 1) {
             clearInterval(timer);
-            // Handle time's up
+            onMove(-1); // Signal time's up
             return 0;
           }
           return prevTime - 1;
@@ -55,7 +54,7 @@ function Board3D({ board, onMove, selectedPiece, difficulty, isXNext }: Board3DP
 
       return () => clearInterval(timer);
     }
-  }, [timerStarted, winner, isDraw]);
+  }, [timerStarted, winner, isDraw, onMove]);
 
   const handleCellClick = (index: number) => {
     if (!timerStarted) {
@@ -74,11 +73,58 @@ function Board3D({ board, onMove, selectedPiece, difficulty, isXNext }: Board3DP
 
       {/* Board cells */}
       {board.map((value, index) => (
-        <mesh key={index} position={[index % 3 - 1, Math.floor(index / 3) - 1, 0]}>
-          <boxGeometry args={[0.9, 0.9, 0.1]} />
-          <meshStandardMaterial color={value === 'X' ? '#ffd700' : value ? '#ff0000' : '#ffffff'} />
+        <mesh
+          key={index}
+          position={[
+            (index % 3 - 1) * 1.06,
+            (1 - Math.floor(index / 3)) * 1.06,
+            0
+          ]}
+          onClick={() => handleCellClick(index)}
+        >
+          <planeGeometry args={[0.95, 0.95]} />
+          <meshStandardMaterial transparent opacity={0} />
+          {value && (
+            <Text
+              position={[0, 0, 0.1]}
+              fontSize={0.5}
+              color="#ffffff"
+              anchorX="center"
+              anchorY="middle"
+            >
+              {value}
+            </Text>
+          )}
         </mesh>
       ))}
+
+      {/* Timer */}
+      <Text
+        position={[0, 1.9, 0]}
+        fontSize={0.28}
+        color="#ffffff"
+        anchorX="center"
+        anchorY="middle"
+      >
+        {timerStarted ? `Time: ${timeLeft}s` : 'Maxi goes first'}
+      </Text>
+
+      {/* Game over text */}
+      {(winner || isDraw || timeLeft === 0) && (
+        <Text
+          position={[0, 0, 1]}
+          fontSize={0.5}
+          color="#ffffff"
+          anchorX="center"
+          anchorY="middle"
+          outlineWidth={0.03}
+          outlineColor="#000000"
+        >
+          {winner ? `${winner === 'X' ? 'Maxi' : selectedPiece} wins!` :
+           isDraw ? 'Draw!' : 
+           'Time\'s up!'}
+        </Text>
+      )}
     </group>
   );
 }
@@ -303,47 +349,27 @@ export default function Demo() {
         </div>
       ) : (
         <div className="flex flex-col items-center">
-          <div className="text-center mb-4 text-white text-xl">
-            {calculateWinner(board) 
-              ? `Winner: ${calculateWinner(board) === 'X' ? 'Maxi' : selectedPiece}`
-              : board.every(square => square) 
-              ? "Game is a draw!" 
-              : `Next player: ${isXNext ? 'Maxi' : selectedPiece}`}
+          <div className="w-[300px] h-[300px] relative">
+            <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
+              <ambientLight intensity={0.5} />
+              <pointLight position={[10, 10, 10]} />
+              <Board3D
+                board={board}
+                onMove={handleMove}
+                selectedPiece={selectedPiece}
+                difficulty={difficulty}
+                isXNext={isXNext}
+              />
+            </Canvas>
           </div>
-          
-          <div className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4">
-            <div className="absolute left-0 top-[33%] w-full h-[2px] bg-white shadow-glow" />
-            <div className="absolute left-0 top-[66%] w-full h-[2px] bg-white shadow-glow" />
-            
-            {board.map((square, index) => (
-              <button
-                key={index}
-                className="h-[100px] flex items-center justify-center text-2xl font-bold bg-transparent"
-                onClick={() => handleMove(index)}
-              >
-                {square === 'X' ? (
-                  <img 
-                    src="/maxi.png" 
-                    alt="Maxi" 
-                    className="w-16 h-16 object-contain"
-                  />
-                ) : square ? (
-                  <img 
-                    src={`/${square}.png`} 
-                    alt={square} 
-                    className="w-16 h-16 object-contain"
-                  />
-                ) : null}
-              </button>
-            ))}
+          <div className="mt-4 flex gap-4">
+            <button
+              onClick={resetGame}
+              className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+            >
+              Reset Game
+            </button>
           </div>
-
-          <Button
-            onClick={resetGame}
-            className="w-3/4 py-4 text-xl bg-purple-700 hover:bg-purple-800"
-          >
-            Back to Menu
-          </Button>
         </div>
       )}
     </div>
