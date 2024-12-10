@@ -14,13 +14,27 @@ type MenuStep = 'game' | 'piece' | 'difficulty';
 type Difficulty = 'easy' | 'medium' | 'hard';
 
 const VolumeOnIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor">
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    height="32" 
+    viewBox="0 -960 960 960" 
+    width="32" 
+    fill="currentColor"
+    className="p-1"
+  >
     <path d="M560-131v-82q90-26 145-100t55-168q0-94-55-168T560-749v-82q124 28 202 125.5T840-481q0 127-78 224.5T560-131ZM120-360v-240h160l200-200v640L280-360H120Zm440 40v-322q47 22 73.5 66t26.5 96q0 51-26.5 94.5T560-320ZM400-708l-86 86H200v160h114l86 86v-332ZM300-481Z"/>
   </svg>
 );
 
 const VolumeOffIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor">
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    height="32" 
+    viewBox="0 -960 960 960" 
+    width="32" 
+    fill="currentColor"
+    className="p-1"
+  >
     <path d="M792-56 671-177q-25 16-53 27.5T560-131v-82q14-5 27.5-10t25.5-12L480-368v208L280-360H120v-240h160l42-42-154-154 56-56 624 624-56 56ZM560-749v133L480-696v-64L280-560H200v160h114l-154-154v-6h120l200-200q-14-5-27.5-10T560-749ZM840-481q0 55-17.5 105.5T778-284l-58-58q15-29 27.5-64t12.5-75q0-94-55-168T560-749v-82q124 28 202 125.5T840-481ZM633-429l-73-73q0-8 0-15.5t-2-15.5q-4-37-31-63t-63-30l-73-73q27-16 58-21.5t71-5.5q83 0 141.5 58.5T720-526q0 40-5.5 71T633-429Z"/>
   </svg>
 );
@@ -248,7 +262,7 @@ export default function Demo() {
     <div className="w-[300px] h-[600px] mx-auto flex items-center justify-center relative">
       <div 
         onClick={() => setIsMuted(!isMuted)} 
-        className="absolute top-4 left-4 cursor-pointer text-white z-10"
+        className="absolute top-4 left-4 cursor-pointer text-white z-10 w-8 h-8 flex items-center justify-center"
       >
         {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
       </div>
