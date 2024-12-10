@@ -5,6 +5,19 @@ import sdk from "@farcaster/frame-sdk";
 import { Button } from "~/components/ui/Button";
 import useSound from 'use-sound';
 
+// Define proper FrameContext type
+interface FrameContext {
+  untrustedData: {
+    fid: number;
+    username: string;
+    displayName: string;
+    pfp: {
+      url: string;
+    };
+    custody: string;
+  };
+}
+
 type PlayerPiece = 'scarygary' | 'chili' | 'podplaylogo';
 type Square = 'X' | PlayerPiece | null;
 type Board = Square[];
@@ -14,6 +27,7 @@ type Difficulty = 'easy' | 'medium' | 'hard';
 
 export default function Demo() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
+  const [context, setContext] = useState<FrameContext>();
   const [gameState, setGameState] = useState<GameState>('menu');
   const [menuStep, setMenuStep] = useState<MenuStep>('game');
   const [board, setBoard] = useState<Board>(Array(9).fill(null));
@@ -32,7 +46,8 @@ export default function Demo() {
   // SDK initialization
   useEffect(() => {
     const load = async () => {
-      await sdk.context;
+      const userContext = await sdk.context as unknown as FrameContext;
+      setContext(userContext);
       sdk.actions.ready();
     };
     if (sdk && !isSDKLoaded) {
@@ -234,10 +249,12 @@ export default function Demo() {
         <div className="flex flex-col items-center">
           <div className="text-center mb-4 text-white text-xl">
             {calculateWinner(board) 
-              ? `Winner: ${calculateWinner(board) === 'X' ? 'Maxi' : selectedPiece}`
+              ? `Winner: ${calculateWinner(board) === 'X' ? 'Maxi' : 
+                  context?.untrustedData ? context.untrustedData.displayName : selectedPiece}`
               : board.every(square => square) 
               ? "Game is a draw!" 
-              : `Next player: ${isXNext ? 'Maxi' : selectedPiece}`}
+              : `Next player: ${isXNext ? 'Maxi' : 
+                  context?.untrustedData ? context.untrustedData.displayName : selectedPiece}`}
           </div>
           
           <div className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4">
