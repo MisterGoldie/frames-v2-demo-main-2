@@ -40,7 +40,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function HelloNameFrame({ params }: Props) {
-  const { name } = await params;
+export default function HelloNameFrame() {
   return <App />;
 }
