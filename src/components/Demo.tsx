@@ -379,7 +379,7 @@ export default function Demo({ tokenBalance }: DemoProps) {
     }
   }, [difficulty, board, gameState, gameSession]);
 
-  useEffect(() => {
+  const handleWin = useCallback((board: Board) => {
     const winner = calculateWinner(board);
     if (winner) {
       setGameState('menu');
@@ -388,24 +388,34 @@ export default function Demo({ tokenBalance }: DemoProps) {
       setIsXNext(true);
       setTimerStarted(false);
       setTimeLeft(30);
-      playWin();
     }
-  }, [board, playWin]);
+  }, []);
+
+  useEffect(() => {
+    handleWin(board);
+  }, [board, handleWin]);
 
   useEffect(() => {
     const currentBoard = boardRef.current;
-    if (currentBoard) {
-      const resizeObserver = new ResizeObserver(() => {
-        // Resize logic here
-      });
-      resizeObserver.observe(currentBoard);
-      return () => {
-        if (currentBoard) {
-          resizeObserver.unobserve(currentBoard);
-        }
-      };
-    }
+    if (!currentBoard) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      // Resize logic here
+    });
+
+    resizeObserver.observe(currentBoard);
+    return () => resizeObserver.disconnect();
   }, []);
+
+  const playSoundEffect = useCallback(() => {
+    if (calculateWinner(board)) {
+      playWin();
+    }
+  }, [board]);
+
+  useEffect(() => {
+    playSoundEffect();
+  }, [playSoundEffect]);
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
