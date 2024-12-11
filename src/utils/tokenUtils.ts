@@ -4,6 +4,25 @@ const AIRSTACK_API_URL = process.env.NEXT_PUBLIC_AIRSTACK_API_URL;
 const AIRSTACK_API_KEY = process.env.NEXT_PUBLIC_AIRSTACK_API_KEY;
 const MOXIE_API_URL = process.env.NEXT_PUBLIC_MOXIE_API_URL;
 
+interface AirstackResponse {
+  Socials: {
+    Social: {
+      userAddress: string;
+      userAssociatedAddresses: string[];
+    }[];
+  };
+}
+
+interface MoxieResponse {
+  users: {
+    portfolio: {
+      balance: number;
+      buyVolume: number;
+      sellVolume: number;
+    }[];
+  }[];
+}
+
 export async function getFarcasterAddressesFromFID(fid: string): Promise<string[]> {
   const graphQLClient = new GraphQLClient(AIRSTACK_API_URL!, {
     headers: {
@@ -66,7 +85,7 @@ export async function getOwnedFanTokens(addresses: string[]): Promise<any[] | nu
   `;
 
   try {
-    const data = await graphQLClient.request<any>(query, {
+    const data = await graphQLClient.request<MoxieResponse>(query, {
       userAddresses: addresses.map(address => address.toLowerCase())
     });
     

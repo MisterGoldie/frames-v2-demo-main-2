@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { checkFanTokenOwnership } from "~/utils/tokenUtils";
 import { FrameContext } from "@farcaster/frame-sdk";
+import sdk from "@farcaster/frame-sdk";
 
 const Demo = dynamic(() => import("~/components/Demo"), {
   ssr: false,
@@ -12,6 +13,14 @@ const Demo = dynamic(() => import("~/components/Demo"), {
 export default function App() {
   const [tokenBalance, setTokenBalance] = useState<number>(0);
   const [frameContext, setFrameContext] = useState<FrameContext>();
+
+  useEffect(() => {
+    const loadContext = async () => {
+      const context = await sdk.context;
+      setFrameContext(context);
+    };
+    loadContext();
+  }, []);
 
   useEffect(() => {
     const fetchTokenBalance = async () => {
