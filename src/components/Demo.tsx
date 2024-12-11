@@ -523,23 +523,17 @@ export default function Demo() {
               <div
                 className={`winning-line winning-line-${winningLine.type}`}
                 style={{
-                  position: 'absolute',
                   top: winningLine.type === 'horizontal' 
                     ? `calc(${(winningLine.index * 33.33) + 16.5}%)` 
-                    : winningLine.type === 'diagonal' 
-                      ? '0' 
-                      : '0',
+                    : '0',
                   left: winningLine.type === 'vertical'
                     ? `calc(${(winningLine.index * 33.33) + 16.5}%)`
                     : '0',
-                  width: winningLine.type === 'vertical' ? '4px' : '100%',
-                  height: winningLine.type === 'horizontal' ? '4px' : '100%',
-                  transform: winningLine.angle ? `rotate(${winningLine.angle}deg)` : 'none',
+                  '--rotation': winningLine.angle ? `${winningLine.angle}deg` : '0deg',
                   transformOrigin: winningLine.type === 'diagonal' 
-                    ? (winningLine.angle === 45 ? '0 0' : '100% 0') 
-                    : '50% 50%',
-                  zIndex: 10
-                }}
+                    ? (winningLine.angle === 45 ? '0 50%' : '100% 50%') 
+                    : '50% 50%'
+                } as any}
               />
             )}
             {board.map((square, index) => (
