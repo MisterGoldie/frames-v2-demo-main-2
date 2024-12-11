@@ -134,37 +134,37 @@ body {
 }
 
 .grid::before {
-  width: 2px;
-  height: 100%;
-  left: 33.33%;
-  top: 0;
-}
-
-.grid::after {
-  width: 2px;
-  height: 100%;
-  left: 66.66%;
-  top: 0;
-}
-
-.grid .horizontal::before,
-.grid .horizontal::after {
-  content: '';
-  position: absolute;
-  background: white;
-  z-index: 1;
-}
-
-.grid .horizontal::before {
   width: 100%;
   height: 2px;
   top: 33.33%;
   left: 0;
 }
 
-.grid .horizontal::after {
+.grid::after {
   width: 100%;
   height: 2px;
   top: 66.66%;
   left: 0;
+}
+
+.grid .vertical::before,
+.grid .vertical::after {
+  content: '';
+  position: absolute;
+  background: white;
+  z-index: 1;
+}
+
+.grid .vertical::before {
+  width: 2px;
+  height: 100%;
+  left: 33.33%;
+  top: 0;
+}
+
+.grid .vertical::after {
+  width: 2px;
+  height: 100%;
+  left: 66.66%;
+  top: 0;
 }

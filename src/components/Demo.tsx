@@ -519,13 +519,15 @@ export default function Demo() {
                 style={{
                   top: winningLine.type === 'horizontal' 
                     ? `calc(${(winningLine.index * 33.33) + 16.5}%)` 
-                    : '0',
+                    : '50%',
                   left: winningLine.type === 'vertical'
                     ? `calc(${(winningLine.index * 33.33) + 16.5}%)`
-                    : '0',
-                  '--rotation': winningLine.angle ? `${winningLine.angle}deg` : '0deg',
+                    : '50%',
+                  width: winningLine.type === 'vertical' ? '4px' : '100%',
+                  height: winningLine.type === 'horizontal' ? '4px' : '100%',
+                  transform: winningLine.angle ? `rotate(${winningLine.angle}deg)` : 'none',
                   transformOrigin: winningLine.type === 'diagonal' 
-                    ? (winningLine.angle === 45 ? '0 50%' : '100% 50%') 
+                    ? (winningLine.angle === 45 ? '0 0' : '100% 0') 
                     : '50% 50%'
                 } as React.CSSProperties}
               />
