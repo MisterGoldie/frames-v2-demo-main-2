@@ -24,5 +24,5 @@ export default function App() {
     fetchTokenBalance();
   }, [frameContext?.user?.fid]);
 
-  return <Demo tokenBalance={0} />;
+  return <Demo tokenBalance={tokenBalance} />;
 }
