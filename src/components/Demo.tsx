@@ -78,6 +78,7 @@ export default function Demo() {
   });
   const [startTime, setStartTime] = useState<number | null>(null);
   const [isPlayingCountdown, setIsPlayingCountdown] = useState(false);
+  const isJinglePlaying = useRef(false);
 
   // SDK initialization
   useEffect(() => {
@@ -101,9 +102,9 @@ export default function Demo() {
   const handleStartGame = useCallback((diff: Difficulty, piece: PlayerPiece) => {
     playClick();
     stopHalloweenMusic();
-    stopGameJingle();
-    if (!isMuted) {
-      setTimeout(() => playGameJingle(), 100);
+    if (!isMuted && !isJinglePlaying.current) {
+      isJinglePlaying.current = true;
+      playGameJingle();
     }
     setGameState('game');
     setBoard(Array(9).fill(null));
@@ -112,7 +113,7 @@ export default function Demo() {
     setDifficulty(diff);
     setTimeLeft(15);
     setTimerStarted(true);
-  }, [playClick, stopHalloweenMusic, stopGameJingle, playGameJingle, isMuted]);
+  }, [playClick, stopHalloweenMusic, playGameJingle, isMuted]);
 
   const getComputerMove = useCallback((currentBoard: Board): number => {
     const availableSpots = currentBoard
@@ -255,26 +256,27 @@ export default function Demo() {
   }, [stopCountdownSound, playGameJingle]);
 
   useEffect(() => {
-    const handleSounds = () => {
-      // Stop all sounds first
+    if (isMuted) {
       stopGameJingle();
       stopHalloweenMusic();
-      
-      // Only play sounds if not muted
-      if (!isMuted) {
-        if (gameState === 'menu') {
-          setTimeout(() => playHalloweenMusic(), 100);
-        } else if (gameState === 'game' && !calculateWinner(board) && timeLeft > 0) {
-          setTimeout(() => playGameJingle(), 100);
-        }
-      }
-    };
+      isJinglePlaying.current = false;
+      return;
+    }
 
-    handleSounds();
+    if (gameState === 'menu') {
+      stopGameJingle();
+      isJinglePlaying.current = false;
+      playHalloweenMusic();
+    } else if (gameState === 'game' && !calculateWinner(board) && timeLeft > 0 && !isJinglePlaying.current) {
+      stopHalloweenMusic();
+      isJinglePlaying.current = true;
+      playGameJingle();
+    }
 
     return () => {
-      stopGameJingle();
-      stopHalloweenMusic();
+      if (gameState !== 'game') {
+        isJinglePlaying.current = false;
+      }
     };
   }, [
     isMuted,
