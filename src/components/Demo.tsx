@@ -443,19 +443,41 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
               Welcome, {frameContext.user.username}!
             </div>
             
-            {pfpUrl && (
+            {frameContext?.user?.pfpUrl && (
               <div className="mb-6">
                 <img 
-                  src={pfpUrl} 
+                  src={frameContext.user.pfpUrl} 
                   alt="Profile" 
                   className="w-32 h-32 rounded-full border-4 border-white object-cover"
                 />
               </div>
             )}
             
-            <h1 className="text-4xl font-bold text-white mb-8 text-shadow">
+            <h1 className="text-3xl font-bold text-center text-white mb-8 text-shadow">
               Select Game
             </h1>
+
+            <Button
+              onClick={() => {
+                playClick();
+                setMenuStep('piece');
+              }}
+              className="w-full py-4 text-2xl bg-purple-600 box-shadow"
+            >
+              Tic-Tac-Maxi
+            </Button>
+
+            {tokenBalance > 0 && (
+              <div className="mt-8 bg-purple-600 text-white px-3 py-1 rounded-full text-sm inline-flex items-center">
+                <Image 
+                  src="/fantokenlogo.png"
+                  alt="Fan Token"
+                  width={24} 
+                  height={24}
+                />
+                {tokenBalance.toFixed(2)} /thepod fan tokens owned
+              </div>
+            )}
           </>
         )}
         
