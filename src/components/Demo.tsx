@@ -307,7 +307,7 @@ export default function Demo() {
   useEffect(() => {
     if (difficulty === 'hard' && boardRef.current && gameState === 'game') {
       const baseSpeed = 0.05;  // Reduced base speed
-      const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.01); // Reduced increment
+      const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.02); // Game increment piece speed 
       
       const animate = () => {
         if (boardRef.current) {
