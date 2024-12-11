@@ -309,10 +309,10 @@ export default function Demo() {
       frameContext?.user?.username || selectedPiece}`;
   };
 
-  // Add rotation effect for hard mode
+  // Add rotation effect for hard modes
   useEffect(() => {
     if (difficulty === 'hard' && boardRef.current && gameState === 'game') {
-      const baseSpeed = 0.3;  // Increased base speed from 0.05 to 0.1
+      const baseSpeed = 0.3;  // Increase base speed from 0.05 to 0.1
       
       const animate = () => {
         if (boardRef.current) {
@@ -550,3 +550,4 @@ function calculateWinner(squares: Square[]): Square {
   }
   return null;
 }
+//
