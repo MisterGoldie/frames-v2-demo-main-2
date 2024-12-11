@@ -421,45 +421,200 @@ export default function Demo({ tokenBalance }: DemoProps) {
     return <div>Loading...</div>;
   }
 
-  function toggleMute(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
-    throw new Error("Function not implemented.");
-  }
-
-  function handleGameSelect(arg0: string): void {
-    throw new Error("Function not implemented.");
-  }
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-b from-blue-500 to-blue-700 text-white relative">
-      <div className="absolute top-4 right-4">
-        <button onClick={toggleMute} className="p-2 rounded-full">
-          <Image 
-            src={isMuted ? "/mute.png" : "/unmute.png"} 
-            alt={isMuted ? "Unmute" : "Mute"} 
-            width={32} 
-            height={32} 
-          />
-        </button>
+    <div className="w-[300px] h-[600px] mx-auto flex items-start justify-center relative pt-48">
+      {gameState === 'menu' && <Snow />}
+      
+      <div className="absolute top-4 right-4 bg-purple-600 text-white px-3 py-1 rounded-full text-sm">
+        🪙 {tokenBalance.toFixed(2)}
       </div>
 
-      <div className="absolute top-4 right-20 bg-purple-600 rounded-full px-4 py-1 flex items-center gap-2">
-        <Image src="/pod.png" alt="POD" width={24} height={24} />
-        <span>{tokenBalance.toFixed(2)}</span>
-      </div>
-
-      <h1 className="text-4xl font-bold mb-2">Welcome, {frameContext?.user?.username || 'Player'}!</h1>
-      <h2 className="text-3xl font-bold mb-8">Select Game</h2>
-
-      <button
-        onClick={() => handleGameSelect('tictactoe')}
-        className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-full text-2xl mb-4 w-64 transition-all"
+      <div 
+        onClick={() => {
+          setIsMuted(!isMuted);
+          if (isMuted) {
+            if (gameState === 'menu') {
+              playHalloweenMusic();
+            } else if (gameState === 'game' && !calculateWinner(board) && timeLeft > 0) {
+              stopHalloweenMusic();
+              playGameJingle();
+            }
+          } else {
+            stopGameJingle();
+            stopHalloweenMusic();
+            stopCountdownSound();
+          }
+        }} 
+        className={`absolute top-16 left-4 cursor-pointer text-white z-10 w-8 h-8 flex items-center justify-center hover:opacity-80 transition-opacity rounded-full box-shadow ${
+          isMuted ? 'bg-red-600 hover:bg-red-500' : 'bg-purple-600'
+        }`}
       >
-        Tic-Tac-Maxi
-      </button>
-
-      <div className="text-center mt-2 text-lg">
-        {frameContext?.user?.username || 'You'} own {tokenBalance.toFixed(2)} POD tokens
+        {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
       </div>
+
+      {gameState === 'menu' ? (
+        <div className="w-full flex flex-col items-center">
+          {menuStep === 'game' && frameContext?.user?.username && (
+            <div className="text-white text-xl mb-4 text-shadow">
+              Welcome, {frameContext.user.username}! 
+            </div>
+          )}
+          
+          <h1 className="text-3xl font-bold text-center text-white mb-12 text-shadow">
+            {menuStep === 'game' ? 'Select Game' :
+             menuStep === 'piece' ? 'Select Piece' :
+             'Choose Difficulty'}
+          </h1>
+          
+          {menuStep === 'game' && (
+            <>
+              <Button
+                onClick={() => {
+                  playClick();
+                  setMenuStep('piece');
+                }}
+                className="w-full py-4 text-2xl bg-purple-600 hover:bg-purple-700"
+              >
+                Tic-Tac-Maxi
+              </Button>
+              <div className="mt-4 bg-purple-600 text-white px-3 py-1 rounded-full text-sm inline-flex items-center">
+                🪙 {tokenBalance.toFixed(2)}
+              </div>
+            </>
+          )}
+
+          {menuStep === 'piece' && (
+            <>
+              <Button 
+                onClick={() => {
+                  playClick();
+                  setSelectedPiece('scarygary');
+                  setMenuStep('difficulty');
+                }}
+                className="w-full mb-2"
+              >
+                Scary Gary
+              </Button>
+              <Button 
+                onClick={() => {
+                  playClick();
+                  setSelectedPiece('chili');
+                  setMenuStep('difficulty');
+                }}
+                className="w-full mb-2"
+              >
+                Chili
+              </Button>
+              <Button 
+                onClick={() => {
+                  playClick();
+                  setSelectedPiece('podplaylogo');
+                  setMenuStep('difficulty');
+                }}
+                className="w-full mb-2"
+              >
+                Pod Logo
+              </Button>
+            </>
+          )}
+
+          {menuStep === 'difficulty' && (
+            <>
+              <Button 
+                onClick={() => handleStartGame('easy', selectedPiece)}
+                className="w-full mb-2"
+              >
+                Easy
+              </Button>
+              <Button 
+                onClick={() => handleStartGame('medium', selectedPiece)}
+                className="w-full mb-2"
+              >
+                Medium
+              </Button>
+              <Button 
+                onClick={() => handleStartGame('hard', selectedPiece)}
+                className="w-full mb-2"
+              >
+                Hard
+              </Button>
+            </>
+          )}
+
+          {menuStep !== 'game' && (
+            <div className="flex justify-center w-full mt-4">
+              <Button 
+                onClick={() => setMenuStep(menuStep === 'difficulty' ? 'piece' : 'game')}
+                className="w-3/4"
+              >
+                Back
+              </Button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center -mt-20">
+          <div className={`absolute top-16 right-4 text-white text-sm ${
+            timeLeft === 0 ? 'bg-red-600' : 'bg-purple-800'
+          } px-3 py-1 rounded-full box-shadow`}>
+            {timeLeft}s
+          </div>
+          
+          <div className="text-center mb-4 text-white text-xl text-shadow">
+            {getGameStatus()}
+          </div>
+          
+          <div 
+            ref={boardRef}
+            className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4"
+            style={{ transition: 'transform 0.1s linear' }}
+          >
+            <div className="absolute left-0 top-[33%] w-full h-[2px] bg-white shadow-glow" />
+            <div className="absolute left-0 top-[66%] w-full h-[2px] bg-white shadow-glow" />
+            
+            {board.map((square, index) => (
+              <button
+                key={index}
+                className="h-[100px] flex items-center justify-center text-2xl font-bold bg-transparent"
+                onClick={() => handleMove(index)}
+              >
+                {square === 'X' ? (
+                  <Image 
+                    src="/maxi.png" 
+                    alt="Maxi" 
+                    width={64}
+                    height={64}
+                    className="object-contain"
+                  />
+                ) : square ? (
+                  <Image 
+                    src={`/${square}.png`} 
+                    alt={square} 
+                    width={64}
+                    height={64}
+                    className="object-contain"
+                  />
+                ) : null}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex justify-between w-full gap-4 mt-4">
+            <Button
+              onClick={handlePlayAgain}
+              className="w-1/2 py-4 text-xl bg-green-600 hover:bg-green-700"
+            >
+              Play Again
+            </Button>
+            <Button
+              onClick={resetGame}
+              className="w-1/2 py-4 text-xl bg-purple-700 hover:bg-purple-800"
+            >
+              Back to Menu
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
