@@ -1,70 +1,25 @@
 import { gql, GraphQLClient } from "graphql-request";
 
-const AIRSTACK_API_URL = process.env.NEXT_PUBLIC_AIRSTACK_API_URL;
-const AIRSTACK_API_KEY = process.env.NEXT_PUBLIC_AIRSTACK_API_KEY;
 const MOXIE_API_URL = process.env.NEXT_PUBLIC_MOXIE_API_URL;
 
-interface AirstackResponse {
-  Socials: {
-    Social: {
-      userAddress: string;
-      userAssociatedAddresses: string[];
-    }[];
+interface TokenHolding {
+  balance: string;
+  buyVolume: string;
+  sellVolume: string;
+  subjectToken: {
+    name: string;
+    symbol: string;
+    currentPriceInMoxie: string;
   };
 }
 
 interface MoxieResponse {
   users: {
-    portfolio: {
-      balance: number;
-      buyVolume: number;
-      sellVolume: number;
-    }[];
+    portfolio: TokenHolding[];
   }[];
 }
 
-export async function getFarcasterAddressesFromFID(fid: string): Promise<string[]> {
-  const graphQLClient = new GraphQLClient(AIRSTACK_API_URL!, {
-    headers: {
-      'Authorization': AIRSTACK_API_KEY!,
-    },
-  });
-
-  const query = gql`
-    query MyQuery($identity: Identity!) {
-      Socials(
-        input: {
-          filter: { dappName: { _eq: farcaster }, identity: { _eq: $identity } }
-          blockchain: ethereum
-        }
-      ) {
-        Social {
-          userAddress
-          userAssociatedAddresses
-        }
-      }
-    }
-  `;
-
-  try {
-    const data = await graphQLClient.request<any>(query, {
-      identity: `fc_fid:${fid}`
-    });
-    
-    if (!data.Socials?.Social?.[0]) {
-      return [];
-    }
-
-    const social = data.Socials.Social[0];
-    const addresses = [social.userAddress, ...(social.userAssociatedAddresses || [])];
-    return [...new Set(addresses)];
-  } catch (error) {
-    console.error('Error fetching Farcaster addresses:', error);
-    return [];
-  }
-}
-
-export async function getOwnedFanTokens(addresses: string[]): Promise<any[] | null> {
+export async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | null> {
   const graphQLClient = new GraphQLClient(MOXIE_API_URL!);
   
   const query = gql`
@@ -96,6 +51,11 @@ export async function getOwnedFanTokens(addresses: string[]): Promise<any[] | nu
   }
 }
 
+export async function getFarcasterAddressesFromFID(fid: string): Promise<string[]> {
+  // Implementation here
+  return [];
+}
+
 export async function checkFanTokenOwnership(fid: string): Promise<{ ownsToken: boolean; balance: number }> {
   try {
     const addresses = await getFarcasterAddressesFromFID(fid);
@@ -110,7 +70,7 @@ export async function checkFanTokenOwnership(fid: string): Promise<{ ownsToken: 
       return { ownsToken: false, balance: 0 };
     }
 
-    const thepodToken = fanTokenData.find((token) => 
+    const thepodToken = fanTokenData.find((token: TokenHolding) => 
       token.subjectToken.symbol.toLowerCase() === "cid:thepod"
     );
 
