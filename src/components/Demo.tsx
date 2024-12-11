@@ -460,7 +460,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                 Tic-Tac-Maxi
               </Button>
               {tokenBalance > 0 && (
-                <div className="mt-12 bg-purple-600 text-white px-3 py-1 rounded-full text-sm inline-flex items-center">
+                <div className="mt-12 bg-purple-600 text-white px-3 py-1 rounded-full text-sm inline-flex items-center shadow-lg">
                   <Image 
                     src="/fantokenlogo.png"
                     alt="Fan Token"
