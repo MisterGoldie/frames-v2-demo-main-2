@@ -38,7 +38,11 @@ const VolumeOffIcon = () => (
   </svg>
 );
 
-export default function Demo() {
+interface DemoProps {
+  tokenBalance: number;
+}
+
+export default function Demo({ tokenBalance }: DemoProps) {
   const [gameSession, setGameSession] = useState(0);
   const boardRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();  // Add ref for animation frame

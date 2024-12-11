@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import App from "./app";
+import { gql, GraphQLClient } from "graphql-request";
 
 const appUrl = process.env.NEXT_PUBLIC_URL;
 
@@ -17,6 +18,17 @@ const frame = {
     },
   },
 };
+
+interface TokenHolding {
+  balance: string;
+  buyVolume: string;
+  sellVolume: string;
+  subjectToken: {
+    name: string;
+    symbol: string;
+    currentPriceInMoxie: string;
+  };
+}
 
 export const revalidate = 300;
 
