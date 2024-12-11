@@ -398,7 +398,7 @@ export default function Demo() {
             stopCountdownSound();
           }
         }} 
-        className={`absolute top-16 left-4 cursor-pointer text-white z-10 w-8 h-8 flex items-center justify-center hover:opacity-80 transition-opacity rounded-full hover:bg-purple-500 ${
+        className={`absolute top-16 left-4 cursor-pointer text-white z-10 w-8 h-8 flex items-center justify-center hover:opacity-80 transition-opacity rounded-full box-shadow ${
           isMuted ? 'bg-red-600 hover:bg-red-500' : 'bg-purple-600'
         }`}
       >
