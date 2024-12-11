@@ -448,7 +448,7 @@ export default function Demo({ tokenBalance }: DemoProps) {
                 Tic-Tac-Maxi
               </Button>
               {tokenBalance > 0 && (
-                <div className="mt-4 bg-purple-600 text-white px-3 py-1 rounded-full text-sm inline-flex items-center">
+                <div className="mt-8 bg-purple-600 text-white px-3 py-1 rounded-full text-sm inline-flex items-center">
                   <Image 
                     src="/fantokenlogo.png"
                     alt="Fan Token"
