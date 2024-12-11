@@ -413,145 +413,16 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     <div className="w-[300px] h-[600px] mx-auto flex items-start justify-center relative pt-48">
       {gameState === 'menu' && <Snow />}
       
-      <div 
-        onClick={() => {
-          setIsMuted(!isMuted);
-          if (isMuted) {
-            if (gameState === 'menu') {
-              playHalloweenMusic();
-            } else if (gameState === 'game' && !calculateWinner(board) && timeLeft > 0) {
-              stopHalloweenMusic();
-              playGameJingle();
-            }
-          } else {
-            stopGameJingle();
-            stopHalloweenMusic();
-            stopCountdownSound();
-          }
-        }} 
-        className={`absolute top-16 left-4 cursor-pointer text-white z-10 w-8 h-8 flex items-center justify-center hover:opacity-80 transition-opacity rounded-full box-shadow ${
-          isMuted ? 'bg-red-600 hover:bg-red-500' : 'bg-purple-600'
-        }`}
-      >
-        {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
-      </div>
-
-      <div className="w-full flex flex-col items-center">
-        {menuStep === 'game' && (
-          <>
-            {frameContext?.user?.username && (
-              <>
-                <div className="text-white text-xl mb-6 text-shadow">
-                  Welcome, {frameContext.user.username}!
-                </div>
-                
-                {frameContext.user.pfpUrl && (
-                  <div className="mb-6">
-                    <img 
-                      src={frameContext.user.pfpUrl} 
-                      alt="Profile" 
-                      className="w-32 h-32 rounded-full border-4 border-white object-cover"
-                    />
-                  </div>
-                )}
-              </>
-            )}
-            
-            <h1 className="text-3xl font-bold text-center text-white mb-8 text-shadow">
-              Select Game
-            </h1>
-
-            <Button
-              onClick={() => {
-                playClick();
-                setMenuStep('piece');
-              }}
-              className="w-full py-4 text-2xl bg-purple-600 box-shadow"
-            >
-              Tic-Tac-Maxi
-            </Button>
-
-            {tokenBalance > 0 && (
-              <div className="mt-8 bg-purple-600 text-white px-3 py-1 rounded-full text-sm inline-flex items-center">
-                <Image 
-                  src="/fantokenlogo.png"
-                  alt="Fan Token"
-                  width={24} 
-                  height={24}
-                />
-                {tokenBalance.toFixed(2)} /thepod fan tokens owned
-              </div>
-            )}
-          </>
-        )}
-        
-        {menuStep === 'piece' && (
-          <>
-            <Button 
-              onClick={() => {
-                playClick();
-                setSelectedPiece('scarygary');
-                setMenuStep('difficulty');
-              }}
-              className="w-full mb-2"
-            >
-              Scary Gary
-            </Button>
-            <Button 
-              onClick={() => {
-                playClick();
-                setSelectedPiece('chili');
-                setMenuStep('difficulty');
-              }}
-              className="w-full mb-2"
-            >
-              Chili
-            </Button>
-            <Button 
-              onClick={() => {
-                playClick();
-                setSelectedPiece('podplaylogo');
-                setMenuStep('difficulty');
-              }}
-              className="w-full mb-2"
-            >
-              Pod Logo
-            </Button>
-          </>
-        )}
-
-        {menuStep === 'difficulty' && (
-          <>
-            <Button 
-              onClick={() => handleStartGame('easy', selectedPiece)}
-              className="w-full mb-2"
-            >
-              Easy
-            </Button>
-            <Button 
-              onClick={() => handleStartGame('medium', selectedPiece)}
-              className="w-full mb-2"
-            >
-              Medium
-            </Button>
-            <Button 
-              onClick={() => handleStartGame('hard', selectedPiece)}
-              className="w-full mb-2"
-            >
-              Hard
-            </Button>
-          </>
-        )}
-
-        {menuStep !== 'game' && (
-          <div className="flex justify-center w-full mt-4">
-            <Button 
-              onClick={() => setMenuStep(menuStep === 'difficulty' ? 'piece' : 'game')}
-              className="w-3/4"
-            >
-              Back
-            </Button>
-          </div>
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex items-center gap-4">
+        <button onClick={toggleMute}>
+          {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
+        </button>
+        {pfpUrl && (
+          <img 
+            src={pfpUrl} 
+            alt="Profile" 
+            className="w-32 h-32 rounded-full border-4 border-white object-cover"
+          />
         )}
       </div>
 
