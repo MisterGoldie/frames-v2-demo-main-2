@@ -422,15 +422,17 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
         </button>
       </div>
 
-      <div className="absolute top-16 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
-        {pfpUrl && (
-          <img 
-            src={pfpUrl} 
-            alt="Profile" 
-            className="w-24 h-24 rounded-full border-4 border-white object-cover"
-          />
-        )}
-      </div>
+      {gameState === 'menu' && (
+        <div className="absolute top-16 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
+          {pfpUrl && (
+            <img 
+              src={pfpUrl} 
+              alt="Profile" 
+              className="w-24 h-24 rounded-full border-4 border-white object-cover"
+            />
+          )}
+        </div>
+      )}
 
       {gameState === 'menu' ? (
         <div className="w-full flex flex-col items-center">
