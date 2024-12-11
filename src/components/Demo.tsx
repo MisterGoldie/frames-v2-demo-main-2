@@ -48,7 +48,6 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const boardRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();  // Add ref for animation frame
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
-  const [localFrameContext, setLocalFrameContext] = useState<FrameContext>();
   const [gameState, setGameState] = useState<GameState>('menu');
   const [menuStep, setMenuStep] = useState<MenuStep>('game');
   const [board, setBoard] = useState<Board>(Array(9).fill(null));
@@ -92,7 +91,6 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       try {
         const context = await sdk.context;
         console.log("Frame context:", context); // Debug log
-        setLocalFrameContext(context);
         sdk.actions.ready();
       } catch (error) {
         console.error("Error loading Frame SDK:", error);
@@ -403,6 +401,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     return () => resizeObserver.disconnect();
   }, []);
 
+  const toggleMute = () => setIsMuted(prev => !prev);
+
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
   }
@@ -412,15 +412,20 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       {gameState === 'menu' && <Snow />}
       
       <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex items-center gap-4">
-        <VolumeOffIcon />
+        <button onClick={toggleMute}>
+          {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
+        </button>
         {profileImage && (
-          <img 
-            src={profileImage} 
-            alt="Profile" 
-            className="w-8 h-8 rounded-full border-2 border-white"
-          />
+          <div className="relative w-16 h-16">
+            <Image 
+              src={profileImage} 
+              alt="Profile" 
+              fill
+              className="rounded-full border-4 border-white object-cover"
+              priority
+            />
+          </div>
         )}
-        <VolumeOnIcon />
       </div>
 
       {gameState === 'menu' ? (
