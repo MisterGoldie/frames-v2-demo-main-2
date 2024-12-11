@@ -471,7 +471,7 @@ export default function Demo({ tokenBalance }: DemoProps) {
                 }}
                 className="mb-10"
               >
-                Play Game
+                Tic-Tac-Maxi
               </Button>
               <div className="flex items-center gap-1">
                 <Image 
