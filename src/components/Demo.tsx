@@ -334,18 +334,14 @@ export default function Demo() {
       if (!board.every(square => square === null)) {
         animationRef.current = requestAnimationFrame(animate);
       } else {
-        if (boardElement) {
-          boardElement.style.transform = 'rotate(0deg)';
-        }
+        boardElement.style.transform = 'rotate(0deg)';
       }
 
       return () => {
         if (animationRef.current) {
           cancelAnimationFrame(animationRef.current);
         }
-        if (boardElement) {
-          boardElement.style.transform = 'rotate(0deg)';
-        }
+        boardElement.style.transform = 'rotate(0deg)';
       };
     }
   }, [difficulty, board, gameState, gameSession]);
@@ -381,14 +377,6 @@ export default function Demo() {
       const line = getWinningLine(board);
       if (line) {
         setWinningLine(line);
-        
-        // Animate the line
-        if (lineRef.current) {
-          const lineElement = lineRef.current;
-          lineElement.style.animation = 'none';
-          lineElement.offsetHeight; // Trigger reflow
-          lineElement.style.animation = 'drawLine 1s forwards';
-        }
       }
     } else {
       setWinningLine(null);
@@ -531,8 +519,23 @@ export default function Demo() {
           <div 
             ref={boardRef}
             className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4"
-            style={{ transition: 'transform 0.1s linear' }}
           >
+            {winningLine && (
+              <div
+                ref={lineRef}
+                className={`absolute z-10 bg-white shadow-glow winning-line ${
+                  winningLine.start % 3 === winningLine.end % 3 ? 'winning-line-vertical' :
+                  Math.floor(winningLine.start / 3) === Math.floor(winningLine.end / 3) ? 'winning-line-horizontal' :
+                  winningLine.start === 0 && winningLine.end === 8 ? 'winning-line-diagonal-1' :
+                  'winning-line-diagonal-2'
+                }`}
+                style={{
+                  top: Math.floor(winningLine.start / 3) * 33.33 + '%',
+                  left: (winningLine.start % 3) * 33.33 + '%',
+                  fontFamily: '"Permanent Marker", cursive'
+                }}
+              />
+            )}
             <div className="absolute left-0 top-[33%] w-full h-[2px] bg-white shadow-glow" />
             <div className="absolute left-0 top-[66%] w-full h-[2px] bg-white shadow-glow" />
             
