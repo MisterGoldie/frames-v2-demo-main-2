@@ -407,16 +407,6 @@ export default function Demo({ tokenBalance }: DemoProps) {
     return () => resizeObserver.disconnect();
   }, []);
 
-  const playSoundEffect = useCallback(() => {
-    if (calculateWinner(board)) {
-      playWinning();
-    }
-  }, [board, playWinning]);
-
-  useEffect(() => {
-    playSoundEffect();
-  }, [playSoundEffect]);
-
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
   }
@@ -640,8 +630,3 @@ function calculateWinner(squares: Square[]): Square {
   }
   return null;
 }
-
-function playWin() {
-  throw new Error("Function not implemented.");
-}
-////
