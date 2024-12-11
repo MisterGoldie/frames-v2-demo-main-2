@@ -413,15 +413,21 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     <div className="w-[300px] h-[600px] mx-auto flex items-start justify-center relative pt-48">
       {gameState === 'menu' && <Snow />}
       
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex items-center gap-4">
-        <button onClick={toggleMute}>
+      <div className="absolute top-4 left-4">
+        <button 
+          onClick={toggleMute}
+          className="bg-purple-600 p-2 rounded-full shadow-lg hover:bg-purple-700 transition-colors"
+        >
           {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
         </button>
+      </div>
+
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
         {pfpUrl && (
           <img 
             src={pfpUrl} 
             alt="Profile" 
-            className="w-32 h-32 rounded-full border-4 border-white object-cover"
+            className="w-24 h-24 rounded-full border-4 border-white object-cover"
           />
         )}
       </div>
