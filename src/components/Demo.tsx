@@ -416,7 +416,9 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       <div className="absolute top-16 left-4">
         <button 
           onClick={toggleMute}
-          className="bg-purple-600 p-2 rounded-full shadow-lg hover:bg-purple-700 transition-colors"
+          className={`p-2 rounded-full shadow-lg transition-colors ${
+            isMuted ? 'bg-red-600 hover:bg-red-700' : 'bg-purple-600 hover:bg-purple-700'
+          }`}
         >
           {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
         </button>
