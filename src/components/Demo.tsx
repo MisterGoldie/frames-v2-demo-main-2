@@ -13,6 +13,11 @@ type Board = Square[];
 type GameState = 'menu' | 'game';
 type MenuStep = 'game' | 'piece' | 'difficulty';
 type Difficulty = 'easy' | 'medium' | 'hard';
+type WinningLine = {
+  start: number;
+  end: number;
+  progress: number;
+};
 
 const VolumeOnIcon = () => (
   <svg 
@@ -78,6 +83,8 @@ export default function Demo() {
   });
   const [startTime, setStartTime] = useState<number | null>(null);
   const [isPlayingCountdown, setIsPlayingCountdown] = useState(false);
+  const [winningLine, setWinningLine] = useState<WinningLine | null>(null);
+  const lineRef = useRef<HTMLDivElement>(null);
 
   // SDK initialization
   useEffect(() => {
@@ -342,6 +349,48 @@ export default function Demo() {
       };
     }
   }, [difficulty, board, gameState, gameSession]);
+
+  const getWinningLine = (squares: Square[]): WinningLine | null => {
+    const lines = [
+      [0, 1, 2], // horizontal
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6], // vertical
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8], // diagonal
+      [2, 4, 6]
+    ];
+
+    for (let i = 0; i < lines.length; i++) {
+      const [a, b, c] = lines[i];
+      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+        return {
+          start: a,
+          end: c,
+          progress: 0
+        };
+      }
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    const winner = calculateWinner(board);
+    if (winner) {
+      const line = getWinningLine(board);
+      if (line) {
+        setWinningLine(line);
+        
+        // Animate the line
+        if (lineRef.current) {
+          lineRef.current.style.animation = 'none';
+          lineRef.current.offsetHeight; // Trigger reflow
+          lineRef.current.style.animation = 'drawLine 1s forwards';
+        }
+      }
+    }
+  }, [board]);
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;

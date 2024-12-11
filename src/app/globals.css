@@ -81,3 +81,47 @@ body {
   animation-delay: calc(random() * -30s);
   left: calc(random() * 100vw);
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap');
+
+@keyframes drawLine {
+  from {
+    width: 0%;
+    opacity: 0;
+  }
+  to {
+    width: 100%;
+    opacity: 1;
+  }
+}
+
+.winning-line {
+  position: absolute;
+  background: white;
+  box-shadow: 0 0 10px #fff,
+              0 0 20px #fff,
+              0 0 30px #fff;
+  z-index: 10;
+  transform-origin: left center;
+}
+
+/* Add different line positions based on winning combinations */
+.winning-line-horizontal {
+  width: 100%;
+  height: 4px;
+}
+
+.winning-line-vertical {
+  width: 4px;
+  height: 100%;
+}
+
+.winning-line-diagonal-1 {
+  width: 141.4%; /* √2 * 100% for diagonal */
+  transform: rotate(45deg);
+}
+
+.winning-line-diagonal-2 {
+  width: 141.4%;
+  transform: rotate(-45deg);
+}
