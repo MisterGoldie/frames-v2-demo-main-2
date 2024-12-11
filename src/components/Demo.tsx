@@ -454,7 +454,9 @@ export default function Demo() {
         </div>
       ) : (
         <div className="flex flex-col items-center -mt-20">
-          <div className="absolute top-16 right-4 text-white text-sm bg-purple-800 px-3 py-1 rounded-full">
+          <div className={`absolute top-16 right-4 text-white text-sm ${
+            timeLeft === 0 ? 'bg-red-600' : 'bg-purple-800'
+          } px-3 py-1 rounded-full`}>
             {timeLeft}s
           </div>
           
