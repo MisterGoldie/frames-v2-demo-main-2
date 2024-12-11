@@ -101,7 +101,9 @@ export default function Demo() {
   const handleStartGame = useCallback((diff: Difficulty, piece: PlayerPiece) => {
     playClick();
     stopHalloweenMusic();
-    playGameJingle();
+    if (!isMuted) {
+      playGameJingle();
+    }
     setGameState('game');
     setBoard(Array(9).fill(null));
     setIsXNext(true);
@@ -109,7 +111,7 @@ export default function Demo() {
     setDifficulty(diff);
     setTimeLeft(15);
     setTimerStarted(true);
-  }, [playClick, stopHalloweenMusic, playGameJingle]);
+  }, [playClick, stopHalloweenMusic, playGameJingle, isMuted]);
 
   const getComputerMove = useCallback((currentBoard: Board): number => {
     const availableSpots = currentBoard
@@ -342,6 +344,18 @@ export default function Demo() {
       };
     }
   }, [difficulty, board, gameState, gameSession]);
+
+  useEffect(() => {
+    if (!isMuted) {
+      if (gameState === 'menu') {
+        stopGameJingle();
+        playHalloweenMusic();
+      } else if (gameState === 'game' && !calculateWinner(board) && timeLeft > 0) {
+        stopHalloweenMusic();
+        playGameJingle();
+      }
+    }
+  }, [isMuted, gameState, board, timeLeft, stopGameJingle, playHalloweenMusic, playGameJingle]);
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
