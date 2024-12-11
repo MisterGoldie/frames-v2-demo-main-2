@@ -425,10 +425,6 @@ export default function Demo({ tokenBalance }: DemoProps) {
     <div className="w-[300px] h-[600px] mx-auto flex items-start justify-center relative pt-48">
       {gameState === 'menu' && <Snow />}
       
-      <div className="absolute top-4 right-4 bg-purple-600 text-white px-3 py-1 rounded-full text-sm">
-        🪙 {tokenBalance.toFixed(2)}
-      </div>
-
       <div 
         onClick={() => {
           setIsMuted(!isMuted);
