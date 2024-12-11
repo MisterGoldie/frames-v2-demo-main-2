@@ -318,7 +318,7 @@ export default function Demo() {
             stopCountdownSound();
           }
         }} 
-        className="absolute top-16 left-4 cursor-pointer text-white z-10 w-8 h-8 flex items-center justify-center hover:opacity-80 transition-opacity bg-purple-600 rounded-full hover:bg-purple-500"
+        className="absolute top-16 left-4 cursor-pointer text-white z-10 w-8 h-8 flex items-center justify-center hover:opacity-80 transition-opacity border-2 border-purple-500 rounded-full hover:border-purple-400"
       >
         {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
       </div>
