@@ -469,7 +469,7 @@ export default function Demo({ tokenBalance }: DemoProps) {
                   playClick();
                   setMenuStep('piece');
                 }}
-                className="mb-9"
+                className="mb-10"
               >
                 Play Game
               </Button>
