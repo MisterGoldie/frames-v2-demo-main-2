@@ -473,8 +473,8 @@ export default function Demo({ tokenBalance }: DemoProps) {
               >
                 Tic-Tac-Maxi
               </Button>
-              <div className="mt-8 bg-purple-600 text-white px-4 py-2 rounded-full text-lg flex items-center gap-2">
-                🐋 {tokenBalance.toFixed(2)}
+              <div className="mt-4 bg-purple-600 text-white px-3 py-1 rounded-full text-sm inline-flex items-center">
+                🪙 {tokenBalance.toFixed(2)}
               </div>
             </>
           )}
