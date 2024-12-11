@@ -78,11 +78,6 @@ export default function Demo() {
   });
   const [startTime, setStartTime] = useState<number | null>(null);
   const [isPlayingCountdown, setIsPlayingCountdown] = useState(false);
-  const [winningLine, setWinningLine] = useState<{
-    type: 'horizontal' | 'vertical' | 'diagonal';
-    index: number;
-    angle?: number;
-  } | null>(null);
 
   // SDK initialization
   useEffect(() => {
@@ -166,36 +161,12 @@ export default function Demo() {
     return availableSpots[Math.floor(Math.random() * availableSpots.length)];
   }, [difficulty, selectedPiece]);
 
-  const checkWinner = useCallback((squares: Square[]) => {
-    const lines = [
-      { squares: [0, 1, 2], type: 'horizontal', index: 0 },
-      { squares: [3, 4, 5], type: 'horizontal', index: 1 },
-      { squares: [6, 7, 8], type: 'horizontal', index: 2 },
-      { squares: [0, 3, 6], type: 'vertical', index: 0 },
-      { squares: [1, 4, 7], type: 'vertical', index: 1 },
-      { squares: [2, 5, 8], type: 'vertical', index: 2 },
-      { squares: [0, 4, 8], type: 'diagonal', index: 0, angle: 45 },
-      { squares: [2, 4, 6], type: 'diagonal', index: 1, angle: -45 }
-    ];
-
-    for (const line of lines) {
-      const [a, b, c] = line.squares;
-      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-        return {
-          winner: squares[a],
-          line: {
-            type: line.type,
-            index: line.index,
-            angle: line.angle
-          }
-        };
-      }
-    }
-    return null;
-  }, []);
-
   const handleMove = useCallback((index: number) => {
     if (timeLeft === 0 || board[index] || calculateWinner(board) || !isXNext) return;
+
+    if (!timerStarted) {
+      setTimerStarted(true);
+    }
 
     const newBoard = [...board];
     newBoard[index] = selectedPiece;
@@ -203,9 +174,7 @@ export default function Demo() {
     setIsXNext(false);
     playClick();
 
-    const winResult = checkWinner(newBoard);
-    if (winResult) {
-      setWinningLine(winResult.line as { type: "horizontal" | "vertical" | "diagonal"; index: number; angle?: number | undefined; });
+    if (calculateWinner(newBoard)) {
       stopGameJingle();
       stopCountdownSound();
       playWinning();
@@ -235,18 +204,18 @@ export default function Demo() {
       }
     }, 500);
   }, [
-    timeLeft,
     board,
-    calculateWinner,
+    timeLeft,
+    timerStarted,
     isXNext,
     selectedPiece,
+    getComputerMove,
     playClick,
-    stopGameJingle,
-    stopCountdownSound,
     playWinning,
     playLosing,
     playDrawing,
-    checkWinner
+    stopGameJingle,
+    stopCountdownSound
   ]);
 
   const resetGame = useCallback(() => {
@@ -343,38 +312,36 @@ export default function Demo() {
   // Add rotation effect for hard mode
   useEffect(() => {
     if (difficulty === 'hard' && boardRef.current && gameState === 'game') {
-      const baseSpeed = 0.1;
-      const boardElement = boardRef.current;
-
+      const baseSpeed = 0.3;  // Increased base speed from 0.05 to 0.1
+      
       const animate = () => {
-        if (boardElement) {
-          const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.05);
-          const currentRotation = parseFloat(boardElement.style.transform.replace(/[^\d.-]/g, '')) || 0;
-          boardElement.style.transform = `rotate(${currentRotation + rotationSpeed}deg)`;
+        if (boardRef.current) {
+          const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.1); // Increased increment from 0.02 to 0.05
+          const currentRotation = parseFloat(boardRef.current.style.transform.replace(/[^\d.-]/g, '')) || 0;
+          boardRef.current.style.transform = `rotate(${currentRotation + rotationSpeed}deg)`;
           animationRef.current = requestAnimationFrame(animate);
         }
       };
 
+      // Start animation only if board is not empty
       if (!board.every(square => square === null)) {
         animationRef.current = requestAnimationFrame(animate);
       } else {
-        boardElement.style.transform = 'rotate(0deg)';
+        if (boardRef.current) {
+          boardRef.current.style.transform = 'rotate(0deg)';
+        }
       }
 
       return () => {
         if (animationRef.current) {
           cancelAnimationFrame(animationRef.current);
         }
-        boardElement.style.transform = 'rotate(0deg)';
+        if (boardRef.current) {
+          boardRef.current.style.transform = 'rotate(0deg)';
+        }
       };
     }
   }, [difficulty, board, gameState, gameSession]);
-
-  useEffect(() => {
-    if (!gameState || gameState === 'menu') {
-      setWinningLine(null);
-    }
-  }, [gameState]);
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
@@ -511,27 +478,12 @@ export default function Demo() {
           
           <div 
             ref={boardRef}
-            className="grid grid-cols-3 relative w-[300px] h-[300px]"
+            className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4"
+            style={{ transition: 'transform 0.1s linear' }}
           >
-            {winningLine && (
-              <div
-                className={`winning-line winning-line-${winningLine.type}`}
-                style={{
-                  top: winningLine.type === 'horizontal' 
-                    ? `calc(${(winningLine.index * 33.33) + 16.5}%)` 
-                    : '50%',
-                  left: winningLine.type === 'vertical'
-                    ? `calc(${(winningLine.index * 33.33) + 16.5}%)`
-                    : '50%',
-                  width: winningLine.type === 'vertical' ? '4px' : '100%',
-                  height: winningLine.type === 'horizontal' ? '4px' : '100%',
-                  transform: winningLine.angle ? `rotate(${winningLine.angle}deg)` : 'none',
-                  transformOrigin: winningLine.type === 'diagonal' 
-                    ? (winningLine.angle === 45 ? '0 0' : '100% 0') 
-                    : '50% 50%'
-                } as React.CSSProperties}
-              />
-            )}
+            <div className="absolute left-0 top-[33%] w-full h-[2px] bg-white shadow-glow" />
+            <div className="absolute left-0 top-[66%] w-full h-[2px] bg-white shadow-glow" />
+            
             {board.map((square, index) => (
               <button
                 key={index}
