@@ -166,12 +166,36 @@ export default function Demo() {
     return availableSpots[Math.floor(Math.random() * availableSpots.length)];
   }, [difficulty, selectedPiece]);
 
+  const checkWinner = useCallback((squares: Square[]) => {
+    const lines = [
+      { squares: [0, 1, 2], type: 'horizontal', index: 0 },
+      { squares: [3, 4, 5], type: 'horizontal', index: 1 },
+      { squares: [6, 7, 8], type: 'horizontal', index: 2 },
+      { squares: [0, 3, 6], type: 'vertical', index: 0 },
+      { squares: [1, 4, 7], type: 'vertical', index: 1 },
+      { squares: [2, 5, 8], type: 'vertical', index: 2 },
+      { squares: [0, 4, 8], type: 'diagonal', index: 0, angle: 45 },
+      { squares: [2, 4, 6], type: 'diagonal', index: 1, angle: -45 }
+    ];
+
+    for (const line of lines) {
+      const [a, b, c] = line.squares;
+      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+        return {
+          winner: squares[a],
+          line: {
+            type: line.type,
+            index: line.index,
+            angle: line.angle
+          }
+        };
+      }
+    }
+    return null;
+  }, []);
+
   const handleMove = useCallback((index: number) => {
     if (timeLeft === 0 || board[index] || calculateWinner(board) || !isXNext) return;
-
-    if (!timerStarted) {
-      setTimerStarted(true);
-    }
 
     const newBoard = [...board];
     newBoard[index] = selectedPiece;
@@ -179,7 +203,9 @@ export default function Demo() {
     setIsXNext(false);
     playClick();
 
-    if (calculateWinner(newBoard)) {
+    const winResult = checkWinner(newBoard);
+    if (winResult) {
+      setWinningLine(winResult.line as { type: "horizontal" | "vertical" | "diagonal"; index: number; angle?: number | undefined; });
       stopGameJingle();
       stopCountdownSound();
       playWinning();
@@ -220,7 +246,9 @@ export default function Demo() {
     playLosing,
     playDrawing,
     stopGameJingle,
-    stopCountdownSound
+    stopCountdownSound,
+    playWinning,
+    checkWinner
   ]);
 
   const resetGame = useCallback(() => {
@@ -347,6 +375,12 @@ export default function Demo() {
       };
     }
   }, [difficulty, board, gameState, gameSession]);
+
+  useEffect(() => {
+    if (!gameState || gameState === 'menu') {
+      setWinningLine(null);
+    }
+  }, [gameState]);
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
@@ -532,6 +566,17 @@ export default function Demo() {
           </div>
         </div>
       )}
+      {winningLine && (
+        <div
+          className={`winning-line winning-line-${winningLine.type}`}
+          style={{
+            top: winningLine.type === 'horizontal' ? `calc(${winningLine.index * 33.33}% + 49px)` : '0',
+            left: winningLine.type === 'vertical' ? `calc(${winningLine.index * 33.33}% + 49px)` : '0',
+            transform: winningLine.angle ? `rotate(${winningLine.angle}deg)` : 'none',
+            transformOrigin: winningLine.type === 'diagonal' ? (winningLine.angle === 45 ? '0 0' : '100% 0') : '0 0'
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -555,31 +600,3 @@ function calculateWinner(squares: Square[]): Square {
   }
   return null;
 }
-
-const getWinningLine = (squares: Square[]) => {
-  const lines = [
-    { squares: [0, 1, 2], type: 'horizontal', index: 0 },
-    { squares: [3, 4, 5], type: 'horizontal', index: 1 },
-    { squares: [6, 7, 8], type: 'horizontal', index: 2 },
-    { squares: [0, 3, 6], type: 'vertical', index: 0 },
-    { squares: [1, 4, 7], type: 'vertical', index: 1 },
-    { squares: [2, 5, 8], type: 'vertical', index: 2 },
-    { squares: [0, 4, 8], type: 'diagonal', index: 0, angle: 45 },
-    { squares: [2, 4, 6], type: 'diagonal', index: 1, angle: -45 }
-  ];
-
-  for (const line of lines) {
-    const [a, b, c] = line.squares;
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return {
-        winner: squares[a],
-        line: {
-          type: line.type,
-          index: line.index,
-          angle: line.angle
-        }
-      };
-    }
-  }
-  return null;
-};
