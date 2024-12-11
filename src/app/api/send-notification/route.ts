@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     },
     body: JSON.stringify({
       notificationId: crypto.randomUUID(),
-      title: "Hello from Frames v2!",
+      title: "Hello from POD Play!",
       body: "This is a test notification",
       targetUrl: requestBody.data.targetUrl,
       tokens: [requestBody.data.token],

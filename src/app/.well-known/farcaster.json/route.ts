@@ -11,7 +11,7 @@ export async function GET() {
     },
     frame: {
       version: "0.0.0",
-      name: "Frames v2 Demo",
+      name: "POD Play v2",
       iconUrl: `${appUrl}/icon.png`,
       splashImageUrl: `${appUrl}/splash.png`,
       splashBackgroundColor: "#7e22ce",

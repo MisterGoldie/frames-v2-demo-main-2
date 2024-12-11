@@ -10,7 +10,7 @@ const frame = {
     title: "Launch Frame",
     action: {
       type: "launch_frame",
-      name: "Farcaster Frames v2 Demo",
+      name: "POD Play v2",
       url: appUrl,
       splashImageUrl: `${appUrl}/splash.png`,
       splashBackgroundColor: "#9d00ff",
@@ -22,10 +22,10 @@ export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "Farcaster Frames v2 Demo",
+    title: "POD Play v2",
     openGraph: {
-      title: "Farcaster Frames v2 Demo",
-      description: "A Farcaster Frames v2 demo app.",
+      title: "Tic-Tac-Maxi",
+      description: "Tic-Tac-Toe style game by @goldie and @themrsazon.",
     },
     other: {
       "fc:frame": JSON.stringify(frame),

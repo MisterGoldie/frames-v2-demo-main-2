@@ -10,7 +10,7 @@ const frame = {
     title: "Launch Frame",
     action: {
       type: "launch_frame",
-      name: "Farcaster Frames v2 Demo",
+      name: "Tic-Tac-Maxi",
       url: `${appUrl}/frames/hello/`,
       splashImageUrl: `${appUrl}/splash.png`,
       splashBackgroundColor: "#f7f7f7",
@@ -19,11 +19,11 @@ const frame = {
 };
 
 export const metadata: Metadata = {
-  title: "Hello, world!",
-  description: "A simple hello world frame",
+  title: "POD Play v2",
+  description: "Tic-Tac-Toe style game by @goldie and @themrsazon",
   openGraph: {
-    title: "Hello, world!",
-    description: "A simple hello world frame",
+    title: "Tic-Tac-Maxi",
+    description: "Can you beat the CPU?",
   },
   other: {
     "fc:frame": JSON.stringify(frame),
