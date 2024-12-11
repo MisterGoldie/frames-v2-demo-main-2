@@ -440,7 +440,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
         <div className="w-full flex flex-col items-center">
           {menuStep === 'game' && frameContext?.user?.username && (
             <div className="text-white text-xl mb-4 text-shadow">
-              Welcome, {frameContext.user.username}! 
+              Welcome, {frameContext.user.username}
             </div>
           )}
           
