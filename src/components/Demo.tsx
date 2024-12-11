@@ -306,8 +306,8 @@ export default function Demo() {
   // Add rotation effect for hard mode
   useEffect(() => {
     if (difficulty === 'hard' && boardRef.current && gameState === 'game') {
-      const baseSpeed = 0.2;  // Store base speed as constant
-      const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.05);
+      const baseSpeed = 0.1;  // Store base speed as constant
+      const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.03);
       
       const animate = () => {
         if (boardRef.current) {
