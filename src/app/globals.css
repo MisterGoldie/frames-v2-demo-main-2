@@ -81,3 +81,12 @@ body {
   animation-delay: calc(random() * -30s);
   left: calc(random() * 100vw);
 }
+
+/* Add these new utility classes after your existing styles */
+.text-shadow {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.box-shadow {
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+}

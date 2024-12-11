@@ -408,12 +408,12 @@ export default function Demo() {
       {gameState === 'menu' ? (
         <div className="w-full flex flex-col items-center">
           {menuStep === 'game' && frameContext?.user?.username && (
-            <div className="text-white text-xl mb-4">
+            <div className="text-white text-xl mb-4 text-shadow">
               Welcome, {frameContext.user.username}! 
             </div>
           )}
           
-          <h1 className="text-3xl font-bold text-center text-white mb-12">
+          <h1 className="text-3xl font-bold text-center text-white mb-12 text-shadow">
             {menuStep === 'game' ? 'Select Game' :
              menuStep === 'piece' ? 'Select Piece' :
              'Choose Difficulty'}
@@ -504,11 +504,11 @@ export default function Demo() {
         <div className="flex flex-col items-center -mt-20">
           <div className={`absolute top-16 right-4 text-white text-sm ${
             timeLeft === 0 ? 'bg-red-600' : 'bg-purple-800'
-          } px-3 py-1 rounded-full`}>
+          } px-3 py-1 rounded-full box-shadow`}>
             {timeLeft}s
           </div>
           
-          <div className="text-center mb-4 text-white text-xl">
+          <div className="text-center mb-4 text-white text-xl text-shadow">
             {getGameStatus()}
           </div>
           
