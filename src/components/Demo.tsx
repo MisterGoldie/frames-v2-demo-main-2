@@ -312,11 +312,11 @@ export default function Demo() {
   // Add rotation effect for hard mode
   useEffect(() => {
     if (difficulty === 'hard' && boardRef.current && gameState === 'game') {
-      const baseSpeed = 0.2;  // Increased base speed from 0.05 to 0.1
+      const baseSpeed = 0.3;  // Increased base speed from 0.05 to 0.1
       
       const animate = () => {
         if (boardRef.current) {
-          const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.08); // Increased increment from 0.02 to 0.05
+          const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.1); // Increased increment from 0.02 to 0.05
           const currentRotation = parseFloat(boardRef.current.style.transform.replace(/[^\d.-]/g, '')) || 0;
           boardRef.current.style.transform = `rotate(${currentRotation + rotationSpeed}deg)`;
           animationRef.current = requestAnimationFrame(animate);
