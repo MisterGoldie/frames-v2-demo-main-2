@@ -52,8 +52,14 @@ export async function getOwnedFanTokens(addresses: string[]): Promise<TokenHoldi
 }
 
 export async function getFarcasterAddressesFromFID(fid: string): Promise<string[]> {
-  // Implementation here
-  return [];
+  try {
+    // TODO: Implement actual Farcaster address lookup
+    // For now, return a mock address for testing
+    return ['0x1234567890123456789012345678901234567890'];
+  } catch (error) {
+    console.error('Error fetching Farcaster addresses:', error);
+    return [];
+  }
 }
 
 export async function checkFanTokenOwnership(fid: string): Promise<{ ownsToken: boolean; balance: number }> {

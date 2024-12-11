@@ -379,6 +379,34 @@ export default function Demo({ tokenBalance }: DemoProps) {
     }
   }, [difficulty, board, gameState, gameSession]);
 
+  useEffect(() => {
+    const winner = calculateWinner(board);
+    if (winner) {
+      setGameState('menu');
+      setMenuStep('game');
+      setBoard(Array(9).fill(null));
+      setIsXNext(true);
+      setTimerStarted(false);
+      setTimeLeft(30);
+      playWin();
+    }
+  }, [board, playWin]);
+
+  useEffect(() => {
+    const currentBoard = boardRef.current;
+    if (currentBoard) {
+      const resizeObserver = new ResizeObserver(() => {
+        // Resize logic here
+      });
+      resizeObserver.observe(currentBoard);
+      return () => {
+        if (currentBoard) {
+          resizeObserver.unobserve(currentBoard);
+        }
+      };
+    }
+  }, []);
+
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
   }
@@ -594,5 +622,9 @@ function calculateWinner(squares: Square[]): Square {
     }
   }
   return null;
+}
+
+function playWin() {
+  throw new Error("Function not implemented.");
 }
 ////
