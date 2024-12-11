@@ -306,7 +306,7 @@ export default function Demo() {
   // Add rotation effect for hard mode
   useEffect(() => {
     if (difficulty === 'hard' && boardRef.current && gameState === 'game') {
-      const baseSpeed = 0.05;  // Reduced base speed
+      const baseSpeed = 0.05;  // Base speed
       const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.02); // Game increment piece speed 
       
       const animate = () => {
@@ -321,12 +321,16 @@ export default function Demo() {
       if (board.every(square => square === null)) {
         if (boardRef.current) {
           boardRef.current.style.transform = 'rotate(0deg)';
+          return () => {};  // Don't start animation until first move
         }
       }
 
       const animationFrame = requestAnimationFrame(animate);
       return () => {
         cancelAnimationFrame(animationFrame);
+        if (boardRef.current) {
+          boardRef.current.style.transform = 'rotate(0deg)';  // Reset on cleanup
+        }
       };
     }
   }, [difficulty, board, gameState]);
