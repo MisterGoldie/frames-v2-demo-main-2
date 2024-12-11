@@ -443,12 +443,12 @@ export default function Demo({ tokenBalance }: DemoProps) {
                   playClick();
                   setMenuStep('piece');
                 }}
-                className="w-full py-4 text-2xl bg-purple-600 @media (hover: hover) {hover:bg-purple-700} box-shadow"
+                className="w-full py-4 text-2xl bg-purple-600 box-shadow"
               >
                 Tic-Tac-Maxi
               </Button>
               {tokenBalance > 0 && (
-                <div className="mt-8 bg-purple-600 text-white px-3 py-1 rounded-full text-sm inline-flex items-center">
+                <div className="mt-10 bg-purple-600 text-white px-3 py-1 rounded-full text-sm inline-flex items-center">
                   <Image 
                     src="/fantokenlogo.png"
                     alt="Fan Token"
@@ -469,7 +469,7 @@ export default function Demo({ tokenBalance }: DemoProps) {
                   setSelectedPiece('scarygary');
                   setMenuStep('difficulty');
                 }}
-                className="w-full mb-2 @media (hover: hover) {hover:bg-purple-700}"
+                className="w-full mb-2"
               >
                 Scary Gary
               </Button>
@@ -479,7 +479,7 @@ export default function Demo({ tokenBalance }: DemoProps) {
                   setSelectedPiece('chili');
                   setMenuStep('difficulty');
                 }}
-                className="w-full mb-2 @media (hover: hover) {hover:bg-purple-700}"
+                className="w-full mb-2"
               >
                 Chili
               </Button>
@@ -489,7 +489,7 @@ export default function Demo({ tokenBalance }: DemoProps) {
                   setSelectedPiece('podplaylogo');
                   setMenuStep('difficulty');
                 }}
-                className="w-full mb-2 @media (hover: hover) {hover:bg-purple-700}"
+                className="w-full mb-2"
               >
                 Pod Logo
               </Button>
@@ -500,19 +500,19 @@ export default function Demo({ tokenBalance }: DemoProps) {
             <>
               <Button 
                 onClick={() => handleStartGame('easy', selectedPiece)}
-                className="w-full mb-2 @media (hover: hover) {hover:bg-purple-700}"
+                className="w-full mb-2"
               >
                 Easy
               </Button>
               <Button 
                 onClick={() => handleStartGame('medium', selectedPiece)}
-                className="w-full mb-2 @media (hover: hover) {hover:bg-purple-700}"
+                className="w-full mb-2"
               >
                 Medium
               </Button>
               <Button 
                 onClick={() => handleStartGame('hard', selectedPiece)}
-                className="w-full mb-2 @media (hover: hover) {hover:bg-purple-700}"
+                className="w-full mb-2"
               >
                 Hard
               </Button>
@@ -523,7 +523,7 @@ export default function Demo({ tokenBalance }: DemoProps) {
             <div className="flex justify-center w-full mt-4">
               <Button 
                 onClick={() => setMenuStep(menuStep === 'difficulty' ? 'piece' : 'game')}
-                className="w-3/4 @media (hover: hover) {hover:bg-purple-700}"
+                className="w-3/4"
               >
                 Back
               </Button>
@@ -580,13 +580,13 @@ export default function Demo({ tokenBalance }: DemoProps) {
           <div className="flex justify-between w-full gap-4 mt-4">
             <Button
               onClick={handlePlayAgain}
-              className="w-1/2 py-4 text-xl bg-green-600 @media (hover: hover) {hover:bg-green-700}"
+              className="w-1/2 py-4 text-xl bg-green-600"
             >
               Play Again
             </Button>
             <Button
               onClick={resetGame}
-              className="w-1/2 py-4 text-xl bg-purple-700 @media (hover: hover) {hover:bg-purple-800}"
+              className="w-1/2 py-4 text-xl bg-purple-700"
             >
               Back to Menu
             </Button>
