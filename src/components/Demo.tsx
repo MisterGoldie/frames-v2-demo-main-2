@@ -473,14 +473,14 @@ export default function Demo({ tokenBalance }: DemoProps) {
               >
                 Play Game
               </Button>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <Image 
                   src="/fantokenlogo.png"
                   alt="Fan Token"
                   width={24} 
                   height={24}
                 />
-                {tokenBalance.toFixed(2)}
+                {tokenBalance.toFixed(2)} /thepod fan tokens owned
               </div>
             </>
           )}
