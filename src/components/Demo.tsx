@@ -517,12 +517,31 @@ export default function Demo() {
           
           <div 
             ref={boardRef}
-            className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4"
-            style={{ transition: 'transform 0.1s linear' }}
+            className="grid grid-cols-3 relative w-[300px] h-[300px]"
           >
-            <div className="absolute left-0 top-[33%] w-full h-[2px] bg-white shadow-glow" />
-            <div className="absolute left-0 top-[66%] w-full h-[2px] bg-white shadow-glow" />
-            
+            {winningLine && (
+              <div
+                className={`winning-line winning-line-${winningLine.type}`}
+                style={{
+                  position: 'absolute',
+                  top: winningLine.type === 'horizontal' 
+                    ? `calc(${(winningLine.index * 33.33) + 16.5}%)` 
+                    : winningLine.type === 'diagonal' 
+                      ? '0' 
+                      : '0',
+                  left: winningLine.type === 'vertical'
+                    ? `calc(${(winningLine.index * 33.33) + 16.5}%)`
+                    : '0',
+                  width: winningLine.type === 'vertical' ? '4px' : '100%',
+                  height: winningLine.type === 'horizontal' ? '4px' : '100%',
+                  transform: winningLine.angle ? `rotate(${winningLine.angle}deg)` : 'none',
+                  transformOrigin: winningLine.type === 'diagonal' 
+                    ? (winningLine.angle === 45 ? '0 0' : '100% 0') 
+                    : '50% 50%',
+                  zIndex: 10
+                }}
+              />
+            )}
             {board.map((square, index) => (
               <button
                 key={index}
@@ -565,17 +584,6 @@ export default function Demo() {
             </Button>
           </div>
         </div>
-      )}
-      {winningLine && (
-        <div
-          className={`winning-line winning-line-${winningLine.type}`}
-          style={{
-            top: winningLine.type === 'horizontal' ? `calc(${winningLine.index * 33.33}% + 49px)` : '0',
-            left: winningLine.type === 'vertical' ? `calc(${winningLine.index * 33.33}% + 49px)` : '0',
-            transform: winningLine.angle ? `rotate(${winningLine.angle}deg)` : 'none',
-            transformOrigin: winningLine.type === 'diagonal' ? (winningLine.angle === 45 ? '0 0' : '100% 0') : '0 0'
-          }}
-        />
       )}
     </div>
   );

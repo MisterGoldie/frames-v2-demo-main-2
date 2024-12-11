@@ -83,22 +83,21 @@ body {
 }
 
 @keyframes drawWinningLine {
-  0% {
-    width: 0;
+  from {
     opacity: 0;
+    transform: scaleX(0);
   }
-  100% {
-    width: 100%;
+  to {
     opacity: 1;
+    transform: scaleX(1);
   }
 }
 
 .winning-line {
-  position: absolute;
-  height: 4px;
   background: white;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
-  z-index: 20;
+  box-shadow: 0 0 10px #fff,
+              0 0 20px #fff,
+              0 0 30px #fff;
   animation: drawWinningLine 0.5s ease-out forwards;
 }
 
@@ -114,6 +113,5 @@ body {
 }
 
 .winning-line-diagonal {
-  width: 140%;
-  transform-origin: 0 0;
+  width: 141.4% !important; /* √2 * 100% for perfect diagonal */
 }
