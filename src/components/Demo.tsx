@@ -101,8 +101,9 @@ export default function Demo() {
   const handleStartGame = useCallback((diff: Difficulty, piece: PlayerPiece) => {
     playClick();
     stopHalloweenMusic();
+    stopGameJingle();
     if (!isMuted) {
-      playGameJingle();
+      setTimeout(() => playGameJingle(), 100);
     }
     setGameState('game');
     setBoard(Array(9).fill(null));
@@ -111,7 +112,7 @@ export default function Demo() {
     setDifficulty(diff);
     setTimeLeft(15);
     setTimerStarted(true);
-  }, [playClick, stopHalloweenMusic, playGameJingle, isMuted]);
+  }, [playClick, stopHalloweenMusic, stopGameJingle, playGameJingle, isMuted]);
 
   const getComputerMove = useCallback((currentBoard: Board): number => {
     const availableSpots = currentBoard
@@ -254,11 +255,38 @@ export default function Demo() {
   }, [stopCountdownSound, playGameJingle]);
 
   useEffect(() => {
-    if (gameState === 'menu') {
-      playHalloweenMusic();
-      return () => stopHalloweenMusic();
-    }
-  }, [gameState, playHalloweenMusic, stopHalloweenMusic]);
+    const handleSounds = () => {
+      // Stop all sounds first
+      stopGameJingle();
+      stopHalloweenMusic();
+      
+      // Only play sounds if not muted
+      if (!isMuted) {
+        if (gameState === 'menu') {
+          setTimeout(() => playHalloweenMusic(), 100);
+        } else if (gameState === 'game' && !calculateWinner(board) && timeLeft > 0) {
+          setTimeout(() => playGameJingle(), 100);
+        }
+      }
+    };
+
+    handleSounds();
+
+    return () => {
+      stopGameJingle();
+      stopHalloweenMusic();
+    };
+  }, [
+    isMuted,
+    gameState,
+    calculateWinner,
+    board,
+    timeLeft,
+    stopGameJingle,
+    stopHalloweenMusic,
+    playGameJingle,
+    playHalloweenMusic
+  ]);
 
   useEffect(() => {
     if (timerStarted && gameState === 'game' && !calculateWinner(board)) {
@@ -344,36 +372,6 @@ export default function Demo() {
       };
     }
   }, [difficulty, board, gameState, gameSession]);
-
-  useEffect(() => {
-    // Stop all sounds first
-    stopGameJingle();
-    stopHalloweenMusic();
-    
-    // Only play sounds if not muted
-    if (!isMuted) {
-      if (gameState === 'menu') {
-        playHalloweenMusic();
-      } else if (gameState === 'game' && !calculateWinner(board) && timeLeft > 0) {
-        playGameJingle();
-      }
-    }
-
-    // Cleanup function to stop sounds when component unmounts or effect re-runs
-    return () => {
-      stopGameJingle();
-      stopHalloweenMusic();
-    };
-  }, [
-    isMuted, 
-    gameState, 
-    board, 
-    timeLeft, 
-    stopGameJingle, 
-    playHalloweenMusic, 
-    playGameJingle, 
-    calculateWinner
-  ]);
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
