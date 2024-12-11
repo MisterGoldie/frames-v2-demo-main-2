@@ -409,9 +409,9 @@ export default function Demo({ tokenBalance }: DemoProps) {
 
   const playSoundEffect = useCallback(() => {
     if (calculateWinner(board)) {
-      playWin();
+      playWinning();
     }
-  }, [board]);
+  }, [board, playWinning]);
 
   useEffect(() => {
     playSoundEffect();
