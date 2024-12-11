@@ -1,6 +1,8 @@
-# 🖼️ frames-v2-demo
+POD Play v2 
 
-A Farcaster Frames v2 demo app.
+A Farcaster Frames v2 gameapp.
+
+Created by @goldie and @themrsazon
 
 [🛠️ Frame Playground](https://warpcast.com/~/developers/frame-playground) (Mobile only)<br/>
 [📦 Frame SDK](https://github.com/farcasterxyz/frames/)<br/>
