@@ -447,15 +447,17 @@ export default function Demo({ tokenBalance }: DemoProps) {
               >
                 Tic-Tac-Maxi
               </Button>
-              <div className="flex items-center gap-1">
-                <Image 
-                  src="/fantokenlogo.png"
-                  alt="Fan Token"
-                  width={24} 
-                  height={24}
-                />
-                {tokenBalance.toFixed(2)} /thepod fan tokens owned
-              </div>
+              {tokenBalance > 0 && (
+                <div className="flex items-center gap-1">
+                  <Image 
+                    src="/fantokenlogo.png"
+                    alt="Fan Token"
+                    width={24} 
+                    height={24}
+                  />
+                  {tokenBalance.toFixed(2)} /thepod fan tokens owned
+                </div>
+              )}
             </>
           )}
 
