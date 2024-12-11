@@ -346,16 +346,34 @@ export default function Demo() {
   }, [difficulty, board, gameState, gameSession]);
 
   useEffect(() => {
+    // Stop all sounds first
+    stopGameJingle();
+    stopHalloweenMusic();
+    
+    // Only play sounds if not muted
     if (!isMuted) {
       if (gameState === 'menu') {
-        stopGameJingle();
         playHalloweenMusic();
       } else if (gameState === 'game' && !calculateWinner(board) && timeLeft > 0) {
-        stopHalloweenMusic();
         playGameJingle();
       }
     }
-  }, [isMuted, gameState, board, timeLeft, stopGameJingle, playHalloweenMusic, playGameJingle]);
+
+    // Cleanup function to stop sounds when component unmounts or effect re-runs
+    return () => {
+      stopGameJingle();
+      stopHalloweenMusic();
+    };
+  }, [
+    isMuted, 
+    gameState, 
+    board, 
+    timeLeft, 
+    stopGameJingle, 
+    playHalloweenMusic, 
+    playGameJingle, 
+    calculateWinner
+  ]);
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
