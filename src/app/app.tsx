@@ -25,8 +25,12 @@ export default function App() {
   useEffect(() => {
     const fetchTokenBalance = async () => {
       if (frameContext?.user?.fid) {
+        console.log('Fetching balance for FID:', frameContext.user.fid);
         const { balance } = await checkFanTokenOwnership(frameContext.user.fid.toString());
+        console.log('Retrieved balance:', balance);
         setTokenBalance(balance);
+      } else {
+        console.log('No FID available in frame context:', frameContext);
       }
     };
     

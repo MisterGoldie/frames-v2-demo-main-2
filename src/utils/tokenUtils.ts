@@ -19,6 +19,15 @@ interface MoxieResponse {
   }[];
 }
 
+interface AirstackResponse {
+  Socials: {
+    Social: {
+      userAddress: string;
+      userAssociatedAddresses: string[];
+    }[];
+  };
+}
+
 export async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | null> {
   const graphQLClient = new GraphQLClient(MOXIE_API_URL!);
   
@@ -52,11 +61,36 @@ export async function getOwnedFanTokens(addresses: string[]): Promise<TokenHoldi
 }
 
 export async function getFarcasterAddressesFromFID(fid: string): Promise<string[]> {
+  const AIRSTACK_API_URL = "https://api.airstack.xyz/gql";
+  const AIRSTACK_API_KEY = process.env.NEXT_PUBLIC_AIRSTACK_API_KEY;
+
+  const graphQLClient = new GraphQLClient(AIRSTACK_API_URL, {
+    headers: {
+      authorization: AIRSTACK_API_KEY!
+    }
+  });
+
+  const query = gql`
+    query GetFarcasterAddresses($fid: String!) {
+      Socials(
+        input: {
+          filter: { dappName: { _eq: farcaster }, userId: { _eq: $fid } }
+          blockchain: ethereum
+        }
+      ) {
+        Social {
+          userAddress
+          userAssociatedAddresses
+        }
+      }
+    }
+  `;
+
   try {
-    console.log(`Fetching addresses for FID: ${fid}`);
-    // TODO: Implement actual Farcaster address lookup using the fid
-    // For now, return a mock address for testing
-    return [`0x${fid.padStart(40, '0')}`];
+    const response = await graphQLClient.request<AirstackResponse>(query, { fid });
+    const addresses = response?.Socials?.Social?.[0]?.userAssociatedAddresses || [];
+    console.log(`Found Farcaster addresses for FID ${fid}:`, addresses);
+    return addresses;
   } catch (error) {
     console.error(`Error fetching Farcaster addresses for FID ${fid}:`, error);
     return [];
@@ -65,24 +99,31 @@ export async function getFarcasterAddressesFromFID(fid: string): Promise<string[
 
 export async function checkFanTokenOwnership(fid: string): Promise<{ ownsToken: boolean; balance: number }> {
   try {
+    console.log(`Checking token ownership for FID: ${fid}`);
     const addresses = await getFarcasterAddressesFromFID(fid);
+    console.log(`Found addresses:`, addresses);
     
     if (!addresses.length) {
+      console.log('No addresses found');
       return { ownsToken: false, balance: 0 };
     }
 
     const fanTokenData = await getOwnedFanTokens(addresses);
+    console.log(`Fan token data:`, fanTokenData);
     
     if (!fanTokenData) {
+      console.log('No fan token data found');
       return { ownsToken: false, balance: 0 };
     }
 
     const thepodToken = fanTokenData.find((token: TokenHolding) => 
       token.subjectToken.symbol.toLowerCase() === "cid:thepod"
     );
+    console.log(`Found pod token:`, thepodToken);
 
     if (thepodToken && parseFloat(thepodToken.balance) > 0) {
       const balance = parseFloat(thepodToken.balance) / 1e18;
+      console.log(`Calculated balance: ${balance}`);
       return { ownsToken: true, balance };
     }
 
