@@ -388,7 +388,10 @@ export default function Demo() {
           
           {menuStep === 'game' && (
             <Button
-              onClick={() => setMenuStep('piece')}
+              onClick={() => {
+                playClick();
+                setMenuStep('piece');
+              }}
               className="w-full py-4 text-2xl bg-purple-600 hover:bg-purple-700"
             >
               Tic-Tac-Maxi
