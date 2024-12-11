@@ -357,6 +357,7 @@ export default function Demo() {
             if (gameState === 'menu') {
               playHalloweenMusic();
             } else if (gameState === 'game' && !calculateWinner(board) && timeLeft > 0) {
+              stopHalloweenMusic();
               playGameJingle();
             }
           } else {
