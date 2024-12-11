@@ -41,6 +41,7 @@ const VolumeOffIcon = () => (
 export default function Demo() {
   const [gameSession, setGameSession] = useState(0);
   const boardRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<number>();  // Add ref for animation frame
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [frameContext, setFrameContext] = useState<FrameContext>();
   const [gameState, setGameState] = useState<GameState>('menu');
@@ -234,6 +235,9 @@ export default function Demo() {
   }, [stopCountdownSound, stopGameJingle, playHalloweenMusic]);
 
   const handlePlayAgain = useCallback(() => {
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
     if (boardRef.current) {
       boardRef.current.style.transform = 'rotate(0deg)';
     }
@@ -309,27 +313,29 @@ export default function Demo() {
   useEffect(() => {
     if (difficulty === 'hard' && boardRef.current && gameState === 'game') {
       const baseSpeed = 0.05;  // Base speed
-      const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.02); 
       
       const animate = () => {
         if (boardRef.current) {
+          const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.02);
           const currentRotation = parseFloat(boardRef.current.style.transform.replace(/[^\d.-]/g, '')) || 0;
           boardRef.current.style.transform = `rotate(${currentRotation + rotationSpeed}deg)`;
+          animationRef.current = requestAnimationFrame(animate);
         }
-        requestAnimationFrame(animate);
       };
 
-      // Complete reset when board is empty
-      if (board.every(square => square === null)) {
+      // Start animation only if board is not empty
+      if (!board.every(square => square === null)) {
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
         if (boardRef.current) {
           boardRef.current.style.transform = 'rotate(0deg)';
-          return () => {};
         }
       }
 
-      const animationFrame = requestAnimationFrame(animate);
       return () => {
-        cancelAnimationFrame(animationFrame);
+        if (animationRef.current) {
+          cancelAnimationFrame(animationRef.current);
+        }
         if (boardRef.current) {
           boardRef.current.style.transform = 'rotate(0deg)';
         }
