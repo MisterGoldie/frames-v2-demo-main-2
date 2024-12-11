@@ -13,16 +13,12 @@ Created by @goldie and @themrsazon
 This is a [NextJS](https://nextjs.org/) + TypeScript + React app.
 
 To install dependencies:
+yarn
 
-```bash
-$ yarn
-```
 
 To run the app:
+yarn dev
 
-```bash
-$ yarn dev
-```
 
 To try your app in the Warpcast playground, you'll want to use a tunneling tool like [ngrok](https://ngrok.com/).
 

@@ -306,8 +306,8 @@ export default function Demo() {
   // Add rotation effect for hard mode
   useEffect(() => {
     if (difficulty === 'hard' && boardRef.current && gameState === 'game') {
-      const baseSpeed = 0.1;  // Store base speed as constant
-      const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.03);
+      const baseSpeed = 0.05;  // Reduced base speed
+      const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.01); // Reduced increment
       
       const animate = () => {
         if (boardRef.current) {
@@ -317,10 +317,11 @@ export default function Demo() {
         requestAnimationFrame(animate);
       };
 
-      // Reset to base speed when board is empty
+      // Complete reset when board is empty
       if (board.every(square => square === null)) {
-        const animationFrame = requestAnimationFrame(animate);
-        return () => cancelAnimationFrame(animationFrame);
+        if (boardRef.current) {
+          boardRef.current.style.transform = 'rotate(0deg)';
+        }
       }
 
       const animationFrame = requestAnimationFrame(animate);
