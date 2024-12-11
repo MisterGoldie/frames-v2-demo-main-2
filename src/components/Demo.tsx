@@ -38,16 +38,17 @@ const VolumeOffIcon = () => (
   </svg>
 );
 
-interface DemoProps {
+type DemoProps = {
   tokenBalance: number;
-}
+  frameContext?: FrameContext;
+};
 
-export default function Demo({ tokenBalance }: DemoProps) {
+export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [gameSession, setGameSession] = useState(0);
   const boardRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();  // Add ref for animation frame
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
-  const [frameContext, setFrameContext] = useState<FrameContext>();
+  const [localFrameContext, setLocalFrameContext] = useState<FrameContext>();
   const [gameState, setGameState] = useState<GameState>('menu');
   const [menuStep, setMenuStep] = useState<MenuStep>('game');
   const [board, setBoard] = useState<Board>(Array(9).fill(null));
@@ -83,6 +84,7 @@ export default function Demo({ tokenBalance }: DemoProps) {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [isPlayingCountdown, setIsPlayingCountdown] = useState(false);
   const isJinglePlaying = useRef(false);
+  const [profileImage, setProfileImage] = useState<string>('');
 
   // SDK initialization
   useEffect(() => {
@@ -90,7 +92,7 @@ export default function Demo({ tokenBalance }: DemoProps) {
       try {
         const context = await sdk.context;
         console.log("Frame context:", context); // Debug log
-        setFrameContext(context);
+        setLocalFrameContext(context);
         sdk.actions.ready();
       } catch (error) {
         console.error("Error loading Frame SDK:", error);
@@ -102,6 +104,16 @@ export default function Demo({ tokenBalance }: DemoProps) {
       loadFrameSDK();
     }
   }, [isSDKLoaded]);
+
+  // Fetch profile image when context changes
+  useEffect(() => {
+    const getProfileImage = async () => {
+      if (frameContext?.user?.pfpUrl) {
+        setProfileImage(frameContext.user.pfpUrl);
+      }
+    };
+    getProfileImage();
+  }, [frameContext]);
 
   const handleStartGame = useCallback((diff: Difficulty, piece: PlayerPiece) => {
     playClick();
@@ -399,27 +411,16 @@ export default function Demo({ tokenBalance }: DemoProps) {
     <div className="w-[300px] h-[600px] mx-auto flex items-start justify-center relative pt-48">
       {gameState === 'menu' && <Snow />}
       
-      <div 
-        onClick={() => {
-          setIsMuted(!isMuted);
-          if (isMuted) {
-            if (gameState === 'menu') {
-              playHalloweenMusic();
-            } else if (gameState === 'game' && !calculateWinner(board) && timeLeft > 0) {
-              stopHalloweenMusic();
-              playGameJingle();
-            }
-          } else {
-            stopGameJingle();
-            stopHalloweenMusic();
-            stopCountdownSound();
-          }
-        }} 
-        className={`absolute top-16 left-4 cursor-pointer text-white z-10 w-8 h-8 flex items-center justify-center hover:opacity-80 transition-opacity rounded-full box-shadow ${
-          isMuted ? 'bg-red-600 hover:bg-red-500' : 'bg-purple-600'
-        }`}
-      >
-        {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex items-center gap-4">
+        <VolumeOffIcon />
+        {profileImage && (
+          <img 
+            src={profileImage} 
+            alt="Profile" 
+            className="w-8 h-8 rounded-full border-2 border-white"
+          />
+        )}
+        <VolumeOnIcon />
       </div>
 
       {gameState === 'menu' ? (

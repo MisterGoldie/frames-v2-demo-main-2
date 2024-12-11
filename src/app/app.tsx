@@ -37,5 +37,5 @@ export default function App() {
     fetchTokenBalance();
   }, [frameContext?.user?.fid]);
 
-  return <Demo tokenBalance={tokenBalance} />;
+  return <Demo tokenBalance={tokenBalance} frameContext={frameContext} />;
 }
