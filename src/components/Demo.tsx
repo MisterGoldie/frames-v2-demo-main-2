@@ -469,12 +469,18 @@ export default function Demo({ tokenBalance }: DemoProps) {
                   playClick();
                   setMenuStep('piece');
                 }}
-                className="w-full py-4 text-2xl bg-purple-600 hover:bg-purple-700"
+                className="mb-4"
               >
-                Tic-Tac-Maxi
+                Play Game
               </Button>
-              <div className="mt-4 bg-purple-600 text-white px-3 py-1 rounded-full text-sm inline-flex items-center">
-                🪙 {tokenBalance.toFixed(2)}
+              <div className="flex items-center gap-2">
+                <Image 
+                  src="/fantokenlogo.png"
+                  alt="Fan Token"
+                  width={24} 
+                  height={24}
+                />
+                {tokenBalance.toFixed(2)}
               </div>
             </>
           )}
