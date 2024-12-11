@@ -495,3 +495,4 @@ function calculateWinner(squares: Square[]): Square {
   }
   return null;
 }
+//
