@@ -235,19 +235,17 @@ export default function Demo() {
       }
     }, 500);
   }, [
-    board,
     timeLeft,
-    timerStarted,
+    board,
+    calculateWinner,
     isXNext,
     selectedPiece,
-    getComputerMove,
     playClick,
-    playWinning,
-    playLosing,
-    playDrawing,
     stopGameJingle,
     stopCountdownSound,
     playWinning,
+    playLosing,
+    playDrawing,
     checkWinner
   ]);
 
@@ -345,33 +343,29 @@ export default function Demo() {
   // Add rotation effect for hard mode
   useEffect(() => {
     if (difficulty === 'hard' && boardRef.current && gameState === 'game') {
-      const baseSpeed = 0.3;  // Increased base speed from 0.05 to 0.1
-      
+      const baseSpeed = 0.1;
+      const boardElement = boardRef.current;
+
       const animate = () => {
-        if (boardRef.current) {
-          const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.1); // Increased increment from 0.02 to 0.05
-          const currentRotation = parseFloat(boardRef.current.style.transform.replace(/[^\d.-]/g, '')) || 0;
-          boardRef.current.style.transform = `rotate(${currentRotation + rotationSpeed}deg)`;
+        if (boardElement) {
+          const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.05);
+          const currentRotation = parseFloat(boardElement.style.transform.replace(/[^\d.-]/g, '')) || 0;
+          boardElement.style.transform = `rotate(${currentRotation + rotationSpeed}deg)`;
           animationRef.current = requestAnimationFrame(animate);
         }
       };
 
-      // Start animation only if board is not empty
       if (!board.every(square => square === null)) {
         animationRef.current = requestAnimationFrame(animate);
       } else {
-        if (boardRef.current) {
-          boardRef.current.style.transform = 'rotate(0deg)';
-        }
+        boardElement.style.transform = 'rotate(0deg)';
       }
 
       return () => {
         if (animationRef.current) {
           cancelAnimationFrame(animationRef.current);
         }
-        if (boardRef.current) {
-          boardRef.current.style.transform = 'rotate(0deg)';
-        }
+        boardElement.style.transform = 'rotate(0deg)';
       };
     }
   }, [difficulty, board, gameState, gameSession]);
@@ -533,7 +527,7 @@ export default function Demo() {
                   transformOrigin: winningLine.type === 'diagonal' 
                     ? (winningLine.angle === 45 ? '0 50%' : '100% 50%') 
                     : '50% 50%'
-                } as any}
+                } as React.CSSProperties}
               />
             )}
             {board.map((square, index) => (
