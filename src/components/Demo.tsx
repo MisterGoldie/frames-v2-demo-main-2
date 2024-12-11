@@ -324,7 +324,9 @@ export default function Demo() {
       }
 
       const animationFrame = requestAnimationFrame(animate);
-      return () => cancelAnimationFrame(animationFrame);
+      return () => {
+        cancelAnimationFrame(animationFrame);
+      };
     }
   }, [difficulty, board, gameState]);
 
