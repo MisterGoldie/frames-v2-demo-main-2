@@ -39,6 +39,7 @@ const VolumeOffIcon = () => (
 );
 
 export default function Demo() {
+  const [gameSession, setGameSession] = useState(0);
   const boardRef = useRef<HTMLDivElement>(null);
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [frameContext, setFrameContext] = useState<FrameContext>();
@@ -234,7 +235,7 @@ export default function Demo() {
 
   const handlePlayAgain = useCallback(() => {
     if (boardRef.current) {
-      boardRef.current.style.transform = 'rotate(0deg)';  // Reset rotation
+      boardRef.current.style.transform = 'rotate(0deg)';
     }
     setBoard(Array(9).fill(null));
     setIsXNext(true);
@@ -243,6 +244,7 @@ export default function Demo() {
     setStartTime(null);
     stopCountdownSound();
     playGameJingle();
+    setGameSession(prev => prev + 1);
   }, [stopCountdownSound, playGameJingle]);
 
   useEffect(() => {
@@ -307,7 +309,7 @@ export default function Demo() {
   useEffect(() => {
     if (difficulty === 'hard' && boardRef.current && gameState === 'game') {
       const baseSpeed = 0.05;  // Base speed
-      const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.02); // Game increment piece speed 
+      const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.02); 
       
       const animate = () => {
         if (boardRef.current) {
@@ -321,7 +323,7 @@ export default function Demo() {
       if (board.every(square => square === null)) {
         if (boardRef.current) {
           boardRef.current.style.transform = 'rotate(0deg)';
-          return () => {};  // Don't start animation until first move
+          return () => {};
         }
       }
 
@@ -329,11 +331,11 @@ export default function Demo() {
       return () => {
         cancelAnimationFrame(animationFrame);
         if (boardRef.current) {
-          boardRef.current.style.transform = 'rotate(0deg)';  // Reset on cleanup
+          boardRef.current.style.transform = 'rotate(0deg)';
         }
       };
     }
-  }, [difficulty, board, gameState]);
+  }, [difficulty, board, gameState, gameSession]);
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
