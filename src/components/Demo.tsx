@@ -402,6 +402,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   }, []);
 
   const toggleMute = () => setIsMuted(prev => !prev);
+  // Get pfpUrl directly from frameContext
+  const pfpUrl = frameContext?.user?.pfpUrl;
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
@@ -415,16 +417,12 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
         <button onClick={toggleMute}>
           {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
         </button>
-        {profileImage && (
-          <div className="relative w-16 h-16">
-            <Image 
-              src={profileImage} 
-              alt="Profile" 
-              fill
-              className="rounded-full border-4 border-white object-cover"
-              priority
-            />
-          </div>
+        {pfpUrl && (
+          <img 
+            src={pfpUrl} 
+            alt="Profile" 
+            className="w-32 h-32 rounded-full border-4 border-white object-cover"
+          />
         )}
       </div>
 
