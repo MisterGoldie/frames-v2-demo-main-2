@@ -217,6 +217,9 @@ export default function Demo() {
   ]);
 
   const resetGame = useCallback(() => {
+    if (boardRef.current) {
+      boardRef.current.style.transform = 'rotate(0deg)';  // Reset rotation
+    }
     setGameState('menu');
     setMenuStep('game');
     setBoard(Array(9).fill(null));
@@ -230,6 +233,9 @@ export default function Demo() {
   }, [stopCountdownSound, stopGameJingle, playHalloweenMusic]);
 
   const handlePlayAgain = useCallback(() => {
+    if (boardRef.current) {
+      boardRef.current.style.transform = 'rotate(0deg)';  // Reset rotation
+    }
     setBoard(Array(9).fill(null));
     setIsXNext(true);
     setTimeLeft(15);
