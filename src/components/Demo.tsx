@@ -13,11 +13,6 @@ type Board = Square[];
 type GameState = 'menu' | 'game';
 type MenuStep = 'game' | 'piece' | 'difficulty';
 type Difficulty = 'easy' | 'medium' | 'hard';
-type WinningLine = {
-  start: number;
-  end: number;
-  progress: number;
-};
 
 const VolumeOnIcon = () => (
   <svg 
@@ -83,8 +78,11 @@ export default function Demo() {
   });
   const [startTime, setStartTime] = useState<number | null>(null);
   const [isPlayingCountdown, setIsPlayingCountdown] = useState(false);
-  const [winningLine, setWinningLine] = useState<WinningLine | null>(null);
-  const lineRef = useRef<HTMLDivElement>(null);
+  const [winningLine, setWinningLine] = useState<{
+    type: 'horizontal' | 'vertical' | 'diagonal';
+    index: number;
+    angle?: number;
+  } | null>(null);
 
   // SDK initialization
   useEffect(() => {
@@ -319,69 +317,36 @@ export default function Demo() {
   // Add rotation effect for hard mode
   useEffect(() => {
     if (difficulty === 'hard' && boardRef.current && gameState === 'game') {
-      const baseSpeed = 0.1;
-      const boardElement = boardRef.current;
+      const baseSpeed = 0.3;  // Increased base speed from 0.05 to 0.1
       
       const animate = () => {
-        if (boardElement) {
-          const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.05);
-          const currentRotation = parseFloat(boardElement.style.transform.replace(/[^\d.-]/g, '')) || 0;
-          boardElement.style.transform = `rotate(${currentRotation + rotationSpeed}deg)`;
+        if (boardRef.current) {
+          const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.1); // Increased increment from 0.02 to 0.05
+          const currentRotation = parseFloat(boardRef.current.style.transform.replace(/[^\d.-]/g, '')) || 0;
+          boardRef.current.style.transform = `rotate(${currentRotation + rotationSpeed}deg)`;
           animationRef.current = requestAnimationFrame(animate);
         }
       };
 
+      // Start animation only if board is not empty
       if (!board.every(square => square === null)) {
         animationRef.current = requestAnimationFrame(animate);
       } else {
-        boardElement.style.transform = 'rotate(0deg)';
+        if (boardRef.current) {
+          boardRef.current.style.transform = 'rotate(0deg)';
+        }
       }
 
       return () => {
         if (animationRef.current) {
           cancelAnimationFrame(animationRef.current);
         }
-        boardElement.style.transform = 'rotate(0deg)';
+        if (boardRef.current) {
+          boardRef.current.style.transform = 'rotate(0deg)';
+        }
       };
     }
   }, [difficulty, board, gameState, gameSession]);
-
-  const getWinningLine = (squares: Square[]): WinningLine | null => {
-    const lines = [
-      [0, 1, 2], // horizontal
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6], // vertical
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8], // diagonal
-      [2, 4, 6]
-    ];
-
-    for (let i = 0; i < lines.length; i++) {
-      const [a, b, c] = lines[i];
-      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-        return {
-          start: a,
-          end: c,
-          progress: 0
-        };
-      }
-    }
-    return null;
-  };
-
-  useEffect(() => {
-    const winner = calculateWinner(board);
-    if (winner) {
-      const line = getWinningLine(board);
-      if (line) {
-        setWinningLine(line);
-      }
-    } else {
-      setWinningLine(null);
-    }
-  }, [board]);
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
@@ -519,23 +484,8 @@ export default function Demo() {
           <div 
             ref={boardRef}
             className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4"
+            style={{ transition: 'transform 0.1s linear' }}
           >
-            {winningLine && (
-              <div
-                ref={lineRef}
-                className={`absolute z-10 bg-white shadow-glow winning-line ${
-                  winningLine.start % 3 === winningLine.end % 3 ? 'winning-line-vertical' :
-                  Math.floor(winningLine.start / 3) === Math.floor(winningLine.end / 3) ? 'winning-line-horizontal' :
-                  winningLine.start === 0 && winningLine.end === 8 ? 'winning-line-diagonal-1' :
-                  'winning-line-diagonal-2'
-                }`}
-                style={{
-                  top: Math.floor(winningLine.start / 3) * 33.33 + '%',
-                  left: (winningLine.start % 3) * 33.33 + '%',
-                  fontFamily: '"Permanent Marker", cursive'
-                }}
-              />
-            )}
             <div className="absolute left-0 top-[33%] w-full h-[2px] bg-white shadow-glow" />
             <div className="absolute left-0 top-[66%] w-full h-[2px] bg-white shadow-glow" />
             
@@ -605,3 +555,31 @@ function calculateWinner(squares: Square[]): Square {
   }
   return null;
 }
+
+const getWinningLine = (squares: Square[]) => {
+  const lines = [
+    { squares: [0, 1, 2], type: 'horizontal', index: 0 },
+    { squares: [3, 4, 5], type: 'horizontal', index: 1 },
+    { squares: [6, 7, 8], type: 'horizontal', index: 2 },
+    { squares: [0, 3, 6], type: 'vertical', index: 0 },
+    { squares: [1, 4, 7], type: 'vertical', index: 1 },
+    { squares: [2, 5, 8], type: 'vertical', index: 2 },
+    { squares: [0, 4, 8], type: 'diagonal', index: 0, angle: 45 },
+    { squares: [2, 4, 6], type: 'diagonal', index: 1, angle: -45 }
+  ];
+
+  for (const line of lines) {
+    const [a, b, c] = line.squares;
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return {
+        winner: squares[a],
+        line: {
+          type: line.type,
+          index: line.index,
+          angle: line.angle
+        }
+      };
+    }
+  }
+  return null;
+};
