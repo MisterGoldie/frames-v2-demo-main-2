@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import sdk, { FrameContext } from "@farcaster/frame-sdk";
 import { Button } from "~/components/ui/Button";
 import useSound from 'use-sound';
@@ -39,6 +39,7 @@ const VolumeOffIcon = () => (
 );
 
 export default function Demo() {
+  const boardRef = useRef<HTMLDivElement>(null);
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [frameContext, setFrameContext] = useState<FrameContext>();
   const [gameState, setGameState] = useState<GameState>('menu');
@@ -296,6 +297,24 @@ export default function Demo() {
       frameContext?.user?.username || selectedPiece}`;
   };
 
+  // Add rotation effect for hard mode
+  useEffect(() => {
+    if (difficulty === 'hard' && boardRef.current && gameState === 'game') {
+      const rotationSpeed = 0.5 + (board.filter(Boolean).length * 0.2);
+      
+      const animate = () => {
+        if (boardRef.current) {
+          const currentRotation = parseFloat(boardRef.current.style.transform.replace(/[^\d.-]/g, '')) || 0;
+          boardRef.current.style.transform = `rotate(${currentRotation + rotationSpeed}deg)`;
+        }
+        requestAnimationFrame(animate);
+      };
+
+      const animationFrame = requestAnimationFrame(animate);
+      return () => cancelAnimationFrame(animationFrame);
+    }
+  }, [difficulty, board, gameState]);
+
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
   }
@@ -425,7 +444,11 @@ export default function Demo() {
             {getGameStatus()}
           </div>
           
-          <div className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4">
+          <div 
+            ref={boardRef}
+            className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4"
+            style={{ transition: 'transform 0.1s linear' }}
+          >
             <div className="absolute left-0 top-[33%] w-full h-[2px] bg-white shadow-glow" />
             <div className="absolute left-0 top-[66%] w-full h-[2px] bg-white shadow-glow" />
             
