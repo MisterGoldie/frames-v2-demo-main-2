@@ -379,22 +379,6 @@ export default function Demo({ tokenBalance }: DemoProps) {
     }
   }, [difficulty, board, gameState, gameSession]);
 
-  const handleWin = useCallback((board: Board) => {
-    const winner = calculateWinner(board);
-    if (winner) {
-      setGameState('menu');
-      setMenuStep('game');
-      setBoard(Array(9).fill(null));
-      setIsXNext(true);
-      setTimerStarted(false);
-      setTimeLeft(30);
-    }
-  }, []);
-
-  useEffect(() => {
-    handleWin(board);
-  }, [board, handleWin]);
-
   useEffect(() => {
     const currentBoard = boardRef.current;
     if (!currentBoard) return;
