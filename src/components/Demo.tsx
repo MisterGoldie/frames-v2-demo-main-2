@@ -522,6 +522,9 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                   {tokenBalance.toFixed(2)} /thepod fan tokens owned
                 </div>
               )}
+              <div className="absolute bottom-4 text-white/50 text-sm">
+                version 1.0
+              </div>
             </>
           )}
 
