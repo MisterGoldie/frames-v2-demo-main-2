@@ -274,6 +274,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
 
   const handlePlayAgain = useCallback(() => {
     setShowLeaderboard(false);
+    setEndedByTimer(false);  // Reset timer end state
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
