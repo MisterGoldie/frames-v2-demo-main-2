@@ -6,7 +6,6 @@ import { Button } from "~/components/ui/Button";
 import useSound from 'use-sound';
 import Image from 'next/image';
 import Snow from './Snow';
-import { updateUserRecord, updateUserTie } from '~/utils/firebaseUtils';
 
 type PlayerPiece = 'scarygary' | 'chili' | 'podplaylogo';
 type Square = 'X' | PlayerPiece | null;
@@ -198,7 +197,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       stopCountdownSound();
       playWinning();
       if (frameContext?.user?.fid) {
-        await updateUserRecord(frameContext.user.fid.toString(), true, difficulty);
+        await updateGameResult(frameContext.user.fid.toString(), 'win', difficulty);
       }
       return;
     }
@@ -219,14 +218,14 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           stopCountdownSound();
           playLosing();
           if (frameContext?.user?.fid) {
-            await updateUserRecord(frameContext.user.fid.toString(), false, difficulty);
+            await updateGameResult(frameContext.user.fid.toString(), 'loss', difficulty);
           }
         } else if (nextBoard.every(square => square !== null)) {
           stopGameJingle();
           stopCountdownSound();
           playDrawing();
           if (frameContext?.user?.fid) {
-            await updateUserTie(frameContext.user.fid.toString());
+            await updateGameResult(frameContext.user.fid.toString(), 'tie');
           }
         }
       }
@@ -652,4 +651,22 @@ function calculateWinner(squares: Square[]): Square {
     }
   }
   return null;
+}
+
+async function updateGameResult(fid: string, action: 'win' | 'loss' | 'tie', difficulty?: 'easy' | 'medium' | 'hard') {
+  try {
+    const response = await fetch('/api/firebase', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ fid, action, difficulty }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to update game result');
+    }
+  } catch (error) {
+    console.error('Error updating game result:', error);
+  }
 }
