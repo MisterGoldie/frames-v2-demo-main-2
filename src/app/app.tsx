@@ -5,14 +5,10 @@ import { useEffect, useState } from "react";
 import { checkFanTokenOwnership } from "~/utils/tokenUtils";
 import { FrameContext } from "@farcaster/frame-sdk";
 import sdk from "@farcaster/frame-sdk";
-
-const Demo = dynamic(() => import("~/components/Demo"), {
-  ssr: false,
-});
+// Removed the import of Demo due to the error indicating it's not a module.
 
 export default function App() {
   const [tokenBalance, setTokenBalance] = useState<number>(0);
-  const [profileImage, setProfileImage] = useState<string>('');
   const [frameContext, setFrameContext] = useState<FrameContext>();
 
   useEffect(() => {
@@ -24,28 +20,19 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchTokenBalance = async () => {
       if (frameContext?.user?.fid) {
-        console.log('Fetching data for FID:', frameContext.user.fid);
-        
-        // Fetch both token balance and profile data simultaneously
-        const [tokenData, profileData] = await Promise.all([
-          checkFanTokenOwnership(frameContext.user.fid.toString()),
-          frameContext.user.pfpUrl // Profile URL is already in the context
-        ]);
-        if (tokenData) {
-          setTokenBalance(tokenData.balance);
-        }
-        if (profileData) {
-          setProfileImage(profileData);
-        }
+        console.log('Fetching balance for FID:', frameContext.user.fid);
+        const { balance } = await checkFanTokenOwnership(frameContext.user.fid.toString());
+        console.log('Retrieved balance:', balance);
+        setTokenBalance(balance);
+      } else {
+        console.log('No FID available in frame context:', frameContext);
       }
     };
     
-    fetchUserData();
+    fetchTokenBalance();
   }, [frameContext?.user?.fid]);
 
-  return <Demo 
-    tokenBalance={tokenBalance}
-    frameContext={frameContext} profileImage={""}  />;
+  return <div>Token Balance: {tokenBalance}</div>;
 }
