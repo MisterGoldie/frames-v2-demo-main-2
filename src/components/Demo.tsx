@@ -128,7 +128,6 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     setSelectedPiece(piece);
     setDifficulty(diff);
     setTimeLeft(15);
-    setTimerStarted(true);
   }, [playClick, stopHalloweenMusic, playGameJingle, isMuted]);
 
   const getComputerMove = useCallback((currentBoard: Board): number => {
