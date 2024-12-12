@@ -590,43 +590,42 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           
           {calculateWinner(board) || timeLeft === 0 || board.every(square => square !== null) ? (
             <div className="flex flex-col items-center">
-              {!showLeaderboard ? (
-                <>
-                  <div className="text-center mb-4 text-white text-xl text-shadow">
-                    {getGameStatus()}
-                  </div>
-                  <div className="flex flex-col w-full gap-4 mt-4">
-                    <Button
-                      onClick={handleViewLeaderboard}
-                      className="w-full py-4 text-xl bg-purple-600 shadow-lg hover:shadow-xl transition-shadow"
-                    >
-                      View Leaderboard
-                    </Button>
-                    <div className="flex justify-between w-full gap-4">
-                      <Button
-                        onClick={handlePlayAgain}
-                        className="w-1/2 py-4 text-xl bg-green-600 shadow-lg hover:shadow-xl transition-shadow"
-                      >
-                        Play Again
-                      </Button>
-                      <Button
-                        onClick={resetGame}
-                        className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
-                      >
-                        Back to Menu
-                      </Button>
-                    </div>
-                  </div>
-                </>
-              ) : (
+              <div className="text-center mb-4 text-white text-xl text-shadow">
+                {getGameStatus()}
+              </div>
+              
+              {showLeaderboard ? (
                 <div className="flex flex-col items-center w-full">
                   <Leaderboard />
                   <Button
                     onClick={handleBackFromLeaderboard}
                     className="mt-4 w-full py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
                   >
-                    Back
+                    Back to Game
                   </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col w-full gap-4">
+                  <Button
+                    onClick={handleViewLeaderboard}
+                    className="w-full py-4 text-xl bg-purple-600 shadow-lg hover:shadow-xl transition-shadow"
+                  >
+                    View Leaderboard
+                  </Button>
+                  <div className="flex justify-between w-full gap-4">
+                    <Button
+                      onClick={handlePlayAgain}
+                      className="w-1/2 py-4 text-xl bg-green-600 shadow-lg hover:shadow-xl transition-shadow"
+                    >
+                      Play Again
+                    </Button>
+                    <Button
+                      onClick={resetGame}
+                      className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
+                    >
+                      Back to Menu
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
