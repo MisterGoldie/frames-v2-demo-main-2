@@ -431,6 +431,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     playClick();
     stopGameJingle();
     isJinglePlaying.current = false;
+    resetGame();
   };
 
   const sendGameNotification = async (type: 'win' | 'loss' | 'draw') => {
