@@ -448,6 +448,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   };
 
   const sendGameNotification = async (type: 'win' | 'loss' | 'draw') => {
+    if (!frameContext?.user?.fid) return;
+
     const messages = {
       win: "Congratulations! You've defeated Maxi!",
       loss: "Maxi has won! Try again?",
@@ -461,9 +463,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          title: 'POD Play Result',
+          fid: frameContext.user.fid.toString(),
+          title: 'POD Play Game Result',
           body: messages[type],
-          targetUrl: window.location.href
+          targetUrl: process.env.NEXT_PUBLIC_URL
         })
       });
     } catch (error) {
