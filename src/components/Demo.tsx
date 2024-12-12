@@ -427,11 +427,22 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       {gameState === 'menu' && (
         <div className="absolute top-16 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
           {pfpUrl && (
-            <img 
-              src={pfpUrl} 
-              alt="Profile" 
-              className="w-24 h-24 rounded-full border-4 border-white object-cover"
-            />
+            <div className="relative">
+              <div className="absolute inset-0 w-[104px] h-[104px] -m-2">
+                <Image 
+                  src="/wreath.png"  // You'll need to add a wreath PNG with transparency
+                  alt="Wreath border"
+                  width={104}
+                  height={104}
+                  className="object-contain"
+                />
+              </div>
+              <img 
+                src={pfpUrl} 
+                alt="Profile" 
+                className="w-24 h-24 rounded-full object-cover"
+              />
+            </div>
           )}
         </div>
       )}
