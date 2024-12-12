@@ -581,7 +581,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           )}
         </div>
       ) : (
-        <div className="flex flex-col items-center -mt-20">
+        <div className="flex flex-col items-center">
           <div className={`absolute top-16 right-4 text-white text-sm ${
             timeLeft === 0 ? 'bg-red-600' : 'bg-purple-800'
           } px-3 py-1 rounded-full box-shadow`}>
