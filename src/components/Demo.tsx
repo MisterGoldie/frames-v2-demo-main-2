@@ -428,19 +428,19 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
         <div className="absolute top-16 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
           {pfpUrl && (
             <div className="relative">
-              <div className="absolute inset-0 w-[104px] h-[104px] -m-2">
+              <div className="absolute inset-0 w-[88px] h-[88px] -m-3">
                 <Image 
                   src="/wreath.png"
                   alt="Wreath border"
-                  width={108}
-                  height={108}
+                  width={88}
+                  height={88}
                   className="object-contain"
                 />
               </div>
               <img 
                 src={pfpUrl} 
                 alt="Profile" 
-                className="w-24 h-24 rounded-full object-cover"
+                className="w-16 h-16 rounded-full object-cover"
               />
             </div>
           )}
