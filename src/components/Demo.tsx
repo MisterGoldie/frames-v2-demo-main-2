@@ -85,6 +85,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [isPlayingCountdown, setIsPlayingCountdown] = useState(false);
   const isJinglePlaying = useRef(false);
   const [profileImage, setProfileImage] = useState<string>('');
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   // SDK initialization
   useEffect(() => {
@@ -249,6 +250,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   ]);
 
   const resetGame = useCallback(() => {
+    setShowLeaderboard(false);
     if (boardRef.current) {
       boardRef.current.style.transform = 'rotate(0deg)';  // Reset rotation
     }
@@ -265,6 +267,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   }, [stopCountdownSound, stopGameJingle, playHalloweenMusic]);
 
   const handlePlayAgain = useCallback(() => {
+    setShowLeaderboard(false);
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
@@ -416,6 +419,16 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const toggleMute = () => setIsMuted(prev => !prev);
   // Get pfpUrl directly from frameContext
   const pfpUrl = frameContext?.user?.pfpUrl;
+
+  const handleViewLeaderboard = () => {
+    setShowLeaderboard(true);
+    playClick();
+  };
+
+  const handleBackFromLeaderboard = () => {
+    setShowLeaderboard(false);
+    playClick();
+  };
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
@@ -575,59 +588,101 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
             {timeLeft}s
           </div>
           
-          <div className="text-center mb-4 text-white text-xl text-shadow">
-            {getGameStatus()}
-          </div>
-          
-          <div 
-            ref={boardRef}
-            className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4"
-            style={{ transition: 'transform 0.1s linear' }}
-          >
-            <div className="absolute left-0 top-[33%] w-full h-[2px] bg-white shadow-glow" />
-            <div className="absolute left-0 top-[66%] w-full h-[2px] bg-white shadow-glow" />
-            
-            {board.map((square, index) => (
-              <button
-                key={index}
-                className="h-[100px] flex items-center justify-center text-2xl font-bold bg-transparent"
-                onClick={() => handleMove(index)}
+          {calculateWinner(board) || timeLeft === 0 || board.every(square => square !== null) ? (
+            <div className="flex flex-col items-center">
+              {!showLeaderboard ? (
+                <>
+                  <div className="text-center mb-4 text-white text-xl text-shadow">
+                    {getGameStatus()}
+                  </div>
+                  <div className="flex flex-col w-full gap-4 mt-4">
+                    <Button
+                      onClick={handleViewLeaderboard}
+                      className="w-full py-4 text-xl bg-purple-600 shadow-lg hover:shadow-xl transition-shadow"
+                    >
+                      View Leaderboard
+                    </Button>
+                    <div className="flex justify-between w-full gap-4">
+                      <Button
+                        onClick={handlePlayAgain}
+                        className="w-1/2 py-4 text-xl bg-green-600 shadow-lg hover:shadow-xl transition-shadow"
+                      >
+                        Play Again
+                      </Button>
+                      <Button
+                        onClick={resetGame}
+                        className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
+                      >
+                        Back to Menu
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center w-full">
+                  <Leaderboard />
+                  <Button
+                    onClick={handleBackFromLeaderboard}
+                    className="mt-4 w-full py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
+                  >
+                    Back
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <div 
+                ref={boardRef}
+                className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4"
+                style={{ transition: 'transform 0.1s linear' }}
               >
-                {square === 'X' ? (
-                  <Image 
-                    src="/maxi.png" 
-                    alt="Maxi" 
-                    width={64}
-                    height={64}
-                    className="object-contain"
-                  />
-                ) : square ? (
-                  <Image 
-                    src={`/${square}.png`} 
-                    alt={square} 
-                    width={64}
-                    height={64}
-                    className="object-contain"
-                  />
-                ) : null}
-              </button>
-            ))}
-          </div>
+                <div className="absolute left-0 top-[33%] w-full h-[2px] bg-white shadow-glow" />
+                <div className="absolute left-0 top-[66%] w-full h-[2px] bg-white shadow-glow" />
+                
+                {board.map((square, index) => (
+                  <button
+                    key={index}
+                    className="h-[100px] flex items-center justify-center text-2xl font-bold bg-transparent"
+                    onClick={() => handleMove(index)}
+                  >
+                    {square === 'X' ? (
+                      <Image 
+                        src="/maxi.png" 
+                        alt="Maxi" 
+                        width={64}
+                        height={64}
+                        className="object-contain"
+                      />
+                    ) : square ? (
+                      <Image 
+                        src={`/${square}.png`} 
+                        alt={square} 
+                        width={64}
+                        height={64}
+                        className="object-contain"
+                      />
+                    ) : null}
+                  </button>
+                ))}
+              </div>
 
-          <div className="flex justify-between w-full gap-4 mt-4">
-            <Button
-              onClick={handlePlayAgain}
-              className="w-1/2 py-4 text-xl bg-green-600 shadow-lg hover:shadow-xl transition-shadow"
-            >
-              Play Again
-            </Button>
-            <Button
-              onClick={resetGame}
-              className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
-            >
-              Back to Menu
-            </Button>
-          </div>
+              <div className="flex justify-between w-full gap-4 mt-4">
+                <Button
+                  onClick={handlePlayAgain}
+                  className="w-1/2 py-4 text-xl bg-green-600 shadow-lg hover:shadow-xl transition-shadow"
+                >
+                  Play Again
+                </Button>
+                <Button
+                  onClick={resetGame}
+                  className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
+                >
+                  Back to Menu
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
