@@ -12,6 +12,7 @@ const Demo = dynamic(() => import("~/components/Demo"), {
 
 export default function App() {
   const [tokenBalance, setTokenBalance] = useState<number>(0);
+  const [profileImage, setProfileImage] = useState<string>('');
   const [frameContext, setFrameContext] = useState<FrameContext>();
 
   useEffect(() => {
@@ -23,19 +24,28 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const fetchTokenBalance = async () => {
+    const fetchUserData = async () => {
       if (frameContext?.user?.fid) {
-        console.log('Fetching balance for FID:', frameContext.user.fid);
-        const { balance } = await checkFanTokenOwnership(frameContext.user.fid.toString());
-        console.log('Retrieved balance:', balance);
-        setTokenBalance(balance);
-      } else {
-        console.log('No FID available in frame context:', frameContext);
+        console.log('Fetching data for FID:', frameContext.user.fid);
+        
+        // Fetch both token balance and profile data simultaneously
+        const [tokenData, profileData] = await Promise.all([
+          checkFanTokenOwnership(frameContext.user.fid.toString()),
+          frameContext.user.pfpUrl // Profile URL is already in the context
+        ]);
+        if (tokenData) {
+          setTokenBalance(tokenData.balance);
+        }
+        if (profileData) {
+          setProfileImage(profileData);
+        }
       }
     };
     
-    fetchTokenBalance();
+    fetchUserData();
   }, [frameContext?.user?.fid]);
 
-  return <Demo tokenBalance={tokenBalance} frameContext={frameContext} />;
+  return <Demo 
+    tokenBalance={tokenBalance}
+    frameContext={frameContext} profileImage={""}  />;
 }

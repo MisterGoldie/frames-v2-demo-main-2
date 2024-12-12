@@ -39,12 +39,13 @@ const VolumeOffIcon = () => (
   </svg>
 );
 
-type DemoProps = {
+interface DemoProps {
   tokenBalance: number;
-  frameContext?: FrameContext;
-};
+  frameContext: FrameContext | undefined;
+  profileImage: string;
+}
 
-export default function Demo({ tokenBalance, frameContext }: DemoProps) {
+export default function Demo({ tokenBalance, frameContext, profileImage }: DemoProps) {
   const [gameSession, setGameSession] = useState(0);
   const boardRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();  // Add ref for animation frame
@@ -84,7 +85,6 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [isPlayingCountdown, setIsPlayingCountdown] = useState(false);
   const isJinglePlaying = useRef(false);
-  const [profileImage, setProfileImage] = useState<string>('');
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   // SDK initialization
@@ -104,16 +104,6 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       loadFrameSDK();
     }
   }, [isSDKLoaded]);
-
-  // Fetch profile image when context changes
-  useEffect(() => {
-    const getProfileImage = async () => {
-      if (frameContext?.user?.pfpUrl) {
-        setProfileImage(frameContext.user.pfpUrl);
-      }
-    };
-    getProfileImage();
-  }, [frameContext]);
 
   const handleStartGame = useCallback((diff: Difficulty, piece: PlayerPiece) => {
     playClick();
@@ -466,19 +456,23 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
 
       {gameState === 'menu' && (
         <div className="absolute top-16 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
-          {pfpUrl && (
+          {profileImage && (
             <div className="relative">
-              <div className="absolute inset-0 w-[132px] h-[132px] -m-3 -translate-x-[5.5px]">
+              <div 
+                className="absolute inset-0 w-[132px] h-[132px] -m-3 -translate-x-[5.5px]"
+                style={{ opacity: tokenBalance > 0 ? 1 : 0 }}
+              >
                 <Image 
                   src="/wreath.png"
                   alt="Wreath border"
                   width={132}
                   height={132}
                   className="object-contain"
+                  priority={true}
                 />
               </div>
               <img 
-                src={pfpUrl} 
+                src={profileImage} 
                 alt="Profile" 
                 className="w-24 h-24 rounded-full object-cover"
               />
