@@ -4,6 +4,7 @@ import {
   eventSchema,
 } from "@farcaster/frame-sdk";
 import { NextRequest } from "next/server";
+import { storeNotificationDetails, removeNotificationDetails } from '~/utils/notificationStore';
 
 export async function POST(request: NextRequest) {
   const requestJson = await request.json();
@@ -45,24 +46,24 @@ export async function POST(request: NextRequest) {
 
   switch (payload.data.event) {
     case "frame-added":
-      console.log(
-        payload.data.notificationDetails
-          ? `Got frame-added event for fid ${fid} with notification token ${payload.data.notificationDetails.token} and url ${payload.data.notificationDetails.url}`
-          : `Got frame-added event for fid ${fid} with no notification details`
-      );
+      if (payload.data.notificationDetails) {
+        await storeNotificationDetails(fid.toString(), {
+          url: payload.data.notificationDetails.url,
+          token: payload.data.notificationDetails.token
+        });
+      }
       break;
     case "frame-removed":
-      console.log(`Got frame-removed event for fid ${fid}`);
+      await removeNotificationDetails(fid.toString());
       break;
     case "notifications-enabled":
-      console.log(
-        `Got notifications-enabled event for fid ${fid} with token ${
-          payload.data.notificationDetails.token
-        } and url ${payload.data.notificationDetails.url}`
-      );
+      await storeNotificationDetails(fid.toString(), {
+        url: payload.data.notificationDetails.url,
+        token: payload.data.notificationDetails.token
+      });
       break;
     case "notifications-disabled":
-      console.log(`Got notifications-disabled event for fid ${fid}`);
+      await removeNotificationDetails(fid.toString());
       break;
   }
 
