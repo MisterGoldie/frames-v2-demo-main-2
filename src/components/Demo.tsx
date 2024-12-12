@@ -86,6 +86,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const isJinglePlaying = useRef(false);
   const [profileImage, setProfileImage] = useState<string>('');
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [endedByTimer, setEndedByTimer] = useState(false);
 
   // SDK initialization
   useEffect(() => {
@@ -325,60 +326,44 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   ]);
 
   useEffect(() => {
-    if (timerStarted && gameState === 'game' && !calculateWinner(board)) {
-      if (!startTime) {
-        setStartTime(Date.now());
-      }
-
-      const timerInterval = setInterval(() => {
-        const currentTime = Date.now();
-        const elapsedSeconds = Math.floor((currentTime - (startTime || currentTime)) / 1000);
-        const newTimeLeft = Math.max(15 - elapsedSeconds, 0);
-
-        if (calculateWinner(board) || board.every(square => square !== null)) {
-          clearInterval(timerInterval);
-          setTimerStarted(false);
-          return;
-        }
-
-        if (newTimeLeft <= 5 && newTimeLeft > 0 && !isPlayingCountdown) {
-          setIsPlayingCountdown(true);
-        }
-        
-        if (newTimeLeft <= 0) {
-          clearInterval(timerInterval);
-          stopCountdownSound();
-          stopGameJingle();
-          playLosing();
-          setTimeLeft(0);
-          setTimerStarted(false);
-          setIsPlayingCountdown(false);
-        } else {
-          setTimeLeft(newTimeLeft);
-        }
-      }, 100);
-
-      return () => {
-        clearInterval(timerInterval);
-        stopCountdownSound();
-        setIsPlayingCountdown(false);
-      };
+    let timer: NodeJS.Timeout;
+    
+    if (timerStarted && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            setEndedByTimer(true);
+            stopCountdownSound();
+            if (!isMuted) {
+              playGameOver();
+            }
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     }
-  }, [timerStarted, gameState, board, startTime, calculateWinner, playCountdownSound, stopCountdownSound, playLosing, stopGameJingle, isPlayingCountdown]);
+
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [timerStarted, timeLeft, stopCountdownSound, playGameOver, isMuted]);
+
+  const isDraw = board.every(square => square !== null);
+  const isPlayerTurn = isXNext;
+  const winner = calculateWinner(board);
 
   const getGameStatus = () => {
-    if (timeLeft === 0) {
-      return "Time's up! Maxi wins!";
+    if (winner) {
+      return winner === selectedPiece ? "You Won!" : "Maxi Won";
     }
-    if (calculateWinner(board)) {
-      return `Winner: ${calculateWinner(board) === 'X' ? 'Maxi' : 
-        frameContext?.user?.username || selectedPiece}`;
+    if (isDraw) {
+      return "It's a Draw!";
     }
-    if (board.every(square => square)) {
-      return "Game is a draw!";
+    if (endedByTimer) {
+      return "Time's Up!";
     }
-    return `Next player: ${isXNext ? 'Maxi' : 
-      frameContext?.user?.username || selectedPiece}`;
+    return isPlayerTurn ? "Your Turn" : "Maxi's Turn";
   };
 
   // Add rotation effect for hard modes
@@ -713,14 +698,25 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                     Back to Menu
                   </Button>
                 </div>
-                {calculateWinner(board) || board.every(square => square) ? (
-                  <Button
-                    onClick={handleViewLeaderboard}
-                    className="w-full py-4 text-xl bg-purple-600 shadow-lg hover:shadow-xl transition-shadow"
-                  >
-                    View Leaderboard
-                  </Button>
-                ) : null}
+                {(winner || isDraw || endedByTimer) && (
+                  <div className="flex gap-2 mt-4 w-full">
+                    <Button
+                      onClick={() => {
+                        resetGame();
+                        setEndedByTimer(false);
+                      }}
+                      className="w-1/2 py-4 text-xl bg-purple-700"
+                    >
+                      Play Again
+                    </Button>
+                    <Button
+                      onClick={handleViewLeaderboard}
+                      className="w-1/2 py-4 text-xl bg-purple-700"
+                    >
+                      Leaderboard
+                    </Button>
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -766,4 +762,8 @@ async function updateGameResult(fid: string, action: 'win' | 'loss' | 'tie', dif
   } catch (error) {
     console.error('Error updating game result:', error);
   }
+}
+
+function playGameOver() {
+  throw new Error("Function not implemented.");
 }
