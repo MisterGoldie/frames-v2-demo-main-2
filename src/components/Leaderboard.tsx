@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 type LeaderboardEntry = {
   fid: string;
+  username: string;
+  pfp: string;
   wins: number;
   losses: number;
   ties: number;
@@ -42,11 +45,22 @@ export default function Leaderboard() {
             className="flex justify-between items-center bg-purple-800/50 p-2 rounded"
           >
             <div className="flex items-center gap-2">
-              <span className="text-purple-300">#{index + 1}</span>
-              <span className="text-white">FID: {entry.fid}</span>
+              <span className="text-purple-300 w-6">#{index + 1}</span>
+              <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                <Image
+                  src={entry.pfp}
+                  alt={entry.username}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-white font-medium">{entry.username}</span>
+                <span className="text-xs text-purple-300">fid:{entry.fid}</span>
+              </div>
             </div>
             <div className="text-right">
-              <div className="text-green-400">{entry.wins} W</div>
+              <div className="text-green-400 font-bold">{entry.wins} W</div>
               <div className="text-xs text-purple-300">
                 {entry.easyWins}/{entry.mediumWins}/{entry.hardWins}
               </div>

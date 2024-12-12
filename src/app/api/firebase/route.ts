@@ -1,4 +1,5 @@
 import admin from 'firebase-admin';
+import { fetchUserDataByFid } from '../../../utils/neynarUtils';
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -65,8 +66,11 @@ export async function GET() {
     const leaderboard = await Promise.all(
       snapshot.docs.map(async (doc) => {
         const data = doc.data();
+        const userData = await fetchUserDataByFid(doc.id);
         return {
           fid: doc.id,
+          username: userData?.username || `fid:${doc.id}`,
+          pfp: userData?.pfp || '/default-avatar.png',
           wins: data.wins || 0,
           losses: data.losses || 0,
           ties: data.ties || 0,
