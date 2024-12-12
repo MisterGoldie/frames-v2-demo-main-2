@@ -70,13 +70,13 @@ export async function GET() {
         const totalGames = (data.wins || 0) + (data.losses || 0) + (data.ties || 0);
         const { balance } = await checkFanTokenOwnership(doc.id);
         
-        // Calculate POD Score
+        // Calculate POD Score using the formula
         const podScore = calculatePODScore(
           data.wins || 0,
           data.ties || 0,
           data.losses || 0,
           totalGames,
-          balance
+          balance || 0
         );
 
         return {
@@ -88,7 +88,8 @@ export async function GET() {
           easyWins: data.easyWins || 0,
           mediumWins: data.mediumWins || 0,
           hardWins: data.hardWins || 0,
-          podScore: podScore
+          pfp: userData?.pfp || '',
+          podScore  // Add the calculated score
         };
       })
     );
