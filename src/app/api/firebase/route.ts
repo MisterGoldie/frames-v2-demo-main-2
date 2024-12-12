@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       return Response.json({ error: 'FID is required' }, { status: 400 });
     }
 
-    const userRef = db.collection('v2').doc(fid);
+    const userRef = db.collection('users').doc(fid);
     
     switch (action) {
       case 'win':
