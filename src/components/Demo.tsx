@@ -182,11 +182,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   }, [difficulty, selectedPiece]);
 
   const handleMove = useCallback(async (index: number) => {
-    if (timeLeft === 0 || board[index] || calculateWinner(board) || !isXNext) return;
-
-    if (!timerStarted) {
-      setTimerStarted(true);
-    }
+    if (board[index] || calculateWinner(board) || !isXNext) return;
 
     const newBoard = [...board];
     newBoard[index] = selectedPiece;
@@ -194,9 +190,16 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     setIsXNext(false);
     playClick();
 
+    // Start timer on first move
+    if (!timerStarted) {
+      setTimerStarted(true);
+      setStartTime(Date.now());
+    }
+
     if (calculateWinner(newBoard)) {
       stopGameJingle();
       stopCountdownSound();
+      setTimerStarted(false); // Stop timer on win
       playWinning();
       if (frameContext?.user?.fid) {
         await updateGameResult(frameContext.user.fid.toString(), 'win', difficulty);
@@ -330,9 +333,14 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
         const elapsedSeconds = Math.floor((currentTime - (startTime || currentTime)) / 1000);
         const newTimeLeft = Math.max(15 - elapsedSeconds, 0);
 
+        if (calculateWinner(board) || board.every(square => square !== null)) {
+          clearInterval(timerInterval);
+          setTimerStarted(false);
+          return;
+        }
+
         if (newTimeLeft <= 5 && newTimeLeft > 0 && !isPlayingCountdown) {
           setIsPlayingCountdown(true);
-          // playCountdownSound();  // Temporarily commented out
         }
         
         if (newTimeLeft <= 0) {
@@ -341,6 +349,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           stopGameJingle();
           playLosing();
           setTimeLeft(0);
+          setTimerStarted(false);
           setIsPlayingCountdown(false);
         } else {
           setTimeLeft(newTimeLeft);
@@ -353,7 +362,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
         setIsPlayingCountdown(false);
       };
     }
-  }, [timerStarted, gameState, board, startTime, playCountdownSound, stopCountdownSound, playLosing, stopGameJingle, isPlayingCountdown]);
+  }, [timerStarted, gameState, board, startTime, calculateWinner, playCountdownSound, stopCountdownSound, playLosing, stopGameJingle, isPlayingCountdown]);
 
   const getGameStatus = () => {
     if (timeLeft === 0) {
@@ -423,11 +432,17 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const handleViewLeaderboard = () => {
     setShowLeaderboard(true);
     playClick();
+    if (!isMuted && !isJinglePlaying.current) {
+      isJinglePlaying.current = true;
+      playGameJingle();
+    }
   };
 
   const handleBackFromLeaderboard = () => {
     setShowLeaderboard(false);
     playClick();
+    stopGameJingle();
+    isJinglePlaying.current = false;
   };
 
   if (!isSDKLoaded) {
