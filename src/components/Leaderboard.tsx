@@ -4,7 +4,6 @@ import Image from 'next/image';
 type LeaderboardEntry = {
   fid: string;
   username: string;
-  pfp: string;
   wins: number;
   losses: number;
   ties: number;
@@ -23,6 +22,7 @@ export default function Leaderboard() {
       try {
         const response = await fetch('/api/firebase');
         const data = await response.json();
+        console.log('Leaderboard data:', data);
         setLeaderboard(data.leaderboard);
       } catch (error) {
         console.error('Error fetching leaderboard:', error);
@@ -55,10 +55,10 @@ export default function Leaderboard() {
             <div className="text-right">
               <div className="flex items-center justify-end gap-2">
                 <span className="text-green-400 font-bold">{entry.wins} W</span>
-                <span className="text-yellow-400 font-bold">({entry.podScore.toFixed(1)} PS)</span>
+                <span className="text-yellow-400 font-bold">({entry.podScore?.toFixed(1) || '0.0'} PS)</span>
               </div>
               <div className="text-xs text-purple-300">
-                {entry.easyWins}/{entry.mediumWins}/{entry.hardWins}
+                {entry.easyWins || 0}/{entry.mediumWins || 0}/{entry.hardWins || 0}
               </div>
             </div>
           </div>
