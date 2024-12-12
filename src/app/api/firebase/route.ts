@@ -51,4 +51,35 @@ export async function POST(request: Request) {
     console.error('Firebase operation failed:', error);
     return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
+}
+
+export async function GET() {
+  try {
+    const db = admin.firestore();
+    const usersRef = db.collection('users');
+    const snapshot = await usersRef
+      .orderBy('wins', 'desc')
+      .limit(10)
+      .get();
+
+    const leaderboard = await Promise.all(
+      snapshot.docs.map(async (doc) => {
+        const data = doc.data();
+        return {
+          fid: doc.id,
+          wins: data.wins || 0,
+          losses: data.losses || 0,
+          ties: data.ties || 0,
+          easyWins: data.easyWins || 0,
+          mediumWins: data.mediumWins || 0,
+          hardWins: data.hardWins || 0
+        };
+      })
+    );
+
+    return Response.json({ leaderboard });
+  } catch (error) {
+    console.error('Error fetching leaderboard:', error);
+    return Response.json({ error: 'Failed to fetch leaderboard' }, { status: 500 });
+  }
 } 

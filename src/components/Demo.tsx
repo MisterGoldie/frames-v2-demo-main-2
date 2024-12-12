@@ -6,6 +6,7 @@ import { Button } from "~/components/ui/Button";
 import useSound from 'use-sound';
 import Image from 'next/image';
 import Snow from './Snow';
+import Leaderboard from './Leaderboard';
 
 type PlayerPiece = 'scarygary' | 'chili' | 'podplaylogo';
 type Square = 'X' | PlayerPiece | null;
