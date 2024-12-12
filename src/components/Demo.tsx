@@ -483,7 +483,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                   setSelectedPiece('scarygary');
                   setMenuStep('difficulty');
                 }}
-                className="w-full mb-2"
+                className="w-full mb-2 shadow-lg hover:shadow-xl transition-shadow"
               >
                 Scary Gary
               </Button>
@@ -514,7 +514,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
             <>
               <Button 
                 onClick={() => handleStartGame('easy', selectedPiece)}
-                className="w-full mb-2"
+                className="w-full mb-2 shadow-lg hover:shadow-xl transition-shadow"
               >
                 Easy
               </Button>
@@ -594,13 +594,13 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           <div className="flex justify-between w-full gap-4 mt-4">
             <Button
               onClick={handlePlayAgain}
-              className="w-1/2 py-4 text-xl bg-green-600"
+              className="w-1/2 py-4 text-xl bg-green-600 shadow-lg hover:shadow-xl transition-shadow"
             >
               Play Again
             </Button>
             <Button
               onClick={resetGame}
-              className="w-1/2 py-4 text-xl bg-purple-700"
+              className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
             >
               Back to Menu
             </Button>
