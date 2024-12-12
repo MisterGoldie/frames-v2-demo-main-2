@@ -58,9 +58,7 @@ export async function POST(request: NextRequest) {
       console.log(
         `Got notifications-enabled event for fid ${fid} with token ${
           payload.data.notificationDetails.token
-        } and url ${payload.data.notificationDetails.url} ${JSON.stringify(
-          payload.data
-        )}`
+        } and url ${payload.data.notificationDetails.url}`
       );
       break;
     case "notifications-disabled":

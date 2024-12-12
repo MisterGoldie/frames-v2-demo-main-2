@@ -202,6 +202,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       playWinning();
       if (frameContext?.user?.fid) {
         await updateGameResult(frameContext.user.fid.toString(), 'win', difficulty);
+        await sendGameNotification('win');
       }
       return;
     }
@@ -223,6 +224,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           playLosing();
           if (frameContext?.user?.fid) {
             await updateGameResult(frameContext.user.fid.toString(), 'loss', difficulty);
+            await sendGameNotification('loss');
           }
         } else if (nextBoard.every(square => square !== null)) {
           stopGameJingle();
@@ -230,6 +232,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           playDrawing();
           if (frameContext?.user?.fid) {
             await updateGameResult(frameContext.user.fid.toString(), 'tie');
+            await sendGameNotification('draw');
           }
         }
       }
@@ -442,6 +445,30 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     playClick();
     stopGameJingle();
     isJinglePlaying.current = false;
+  };
+
+  const sendGameNotification = async (type: 'win' | 'loss' | 'draw') => {
+    const messages = {
+      win: "Congratulations! You've defeated Maxi!",
+      loss: "Maxi has won! Try again?",
+      draw: "It's a draw! Great game!"
+    };
+
+    try {
+      await fetch('/api/send-notification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: 'POD Play Result',
+          body: messages[type],
+          targetUrl: window.location.href
+        })
+      });
+    } catch (error) {
+      console.error('Failed to send notification:', error);
+    }
   };
 
   if (!isSDKLoaded) {
