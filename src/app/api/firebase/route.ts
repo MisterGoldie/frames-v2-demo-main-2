@@ -1,5 +1,7 @@
 import admin from 'firebase-admin';
 import { fetchUserDataByFid } from '../../../utils/neynarUtils';
+import { checkFanTokenOwnership } from '../../../utils/tokenUtils';
+import { calculatePODScore } from '../../../utils/scoreUtils';
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -70,7 +72,6 @@ export async function GET() {
         const totalGames = (data.wins || 0) + (data.losses || 0) + (data.ties || 0);
         const { balance } = await checkFanTokenOwnership(doc.id);
         
-        // Calculate POD Score using the formula
         const podScore = calculatePODScore(
           data.wins || 0,
           data.ties || 0,
@@ -89,7 +90,7 @@ export async function GET() {
           mediumWins: data.mediumWins || 0,
           hardWins: data.hardWins || 0,
           pfp: userData?.pfp || '',
-          podScore  // Add the calculated score
+          podScore
         };
       })
     );
@@ -101,13 +102,4 @@ export async function GET() {
   }
 } 
 
-
-function checkFanTokenOwnership(id: string): { balance: any; } | PromiseLike<{ balance: any; }> {
-    throw new Error('Function not implemented.');
-}
-
-
-function calculatePODScore(arg0: any, arg1: any, arg2: any, totalGames: any, balance: any) {
-    throw new Error('Function not implemented.');
-}
 //
