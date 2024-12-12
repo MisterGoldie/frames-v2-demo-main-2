@@ -588,85 +588,27 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
             {timeLeft}s
           </div>
           
-          {calculateWinner(board) || timeLeft === 0 || board.every(square => square !== null) ? (
+          {showLeaderboard ? (
+            <div className="flex flex-col items-center w-full">
+              <Leaderboard />
+              <Button
+                onClick={handleBackFromLeaderboard}
+                className="mt-4 w-full py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
+              >
+                Back to Game
+              </Button>
+            </div>
+          ) : (
             <div className="flex flex-col items-center">
+              <div className={`absolute top-16 right-4 text-white text-sm ${
+                timeLeft === 0 ? 'bg-red-600' : 'bg-purple-800'
+              } px-3 py-1 rounded-full box-shadow`}>
+                {timeLeft}s
+              </div>
               <div className="text-center mb-4 text-white text-xl text-shadow">
                 {getGameStatus()}
               </div>
               
-              {showLeaderboard ? (
-                <div className="flex flex-col items-center w-full">
-                  <Leaderboard />
-                  <Button
-                    onClick={handleBackFromLeaderboard}
-                    className="mt-4 w-full py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
-                  >
-                    Back to Game
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <div 
-                    ref={boardRef}
-                    className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4"
-                    style={{ transition: 'transform 0.1s linear' }}
-                  >
-                    <div className="absolute left-0 top-[33%] w-full h-[2px] bg-white shadow-glow" />
-                    <div className="absolute left-0 top-[66%] w-full h-[2px] bg-white shadow-glow" />
-                    
-                    {board.map((square, index) => (
-                      <div
-                        key={index}
-                        className="h-[100px] flex items-center justify-center text-2xl font-bold bg-transparent"
-                      >
-                        {square === 'X' ? (
-                          <Image 
-                            src="/maxi.png" 
-                            alt="Maxi" 
-                            width={64}
-                            height={64}
-                            className="object-contain"
-                          />
-                        ) : square ? (
-                          <Image 
-                            src={`/${square}.png`} 
-                            alt={square} 
-                            width={64}
-                            height={64}
-                            className="object-contain"
-                          />
-                        ) : null}
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="flex flex-col w-full gap-4">
-                    <div className="flex justify-between w-full gap-4">
-                      <Button
-                        onClick={handlePlayAgain}
-                        className="w-1/2 py-4 text-xl bg-green-600 shadow-lg hover:shadow-xl transition-shadow"
-                      >
-                        Play Again
-                      </Button>
-                      <Button
-                        onClick={resetGame}
-                        className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
-                      >
-                        Back to Menu
-                      </Button>
-                    </div>
-                    <Button
-                      onClick={handleViewLeaderboard}
-                      className="w-full py-4 text-xl bg-purple-600 shadow-lg hover:shadow-xl transition-shadow"
-                    >
-                      View Leaderboard
-                    </Button>
-                  </div>
-                </>
-              )}
-            </div>
-          ) : (
-            <>
               <div 
                 ref={boardRef}
                 className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4"
@@ -702,21 +644,29 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                 ))}
               </div>
 
-              <div className="flex justify-between w-full gap-4 mt-4">
+              <div className="flex flex-col w-full gap-4">
+                <div className="flex justify-between w-full gap-4">
+                  <Button
+                    onClick={handlePlayAgain}
+                    className="w-1/2 py-4 text-xl bg-green-600 shadow-lg hover:shadow-xl transition-shadow"
+                  >
+                    Play Again
+                  </Button>
+                  <Button
+                    onClick={resetGame}
+                    className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
+                  >
+                    Back to Menu
+                  </Button>
+                </div>
                 <Button
-                  onClick={handlePlayAgain}
-                  className="w-1/2 py-4 text-xl bg-green-600 shadow-lg hover:shadow-xl transition-shadow"
+                  onClick={handleViewLeaderboard}
+                  className="w-full py-4 text-xl bg-purple-600 shadow-lg hover:shadow-xl transition-shadow"
                 >
-                  Play Again
-                </Button>
-                <Button
-                  onClick={resetGame}
-                  className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
-                >
-                  Back to Menu
+                  View Leaderboard
                 </Button>
               </div>
-            </>
+            </div>
           )}
         </div>
       )}
