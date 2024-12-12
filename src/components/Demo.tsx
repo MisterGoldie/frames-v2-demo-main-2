@@ -581,15 +581,9 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           )}
         </div>
       ) : (
-        <div className="flex flex-col items-center">
-          <div className={`absolute top-16 right-4 text-white text-sm ${
-            timeLeft === 0 ? 'bg-red-600' : 'bg-purple-800'
-          } px-3 py-1 rounded-full box-shadow`}>
-            {timeLeft}s
-          </div>
-          
+        <div className="flex flex-col items-center -mt-20">
           {showLeaderboard ? (
-            <div className="flex flex-col items-center w-full">
+            <div className="flex flex-col items-center w-full mt-20">
               <Leaderboard />
               <Button
                 onClick={handleBackFromLeaderboard}
@@ -599,7 +593,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
               </Button>
             </div>
           ) : (
-            <div className="flex flex-col items-center">
+            <>
               <div className={`absolute top-16 right-4 text-white text-sm ${
                 timeLeft === 0 ? 'bg-red-600' : 'bg-purple-800'
               } px-3 py-1 rounded-full box-shadow`}>
@@ -666,7 +660,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                   View Leaderboard
                 </Button>
               </div>
-            </div>
+            </>
           )}
         </div>
       )}
