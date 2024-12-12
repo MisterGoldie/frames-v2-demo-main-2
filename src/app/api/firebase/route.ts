@@ -67,16 +67,28 @@ export async function GET() {
       snapshot.docs.map(async (doc) => {
         const data = doc.data();
         const userData = await fetchUserDataByFid(doc.id);
+        const totalGames = (data.wins || 0) + (data.losses || 0) + (data.ties || 0);
+        const { balance } = await checkFanTokenOwnership(doc.id);
+        
+        // Calculate POD Score
+        const podScore = calculatePODScore(
+          data.wins || 0,
+          data.ties || 0,
+          data.losses || 0,
+          totalGames,
+          balance
+        );
+
         return {
           fid: doc.id,
           username: userData?.username || `fid:${doc.id}`,
-          pfp: userData?.pfp || '/default-avatar.png',
           wins: data.wins || 0,
           losses: data.losses || 0,
           ties: data.ties || 0,
           easyWins: data.easyWins || 0,
           mediumWins: data.mediumWins || 0,
-          hardWins: data.hardWins || 0
+          hardWins: data.hardWins || 0,
+          podScore: podScore
         };
       })
     );
@@ -87,4 +99,14 @@ export async function GET() {
     return Response.json({ error: 'Failed to fetch leaderboard' }, { status: 500 });
   }
 } 
+
+
+function checkFanTokenOwnership(id: string): { balance: any; } | PromiseLike<{ balance: any; }> {
+    throw new Error('Function not implemented.');
+}
+
+
+function calculatePODScore(arg0: any, arg1: any, arg2: any, totalGames: any, balance: any) {
+    throw new Error('Function not implemented.');
+}
 //
