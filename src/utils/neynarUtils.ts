@@ -6,7 +6,7 @@ type UserData = {
   pfp: string;
 };
 
-async function getAirstackProfilePicture(username: string): Promise<string | null> {
+async function getAirstackProfileImage(fid: string): Promise<string | null> {
   try {
     const response = await fetch('https://api.airstack.xyz/gql', {
       method: 'POST',
@@ -17,7 +17,15 @@ async function getAirstackProfilePicture(username: string): Promise<string | nul
       body: JSON.stringify({
         query: `
           query GetUserProfilePicture {
-            Socials(input: {filter: {profileName: {_eq: "${username}"}}, blockchain: ethereum}) {
+            Socials(
+              input: {
+                filter: {
+                  userId: {_eq: "${fid}"},
+                  dappName: {_eq: "farcaster"}
+                },
+                blockchain: ethereum
+              }
+            ) {
               Social {
                 profileImage
               }
@@ -30,14 +38,15 @@ async function getAirstackProfilePicture(username: string): Promise<string | nul
     const data = await response.json();
     return data?.data?.Socials?.Social?.[0]?.profileImage || null;
   } catch (error) {
-    console.error('Error fetching Airstack profile picture:', error);
+    console.error('Error fetching Airstack profile image:', error);
     return null;
   }
 }
 
 export async function fetchUserDataByFid(fid: string): Promise<UserData | null> {
   try {
-    const response = await fetch(
+    // First get username from Neynar
+    const neynarResponse = await fetch(
       `https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`,
       {
         headers: {
@@ -47,17 +56,16 @@ export async function fetchUserDataByFid(fid: string): Promise<UserData | null> 
       }
     );
 
-    const data = await response.json();
-    if (data.users && data.users[0]) {
-      const username = data.users[0].username;
-      const airstackPfp = await getAirstackProfilePicture(username);
-      
-      return {
-        username,
-        pfp: airstackPfp || data.users[0].pfp_url || data.users[0].pfp || '/default-avatar.png',
-      };
-    }
-    return null;
+    const neynarData = await neynarResponse.json();
+    if (!neynarData.users?.[0]) return null;
+
+    // Then get profile image from Airstack
+    const profileImage = await getAirstackProfileImage(fid);
+
+    return {
+      username: neynarData.users[0].username,
+      pfp: profileImage || '/default-avatar.png',
+    };
   } catch (error) {
     console.error('Error fetching user data:', error);
     return null;
