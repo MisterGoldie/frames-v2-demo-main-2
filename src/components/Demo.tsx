@@ -430,7 +430,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
             <div className="relative">
               <div className="absolute inset-0 w-[104px] h-[104px] -m-2">
                 <Image 
-                  src="/wreath.png"  // You'll need to add a wreath PNG with transparency
+                  src="/wreath.png"
                   alt="Wreath border"
                   width={104}
                   height={104}
