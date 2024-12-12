@@ -636,7 +636,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                 onClick={handleBackFromLeaderboard}
                 className="mt-4 w-full py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
               >
-                Back to Game
+                Back to menu
               </Button>
             </div>
           ) : (
