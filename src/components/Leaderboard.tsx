@@ -22,7 +22,8 @@ export default function Leaderboard() {
       try {
         const response = await fetch('/api/firebase');
         const data = await response.json();
-        setLeaderboard(data.leaderboard);
+        // Only take top 5 entries
+        setLeaderboard(data.leaderboard.slice(0, 5));
       } catch (error) {
         console.error('Error fetching leaderboard:', error);
       } finally {
@@ -36,7 +37,7 @@ export default function Leaderboard() {
   if (isLoading) return <div>Loading leaderboard...</div>;
 
   return (
-    <div className="bg-purple-900/80 p-4 rounded-lg shadow-lg max-w-sm w-full">
+    <div className="bg-purple-900/80 p-4 rounded-lg shadow-lg max-w-sm w-full -mt-12">
       <h2 className="text-2xl font-bold text-white mb-4 text-center">Leaderboard</h2>
       <div className="space-y-2">
         {leaderboard.map((entry, index) => (
@@ -46,14 +47,6 @@ export default function Leaderboard() {
           >
             <div className="flex items-center gap-2">
               <span className="text-purple-300 w-6">#{index + 1}</span>
-              <div className="relative w-8 h-8 rounded-full overflow-hidden">
-                <Image
-                  src={entry.pfp}
-                  alt={entry.username}
-                  fill
-                  className="object-cover"
-                />
-              </div>
               <div className="flex flex-col">
                 <span className="text-white font-medium">{entry.username}</span>
                 <span className="text-xs text-purple-300">fid:{entry.fid}</span>
