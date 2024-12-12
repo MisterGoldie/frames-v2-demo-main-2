@@ -653,12 +653,14 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                     Back to Menu
                   </Button>
                 </div>
-                <Button
-                  onClick={handleViewLeaderboard}
-                  className="w-full py-4 text-xl bg-purple-600 shadow-lg hover:shadow-xl transition-shadow"
-                >
-                  View Leaderboard
-                </Button>
+                {calculateWinner(board) || board.every(square => square) ? (
+                  <Button
+                    onClick={handleViewLeaderboard}
+                    className="w-full py-4 text-xl bg-purple-600 shadow-lg hover:shadow-xl transition-shadow"
+                  >
+                    View Leaderboard
+                  </Button>
+                ) : null}
               </div>
             </>
           )}
