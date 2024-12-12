@@ -6,6 +6,7 @@ import { Button } from "~/components/ui/Button";
 import useSound from 'use-sound';
 import Image from 'next/image';
 import Snow from './Snow';
+import { updateUserRecord, updateUserTie } from '~/utils/firebaseUtils';
 
 type PlayerPiece = 'scarygary' | 'chili' | 'podplaylogo';
 type Square = 'X' | PlayerPiece | null;
@@ -179,7 +180,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     return availableSpots[Math.floor(Math.random() * availableSpots.length)];
   }, [difficulty, selectedPiece]);
 
-  const handleMove = useCallback((index: number) => {
+  const handleMove = useCallback(async (index: number) => {
     if (timeLeft === 0 || board[index] || calculateWinner(board) || !isXNext) return;
 
     if (!timerStarted) {
@@ -196,11 +197,14 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       stopGameJingle();
       stopCountdownSound();
       playWinning();
+      if (frameContext?.user?.fid) {
+        await updateUserRecord(frameContext.user.fid.toString(), true, difficulty);
+      }
       return;
     }
 
     // Computer's turn in a separate effect to avoid timer interference
-    setTimeout(() => {
+    setTimeout(async () => {
       if (timeLeft === 0 || calculateWinner(newBoard)) return;
       
       const computerMove = getComputerMove(newBoard);
@@ -214,10 +218,16 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           stopGameJingle();
           stopCountdownSound();
           playLosing();
+          if (frameContext?.user?.fid) {
+            await updateUserRecord(frameContext.user.fid.toString(), false, difficulty);
+          }
         } else if (nextBoard.every(square => square !== null)) {
           stopGameJingle();
           stopCountdownSound();
           playDrawing();
+          if (frameContext?.user?.fid) {
+            await updateUserTie(frameContext.user.fid.toString());
+          }
         }
       }
     }, 500);
@@ -233,7 +243,9 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     playLosing,
     playDrawing,
     stopGameJingle,
-    stopCountdownSound
+    stopCountdownSound,
+    frameContext,
+    difficulty
   ]);
 
   const resetGame = useCallback(() => {
