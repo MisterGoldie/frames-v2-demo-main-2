@@ -11,10 +11,15 @@ const requestSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  console.log('Received notification request');
+  
   const requestJson = await request.json();
+  console.log('Request body:', requestJson);
+  
   const requestBody = requestSchema.safeParse(requestJson);
 
   if (requestBody.success === false) {
+    console.error('Invalid request body:', requestBody.error.errors);
     return Response.json(
       { success: false, errors: requestBody.error.errors },
       { status: 400 }
@@ -23,32 +28,47 @@ export async function POST(request: NextRequest) {
 
   // Get notification details for this user
   const details = await getNotificationDetails(requestBody.data.fid);
+  console.log('Retrieved notification details:', details);
+  
   if (!details) {
+    console.log('No notification details found for FID:', requestBody.data.fid);
     return Response.json(
       { success: false, error: "No notification details found for user" },
       { status: 404 }
     );
   }
 
-  const response = await fetch(details.url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      notificationId: crypto.randomUUID(),
-      title: requestBody.data.title,
-      body: requestBody.data.body,
-      targetUrl: requestBody.data.targetUrl,
-      tokens: [details.token]
-    } satisfies SendNotificationRequest),
-  });
+  try {
+    const response = await fetch(details.url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        notificationId: crypto.randomUUID(),
+        title: requestBody.data.title,
+        body: requestBody.data.body,
+        targetUrl: requestBody.data.targetUrl,
+        tokens: [details.token]
+      } satisfies SendNotificationRequest),
+    });
 
-  if (response.status === 200) {
-    return Response.json({ success: true });
-  } else {
+    const responseData = await response.json();
+    console.log('Farcaster notification response:', responseData);
+
+    if (response.status === 200) {
+      return Response.json({ success: true });
+    } else {
+      console.error('Failed to send notification:', responseData);
+      return Response.json(
+        { success: false, error: "Failed to send notification", details: responseData },
+        { status: 500 }
+      );
+    }
+  } catch (error) {
+    console.error('Error sending notification:', error);
     return Response.json(
-      { success: false, error: "Failed to send notification" },
+      { success: false, error: "Failed to send notification", details: error },
       { status: 500 }
     );
   }

@@ -448,7 +448,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   };
 
   const sendGameNotification = async (type: 'win' | 'loss' | 'draw') => {
-    if (!frameContext?.user?.fid) return;
+    if (!frameContext?.user?.fid) {
+      console.log('No FID available, cannot send notification');
+      return;
+    }
 
     const messages = {
       win: "Congratulations! You've defeated Maxi!",
@@ -456,8 +459,14 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       draw: "It's a draw! Great game!"
     };
 
+    console.log('Attempting to send notification:', {
+      type,
+      fid: frameContext.user.fid,
+      message: messages[type]
+    });
+
     try {
-      await fetch('/api/send-notification', {
+      const response = await fetch('/api/send-notification', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -469,6 +478,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           targetUrl: process.env.NEXT_PUBLIC_URL
         })
       });
+
+      const data = await response.json();
+      console.log('Notification API response:', data);
+
     } catch (error) {
       console.error('Failed to send notification:', error);
     }
