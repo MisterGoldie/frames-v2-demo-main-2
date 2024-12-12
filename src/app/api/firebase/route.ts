@@ -62,7 +62,7 @@ export async function GET() {
     const usersRef = db.collection('users');
     const snapshot = await usersRef
       .orderBy('wins', 'desc')
-      .limit(5)
+      .limit(10)
       .get();
 
     const leaderboard = await Promise.all(
