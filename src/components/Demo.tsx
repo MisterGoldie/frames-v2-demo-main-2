@@ -432,8 +432,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                 <Image 
                   src="/wreath.png"
                   alt="Wreath border"
-                  width={104}
-                  height={104}
+                  width={108}
+                  height={108}
                   className="object-contain"
                 />
               </div>
