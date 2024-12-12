@@ -5,7 +5,10 @@ import { useEffect, useState } from "react";
 import { checkFanTokenOwnership } from "~/utils/tokenUtils";
 import { FrameContext } from "@farcaster/frame-sdk";
 import sdk from "@farcaster/frame-sdk";
-// Removed the import of Demo due to the error indicating it's not a module.
+
+const Demo = dynamic(() => import("~/components/Demo"), {
+  ssr: false,
+});
 
 export default function App() {
   const [tokenBalance, setTokenBalance] = useState<number>(0);
@@ -34,5 +37,5 @@ export default function App() {
     fetchTokenBalance();
   }, [frameContext?.user?.fid]);
 
-  return <div>Token Balance: {tokenBalance}</div>;
+  return <Demo tokenBalance={tokenBalance} frameContext={frameContext} />;
 }

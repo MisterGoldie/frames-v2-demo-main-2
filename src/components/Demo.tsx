@@ -1,22 +1,709 @@
-[{
-	"resource": "/Users/goldie/Documents/frames-v2-demo-main 2/src/components/Demo.tsx",
-	"owner": "typescript",
-	"code": "2552",
-	"severity": 8,
-	"message": "Cannot find name 'setProfileImage'. Did you mean 'getProfileImage'?",
-	"source": "ts",
-	"startLineNumber": 112,
-	"startColumn": 9,
-	"endLineNumber": 112,
-	"endColumn": 24,
-	"relatedInformation": [
-		{
-			"startLineNumber": 110,
-			"startColumn": 11,
-			"endLineNumber": 110,
-			"endColumn": 26,
-			"message": "'getProfileImage' is declared here.",
-			"resource": "/Users/goldie/Documents/frames-v2-demo-main 2/src/components/Demo.tsx"
-		}
-	]
-}]
+"use client";
+
+import { useEffect, useCallback, useState, useRef } from "react";
+import sdk, { FrameContext } from "@farcaster/frame-sdk";
+import { Button } from "~/components/ui/Button";
+import useSound from 'use-sound';
+import Image from 'next/image';
+import Snow from './Snow';
+import Leaderboard from './Leaderboard';
+
+type PlayerPiece = 'scarygary' | 'chili' | 'podplaylogo';
+type Square = 'X' | PlayerPiece | null;
+type Board = Square[];
+type GameState = 'menu' | 'game';
+type MenuStep = 'game' | 'piece' | 'difficulty';
+type Difficulty = 'easy' | 'medium' | 'hard';
+
+const VolumeOnIcon = () => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    height="24px" 
+    viewBox="0 -960 960 960" 
+    width="24px" 
+    fill="#FFFFFF"
+  >
+    <path d="M400-120q-66 0-113-47t-47-113q0-66 47-113t113-47q23 0 42.5 5.5T480-418v-422h240v160H560v400q0 66-47 113t-113 47Z"/>
+  </svg>
+);
+
+const VolumeOffIcon = () => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    height="24px" 
+    viewBox="0 -960 960 960" 
+    width="24px" 
+    fill="#FFFFFF"
+  >
+    <path d="M792-56 56-792l56-56 736 736-56 56ZM560-514l-80-80v-246h240v160H560v166ZM400-120q-66 0-113-47t-47-113q0-66 47-113t113-47q23 0 42.5 5.5T480-418v-62l80 80v120q0 66-47 113t-113 47Z"/>
+  </svg>
+);
+
+type DemoProps = {
+  tokenBalance: number;
+  frameContext?: FrameContext;
+};
+
+export default function Demo({ tokenBalance, frameContext }: DemoProps) {
+  const [gameSession, setGameSession] = useState(0);
+  const boardRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<number>();  // Add ref for animation frame
+  const [isSDKLoaded, setIsSDKLoaded] = useState(false);
+  const [gameState, setGameState] = useState<GameState>('menu');
+  const [menuStep, setMenuStep] = useState<MenuStep>('game');
+  const [board, setBoard] = useState<Board>(Array(9).fill(null));
+  const [isXNext, setIsXNext] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
+  const [selectedPiece, setSelectedPiece] = useState<PlayerPiece>('chili');
+  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+  const [playClick] = useSound('/sounds/click.mp3', { volume: 0.5, soundEnabled: !isMuted });
+  const [playGameJingle, { stop: stopGameJingle }] = useSound('/sounds/jingle.mp3', { 
+    volume: 0.3, 
+    loop: true, 
+    soundEnabled: !isMuted 
+  });
+  const [playWinning] = useSound('/sounds/winning.mp3', { volume: 0.5, soundEnabled: !isMuted });
+  const [playLosing] = useSound('/sounds/losing.mp3', { volume: 0.5, soundEnabled: !isMuted });
+  const [playDrawing] = useSound('/sounds/drawing.mp3', { volume: 0.5, soundEnabled: !isMuted });
+  const [playHalloweenMusic, { stop: stopHalloweenMusic }] = useSound('/sounds/halloween.mp3', { 
+    volume: 0.3, 
+    loop: true, 
+    soundEnabled: !isMuted 
+  });
+  const [timeLeft, setTimeLeft] = useState(15);
+  const [timerStarted, setTimerStarted] = useState(false);
+  const [playCountdownSound, { stop: stopCountdownSound }] = useSound('/sounds/countdown.mp3', { 
+    volume: 0, 
+    soundEnabled: false,
+    interrupt: true,
+    playbackRate: 1.0,
+    sprite: {
+      countdown: [0, 5000]
+    }
+  });
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [isPlayingCountdown, setIsPlayingCountdown] = useState(false);
+  const isJinglePlaying = useRef(false);
+  const [profileImage, setProfileImage] = useState<string>('');
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+
+  // SDK initialization
+  useEffect(() => {
+    const loadFrameSDK = async () => {
+      try {
+        const context = await sdk.context;
+        console.log("Frame context:", context); // Debug log
+        sdk.actions.ready();
+      } catch (error) {
+        console.error("Error loading Frame SDK:", error);
+      }
+    };
+
+    if (!isSDKLoaded) {
+      setIsSDKLoaded(true);
+      loadFrameSDK();
+    }
+  }, [isSDKLoaded]);
+
+  // Fetch profile image when context changes
+  useEffect(() => {
+    const getProfileImage = async () => {
+      if (frameContext?.user?.pfpUrl) {
+        setProfileImage(frameContext.user.pfpUrl);
+      }
+    };
+    getProfileImage();
+  }, [frameContext]);
+
+  const handleStartGame = useCallback((diff: Difficulty, piece: PlayerPiece) => {
+    playClick();
+    stopHalloweenMusic();
+    if (!isMuted && !isJinglePlaying.current) {
+      isJinglePlaying.current = true;
+      playGameJingle();
+    }
+    setGameState('game');
+    setBoard(Array(9).fill(null));
+    setIsXNext(true);
+    setSelectedPiece(piece);
+    setDifficulty(diff);
+    setTimeLeft(15);
+    setTimerStarted(true);
+  }, [playClick, stopHalloweenMusic, playGameJingle, isMuted]);
+
+  const getComputerMove = useCallback((currentBoard: Board): number => {
+    const availableSpots = currentBoard
+      .map((spot, index) => spot === null ? index : null)
+      .filter((spot): spot is number => spot !== null);
+
+    if (difficulty === 'easy') {
+      // Random move
+      return availableSpots[Math.floor(Math.random() * availableSpots.length)];
+    }
+
+    if (difficulty === 'hard') {
+      // Try to win
+      for (const spot of availableSpots) {
+        const boardCopy = [...currentBoard];
+        boardCopy[spot] = 'X';
+        if (calculateWinner(boardCopy) === 'X') {
+          return spot;
+        }
+      }
+
+      // Block player from winning
+      for (const spot of availableSpots) {
+        const boardCopy = [...currentBoard];
+        boardCopy[spot] = selectedPiece;
+        if (calculateWinner(boardCopy) === selectedPiece) {
+          return spot;
+        }
+      }
+    }
+
+    // Medium difficulty or fallback
+    // Mix of random moves and blocking
+    if (Math.random() > 0.5) {
+      // Try blocking
+      for (const spot of availableSpots) {
+        const boardCopy = [...currentBoard];
+        boardCopy[spot] = selectedPiece;
+        if (calculateWinner(boardCopy) === selectedPiece) {
+          return spot;
+        }
+      }
+    }
+
+    // Take center if available
+    if (availableSpots.includes(4)) return 4;
+    
+    // Random move
+    return availableSpots[Math.floor(Math.random() * availableSpots.length)];
+  }, [difficulty, selectedPiece]);
+
+  const handleMove = useCallback(async (index: number) => {
+    if (timeLeft === 0 || board[index] || calculateWinner(board) || !isXNext) return;
+
+    if (!timerStarted) {
+      setTimerStarted(true);
+    }
+
+    const newBoard = [...board];
+    newBoard[index] = selectedPiece;
+    setBoard(newBoard);
+    setIsXNext(false);
+    playClick();
+
+    if (calculateWinner(newBoard)) {
+      stopGameJingle();
+      stopCountdownSound();
+      playWinning();
+      if (frameContext?.user?.fid) {
+        await updateGameResult(frameContext.user.fid.toString(), 'win', difficulty);
+      }
+      return;
+    }
+
+    // Computer's turn in a separate effect to avoid timer interference
+    setTimeout(async () => {
+      if (timeLeft === 0 || calculateWinner(newBoard)) return;
+      
+      const computerMove = getComputerMove(newBoard);
+      if (computerMove !== -1) {
+        const nextBoard = [...newBoard];
+        nextBoard[computerMove] = 'X';
+        setBoard(nextBoard);
+        setIsXNext(true);
+
+        if (calculateWinner(nextBoard)) {
+          stopGameJingle();
+          stopCountdownSound();
+          playLosing();
+          if (frameContext?.user?.fid) {
+            await updateGameResult(frameContext.user.fid.toString(), 'loss', difficulty);
+          }
+        } else if (nextBoard.every(square => square !== null)) {
+          stopGameJingle();
+          stopCountdownSound();
+          playDrawing();
+          if (frameContext?.user?.fid) {
+            await updateGameResult(frameContext.user.fid.toString(), 'tie');
+          }
+        }
+      }
+    }, 500);
+  }, [
+    board,
+    timeLeft,
+    timerStarted,
+    isXNext,
+    selectedPiece,
+    getComputerMove,
+    playClick,
+    playWinning,
+    playLosing,
+    playDrawing,
+    stopGameJingle,
+    stopCountdownSound,
+    frameContext,
+    difficulty
+  ]);
+
+  const resetGame = useCallback(() => {
+    setShowLeaderboard(false);
+    if (boardRef.current) {
+      boardRef.current.style.transform = 'rotate(0deg)';  // Reset rotation
+    }
+    setGameState('menu');
+    setMenuStep('game');
+    setBoard(Array(9).fill(null));
+    setIsXNext(true);
+    setTimeLeft(15);
+    setTimerStarted(false);
+    setStartTime(null);
+    stopCountdownSound();
+    stopGameJingle();
+    playHalloweenMusic();
+  }, [stopCountdownSound, stopGameJingle, playHalloweenMusic]);
+
+  const handlePlayAgain = useCallback(() => {
+    setShowLeaderboard(false);
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+    if (boardRef.current) {
+      boardRef.current.style.transform = 'rotate(0deg)';
+    }
+    setBoard(Array(9).fill(null));
+    setIsXNext(true);
+    setTimeLeft(15);
+    setTimerStarted(false);
+    setStartTime(null);
+    stopCountdownSound();
+    playGameJingle();
+    setGameSession(prev => prev + 1);
+  }, [stopCountdownSound, playGameJingle]);
+
+  useEffect(() => {
+    if (isMuted) {
+      stopGameJingle();
+      stopHalloweenMusic();
+      isJinglePlaying.current = false;
+      return;
+    }
+
+    if (gameState === 'menu') {
+      stopGameJingle();
+      isJinglePlaying.current = false;
+      playHalloweenMusic();
+    } else if (gameState === 'game' && !calculateWinner(board) && timeLeft > 0 && !isJinglePlaying.current) {
+      stopHalloweenMusic();
+      isJinglePlaying.current = true;
+      playGameJingle();
+    }
+
+    return () => {
+      if (gameState !== 'game') {
+        isJinglePlaying.current = false;
+      }
+    };
+  }, [
+    isMuted,
+    gameState,
+    calculateWinner,
+    board,
+    timeLeft,
+    stopGameJingle,
+    stopHalloweenMusic,
+    playGameJingle,
+    playHalloweenMusic
+  ]);
+
+  useEffect(() => {
+    if (timerStarted && gameState === 'game' && !calculateWinner(board)) {
+      if (!startTime) {
+        setStartTime(Date.now());
+      }
+
+      const timerInterval = setInterval(() => {
+        const currentTime = Date.now();
+        const elapsedSeconds = Math.floor((currentTime - (startTime || currentTime)) / 1000);
+        const newTimeLeft = Math.max(15 - elapsedSeconds, 0);
+
+        if (newTimeLeft <= 5 && newTimeLeft > 0 && !isPlayingCountdown) {
+          setIsPlayingCountdown(true);
+          // playCountdownSound();  // Temporarily commented out
+        }
+        
+        if (newTimeLeft <= 0) {
+          clearInterval(timerInterval);
+          stopCountdownSound();
+          stopGameJingle();
+          playLosing();
+          setTimeLeft(0);
+          setIsPlayingCountdown(false);
+        } else {
+          setTimeLeft(newTimeLeft);
+        }
+      }, 100);
+
+      return () => {
+        clearInterval(timerInterval);
+        stopCountdownSound();
+        setIsPlayingCountdown(false);
+      };
+    }
+  }, [timerStarted, gameState, board, startTime, playCountdownSound, stopCountdownSound, playLosing, stopGameJingle, isPlayingCountdown]);
+
+  const getGameStatus = () => {
+    if (timeLeft === 0) {
+      return "Time's up! Maxi wins!";
+    }
+    if (calculateWinner(board)) {
+      return `Winner: ${calculateWinner(board) === 'X' ? 'Maxi' : 
+        frameContext?.user?.username || selectedPiece}`;
+    }
+    if (board.every(square => square)) {
+      return "Game is a draw!";
+    }
+    return `Next player: ${isXNext ? 'Maxi' : 
+      frameContext?.user?.username || selectedPiece}`;
+  };
+
+  // Add rotation effect for hard modes
+  useEffect(() => {
+    if (difficulty === 'hard' && boardRef.current && gameState === 'game') {
+      const baseSpeed = 0.3;  // Increase base speed from 0.05 to 0.1
+      
+      const animate = () => {
+        if (boardRef.current) {
+          const rotationSpeed = baseSpeed + (board.filter(Boolean).length * 0.1); // Increased increment from 0.02 to 0.05
+          const currentRotation = parseFloat(boardRef.current.style.transform.replace(/[^\d.-]/g, '')) || 0;
+          boardRef.current.style.transform = `rotate(${currentRotation + rotationSpeed}deg)`;
+          animationRef.current = requestAnimationFrame(animate);
+        }
+      };
+
+      // Start animation only if board is not empty
+      if (!board.every(square => square === null)) {
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
+        if (boardRef.current) {
+          boardRef.current.style.transform = 'rotate(0deg)';
+        }
+      }
+
+      return () => {
+        if (animationRef.current) {
+          cancelAnimationFrame(animationRef.current);
+        }
+        if (boardRef.current) {
+          boardRef.current.style.transform = 'rotate(0deg)';
+        }
+      };
+    }
+  }, [difficulty, board, gameState, gameSession]);
+
+  useEffect(() => {
+    const currentBoard = boardRef.current;
+    if (!currentBoard) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      // Resize logic here
+    });
+
+    resizeObserver.observe(currentBoard);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  const toggleMute = () => setIsMuted(prev => !prev);
+  // Get pfpUrl directly from frameContext
+  const pfpUrl = frameContext?.user?.pfpUrl;
+
+  const handleViewLeaderboard = () => {
+    setShowLeaderboard(true);
+    playClick();
+  };
+
+  const handleBackFromLeaderboard = () => {
+    setShowLeaderboard(false);
+    playClick();
+  };
+
+  if (!isSDKLoaded) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div className="w-[300px] h-[600px] mx-auto flex items-start justify-center relative pt-48">
+      {gameState === 'menu' && <Snow />}
+      
+      <div className="absolute top-16 left-4">
+        <button 
+          onClick={toggleMute}
+          className={`p-2 rounded-full shadow-lg transition-colors ${
+            isMuted ? 'bg-red-600 hover:bg-red-700' : 'bg-purple-600 hover:bg-purple-700'
+          }`}
+        >
+          {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
+        </button>
+      </div>
+
+      {gameState === 'menu' && (
+        <div className="absolute top-16 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
+          {pfpUrl && (
+            <div className="relative">
+              <div className="absolute inset-0 w-[132px] h-[132px] -m-3 -translate-x-[5.5px]">
+                <Image 
+                  src="/wreath.png"
+                  alt="Wreath border"
+                  width={132}
+                  height={132}
+                  className="object-contain"
+                />
+              </div>
+              <img 
+                src={pfpUrl} 
+                alt="Profile" 
+                className="w-24 h-24 rounded-full object-cover"
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {gameState === 'menu' ? (
+        <div className="w-full flex flex-col items-center">
+          {menuStep === 'game' && frameContext?.user?.username && (
+            <div className="text-white text-xl mb-4 text-shadow">
+              Welcome, {frameContext.user.username}
+            </div>
+          )}
+          
+          <h1 className="text-3xl font-bold text-center text-white mb-12 text-shadow">
+            {menuStep === 'game' ? 'Select Game' :
+             menuStep === 'piece' ? 'Select Piece' :
+             'Choose Difficulty'}
+          </h1>
+          
+          {menuStep === 'game' && (
+            <>
+              <Button
+                onClick={() => {
+                  playClick();
+                  setMenuStep('piece');
+                }}
+                className="w-full py-4 text-2xl bg-purple-600 box-shadow"
+              >
+                Tic-Tac-Maxi
+              </Button>
+              {tokenBalance > 0 && (
+                <div className="mt-12 bg-purple-600 text-white px-3 py-1 rounded-full text-sm inline-flex items-center shadow-lg">
+                  <Image 
+                    src="/fantokenlogo.png"
+                    alt="Fan Token"
+                    width={24} 
+                    height={24}
+                  />
+                  {tokenBalance.toFixed(2)} /thepod fan tokens owned
+                </div>
+              )}
+            </>
+          )}
+
+          {menuStep === 'piece' && (
+            <>
+              <Button 
+                onClick={() => {
+                  playClick();
+                  setSelectedPiece('scarygary');
+                  setMenuStep('difficulty');
+                }}
+                className="w-full mb-2 shadow-lg hover:shadow-xl transition-shadow"
+              >
+                Scary Gary
+              </Button>
+              <Button 
+                onClick={() => {
+                  playClick();
+                  setSelectedPiece('chili');
+                  setMenuStep('difficulty');
+                }}
+                className="w-full mb-2"
+              >
+                Chili
+              </Button>
+              <Button 
+                onClick={() => {
+                  playClick();
+                  setSelectedPiece('podplaylogo');
+                  setMenuStep('difficulty');
+                }}
+                className="w-full mb-2"
+              >
+                Pod Logo
+              </Button>
+            </>
+          )}
+
+          {menuStep === 'difficulty' && (
+            <>
+              <Button 
+                onClick={() => handleStartGame('easy', selectedPiece)}
+                className="w-full mb-2 shadow-lg hover:shadow-xl transition-shadow"
+              >
+                Easy
+              </Button>
+              <Button 
+                onClick={() => handleStartGame('medium', selectedPiece)}
+                className="w-full mb-2"
+              >
+                Medium
+              </Button>
+              <Button 
+                onClick={() => handleStartGame('hard', selectedPiece)}
+                className="w-full mb-2"
+              >
+                Hard
+              </Button>
+            </>
+          )}
+
+          {menuStep !== 'game' && (
+            <div className="flex justify-center w-full mt-4">
+              <Button 
+                onClick={() => setMenuStep(menuStep === 'difficulty' ? 'piece' : 'game')}
+                className="w-3/4"
+              >
+                Back
+              </Button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center -mt-20">
+          {showLeaderboard ? (
+            <div className="flex flex-col items-center w-full mt-20">
+              <Leaderboard />
+              <Button
+                onClick={handleBackFromLeaderboard}
+                className="mt-4 w-full py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
+              >
+                Back to Game
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className={`absolute top-16 right-4 text-white text-sm ${
+                timeLeft === 0 ? 'bg-red-600' : 'bg-purple-800'
+              } px-3 py-1 rounded-full box-shadow`}>
+                {timeLeft}s
+              </div>
+              <div className="text-center mb-4 text-white text-xl text-shadow">
+                {getGameStatus()}
+              </div>
+              
+              <div 
+                ref={boardRef}
+                className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4"
+                style={{ transition: 'transform 0.1s linear' }}
+              >
+                <div className="absolute left-0 top-[33%] w-full h-[2px] bg-white shadow-glow" />
+                <div className="absolute left-0 top-[66%] w-full h-[2px] bg-white shadow-glow" />
+                
+                {board.map((square, index) => (
+                  <button
+                    key={index}
+                    className="h-[100px] flex items-center justify-center text-2xl font-bold bg-transparent"
+                    onClick={() => handleMove(index)}
+                  >
+                    {square === 'X' ? (
+                      <Image 
+                        src="/maxi.png" 
+                        alt="Maxi" 
+                        width={64}
+                        height={64}
+                        className="object-contain"
+                      />
+                    ) : square ? (
+                      <Image 
+                        src={`/${square}.png`} 
+                        alt={square} 
+                        width={64}
+                        height={64}
+                        className="object-contain"
+                      />
+                    ) : null}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex flex-col w-full gap-4">
+                <div className="flex justify-between w-full gap-4">
+                  <Button
+                    onClick={handlePlayAgain}
+                    className="w-1/2 py-4 text-xl bg-green-600 shadow-lg hover:shadow-xl transition-shadow"
+                  >
+                    Play Again
+                  </Button>
+                  <Button
+                    onClick={resetGame}
+                    className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
+                  >
+                    Back to Menu
+                  </Button>
+                </div>
+                {calculateWinner(board) || board.every(square => square) ? (
+                  <Button
+                    onClick={handleViewLeaderboard}
+                    className="w-full py-4 text-xl bg-purple-600 shadow-lg hover:shadow-xl transition-shadow"
+                  >
+                    View Leaderboard
+                  </Button>
+                ) : null}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function calculateWinner(squares: Square[]): Square {
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+  
+  for (const [a, b, c] of lines) {
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return squares[a];
+    }
+  }
+  return null;
+}
+
+async function updateGameResult(fid: string, action: 'win' | 'loss' | 'tie', difficulty?: 'easy' | 'medium' | 'hard') {
+  try {
+    const response = await fetch('/api/firebase', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ fid, action, difficulty }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to update game result');
+    }
+  } catch (error) {
+    console.error('Error updating game result:', error);
+  }
+}
