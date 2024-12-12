@@ -1,4 +1,7 @@
-import { SendNotificationRequest } from "@farcaster/frame-sdk";
+import {
+  SendNotificationRequest,
+  sendNotificationResponseSchema,
+} from "@farcaster/frame-sdk";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getNotificationDetails } from '~/utils/notificationStore';
@@ -53,18 +56,29 @@ export async function POST(request: NextRequest) {
       } satisfies SendNotificationRequest),
     });
 
-    const responseData = await response.json();
-    console.log('Farcaster notification response:', responseData);
+    const responseJson = await response.json();
+    console.log('Farcaster notification raw response:', responseJson);
 
-    if (response.status === 200) {
-      return Response.json({ success: true });
-    } else {
-      console.error('Failed to send notification:', responseData);
+    // Validate response using Farcaster SDK schema
+    const responseBody = sendNotificationResponseSchema.safeParse(responseJson);
+    if (responseBody.success === false) {
+      console.error('Invalid response format:', responseBody.error.errors);
       return Response.json(
-        { success: false, error: "Failed to send notification", details: responseData },
+        { success: false, errors: responseBody.error.errors },
         { status: 500 }
       );
     }
+
+    // Check for rate limiting
+    if (responseBody.data.result.rateLimitedTokens.length) {
+      console.log('Rate limited tokens:', responseBody.data.result.rateLimitedTokens);
+      return Response.json(
+        { success: false, error: "Rate limited" },
+        { status: 429 }
+      );
+    }
+
+    return Response.json({ success: true });
   } catch (error) {
     console.error('Error sending notification:', error);
     return Response.json(
