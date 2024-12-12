@@ -1,6 +1,9 @@
 import { gql, GraphQLClient } from "graphql-request";
+import axios from 'axios';
 
 const MOXIE_API_URL = process.env.NEXT_PUBLIC_MOXIE_API_URL;
+const AIRSTACK_HUBS_URL = "https://hubs.airstack.xyz/v1";
+const AIRSTACK_API_KEY = process.env.NEXT_PUBLIC_AIRSTACK_API_KEY;
 
 interface TokenHolding {
   balance: string;
@@ -97,6 +100,21 @@ export async function getFarcasterAddressesFromFID(fid: string): Promise<string[
   }
 }
 
+async function getTokenDetailsFromHubs(address: string) {
+  try {
+    const response = await axios.get(`${AIRSTACK_HUBS_URL}/token_details?address=${address}`, {
+      headers: {
+        "Content-Type": "application/json",
+        "x-airstack-hubs": AIRSTACK_API_KEY as string,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching token details from Hubs:', error);
+    return null;
+  }
+}
+
 export async function checkFanTokenOwnership(fid: string): Promise<{ ownsToken: boolean; balance: number }> {
   try {
     console.log(`Checking token ownership for FID: ${fid}`);
@@ -109,27 +127,50 @@ export async function checkFanTokenOwnership(fid: string): Promise<{ ownsToken: 
     }
 
     const fanTokenData = await getOwnedFanTokens(addresses);
-    console.log(`Fan token data:`, fanTokenData);
-    
-    if (!fanTokenData) {
-      console.log('No fan token data found');
-      return { ownsToken: false, balance: 0 };
+    if (fanTokenData) {
+      const thepodToken = fanTokenData.find((token: TokenHolding) => 
+        token.subjectToken.symbol.toLowerCase() === "cid:thepod"
+      );
+      
+      if (thepodToken && parseFloat(thepodToken.balance) > 0) {
+        const balance = parseFloat(thepodToken.balance) / 1e18;
+        return { ownsToken: true, balance };
+      }
     }
 
-    const thepodToken = fanTokenData.find((token: TokenHolding) => 
-      token.subjectToken.symbol.toLowerCase() === "cid:thepod"
-    );
-    console.log(`Found pod token:`, thepodToken);
-
-    if (thepodToken && parseFloat(thepodToken.balance) > 0) {
-      const balance = parseFloat(thepodToken.balance) / 1e18;
-      console.log(`Calculated balance: ${balance}`);
-      return { ownsToken: true, balance };
+    for (const address of addresses) {
+      const hubsData = await getTokenDetailsFromHubs(address);
+      if (hubsData?.tokens?.find((t: any) => t.symbol.toLowerCase() === "cid:thepod")) {
+        const token = hubsData.tokens.find((t: any) => t.symbol.toLowerCase() === "cid:thepod");
+        return { 
+          ownsToken: true, 
+          balance: parseFloat(token.balance) / 1e18 
+        };
+      }
     }
 
     return { ownsToken: false, balance: 0 };
   } catch (error) {
     console.error('Error checking fan token ownership:', error);
     return { ownsToken: false, balance: 0 };
+  }
+} 
+
+const AIRSTACK_HUBS_SERVER = "https://hubs.airstack.xyz";
+
+export async function checkAirstackHubs() {
+  try {
+    const response = await axios.get(`${AIRSTACK_HUBS_SERVER}/v1/info?dbstats=1`, {
+      headers: {
+        "Content-Type": "application/json",
+        "x-airstack-hubs": AIRSTACK_API_KEY as string,
+      },
+    });
+  
+    console.log('Airstack Hubs Response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error:', error);
+    return null;
   }
 } 
