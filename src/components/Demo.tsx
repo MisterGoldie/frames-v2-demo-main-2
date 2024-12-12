@@ -684,37 +684,28 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
               </div>
 
               <div className="flex flex-col w-full gap-4">
-                {!(winner || isDraw || endedByTimer) && (
-                  <div className="flex justify-between w-full gap-4">
-                    <Button
-                      onClick={handlePlayAgain}
-                      className="w-1/2 py-4 text-xl bg-green-600 shadow-lg hover:shadow-xl transition-shadow"
-                    >
-                      Play Again
-                    </Button>
-                    <Button
-                      onClick={resetGame}
-                      className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
-                    >
-                      Back to Menu
-                    </Button>
-                  </div>
-                )}
+                <div className="flex justify-between w-full gap-4">
+                  <Button
+                    onClick={handlePlayAgain}
+                    className="w-1/2 py-4 text-xl bg-green-600 shadow-lg hover:shadow-xl transition-shadow"
+                  >
+                    Play Again
+                  </Button>
+                  <Button
+                    onClick={resetGame}
+                    className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
+                  >
+                    Back to Menu
+                  </Button>
+                </div>
+                
                 {(winner || isDraw || endedByTimer) && (
-                  <div className="flex gap-2 mt-4 w-full">
-                    <Button
-                      onClick={handlePlayAgain}
-                      className="w-1/2 py-4 text-xl bg-purple-700"
-                    >
-                      Play Again
-                    </Button>
-                    <Button
-                      onClick={handleViewLeaderboard}
-                      className="w-1/2 py-4 text-xl bg-purple-700"
-                    >
-                      Leaderboard
-                    </Button>
-                  </div>
+                  <Button
+                    onClick={handleViewLeaderboard}
+                    className="w-full py-4 text-xl bg-purple-700"
+                  >
+                    Leaderboard
+                  </Button>
                 )}
               </div>
             </>
