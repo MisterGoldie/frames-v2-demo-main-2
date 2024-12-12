@@ -21,7 +21,7 @@ export async function fetchUserDataByFid(fid: string): Promise<UserData | null> 
     if (data.users && data.users[0]) {
       return {
         username: data.users[0].username,
-        pfp: data.users[0].pfp_url,
+        pfp: data.users[0].pfp_url || data.users[0].pfp,
       };
     }
     return null;
