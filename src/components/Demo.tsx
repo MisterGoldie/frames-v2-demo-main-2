@@ -122,18 +122,34 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       try {
         // Wait for SDK to load
         await sdk.context;
-        // Wait for profile image if available
-        if (frameContext?.user?.pfpUrl) {
-          await new Promise<void>((resolve) => {
-            const img = new HTMLImageElement();
-            if (frameContext.user.pfpUrl) {  // Add null check
-              img.src = frameContext.user.pfpUrl;
-            }
-            img.onload = () => resolve();
-          });
+
+        // Load all required images
+        const imagesToLoad = [
+          // Profile picture if available
+          frameContext?.user?.pfpUrl,
+          // Always load wreath
+          '/wreath.png'
+        ].filter(Boolean); // Remove undefined values
+
+        // Wait for all images to load
+        await Promise.all(
+          imagesToLoad.map(
+            (src) =>
+              new Promise<void>((resolve) => {
+                const img = new HTMLImageElement();
+                img.src = src as string;
+                img.onload = () => resolve();
+              })
+          )
+        );
+
+        // Wait for token balance check
+        if (frameContext?.user?.fid) {
+          await checkFanTokenOwnership(frameContext.user.fid.toString());
         }
-        // Add a minimum loading time of 1 second
-        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Add a minimum loading time of 2.5 seconds
+        await new Promise(resolve => setTimeout(resolve, 2500));
       } finally {
         setIsLoading(false);
       }
@@ -790,3 +806,7 @@ async function updateGameResult(fid: string, action: 'win' | 'loss' | 'tie', dif
 function playGameOver() {
   throw new Error("Function not implemented.");
 }
+function checkFanTokenOwnership(arg0: string) {
+  throw new Error("Function not implemented.");
+}
+
