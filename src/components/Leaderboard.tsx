@@ -58,8 +58,10 @@ export default function Leaderboard() {
                 <span className="text-green-400 font-bold text-lg">{entry.wins}W</span>
                 <span className="text-yellow-400 font-bold">({entry.podScore?.toFixed(1)}PS)</span>
               </div>
-              <div className="text-xs text-purple-300/80 font-medium">
-                E:{entry.easyWins || 0} M:{entry.mediumWins || 0} H:{entry.hardWins || 0}
+              <div className="text-xs text-purple-300/80 font-medium flex flex-col gap-1">
+                <div>Easy: {entry.easyWins || 0}</div>
+                <div>Medium: {entry.mediumWins || 0}</div>
+                <div>Hard: {entry.hardWins || 0}</div>
               </div>
             </div>
           </div>
