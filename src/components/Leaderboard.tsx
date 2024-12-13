@@ -53,8 +53,8 @@ export default function Leaderboard() {
                 <span className="text-xs text-purple-300/80">fid:{entry.fid}</span>
               </div>
             </div>
-            <div className="text-right">
-              <div className="flex items-center justify-end gap-3 mb-1">
+            <div className="text-right flex flex-col">
+              <div className="flex items-center justify-end gap-2">
                 <span className="text-green-400 font-bold text-lg">{entry.wins}W</span>
                 <span className="text-yellow-400 font-bold">({entry.podScore?.toFixed(1)}PS)</span>
               </div>
