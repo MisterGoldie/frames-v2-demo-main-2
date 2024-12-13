@@ -492,8 +492,9 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const handleViewLeaderboard = () => {
     setShowLeaderboard(true);
     playClick();
-    if (!isMuted && !isJinglePlaying.current) {
-      isJinglePlaying.current = true;
+    if (!isMuted) {
+      stopGameJingle();
+      isJinglePlaying.current = false;
       playGameJingle();
     }
   };
@@ -806,19 +807,21 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                 </div>
                 
                 {(winner || isDraw || endedByTimer) && (
-                  <div className="flex flex-col w-full gap-2">
-                    <Button
-                      onClick={handleViewLeaderboard}
-                      className="w-full py-4 text-xl bg-purple-700"
-                    >
-                      Leaderboard
-                    </Button>
-                    <Button
-                      onClick={handleShare}
-                      className="w-full py-4 text-xl bg-purple-600 hover:bg-purple-500 transition-colors"
-                    >
-                      Share Game
-                    </Button>
+                  <div className="flex flex-col w-full gap-4 mt-4 mb-8">
+                    <div className="flex justify-between w-full gap-4">
+                      <Button
+                        onClick={handleViewLeaderboard}
+                        className="w-1/2 py-4 text-xl bg-purple-700"
+                      >
+                        Leaderboard
+                      </Button>
+                      <Button
+                        onClick={handleShare}
+                        className="w-1/2 py-4 text-xl bg-purple-600 hover:bg-purple-500 transition-colors"
+                      >
+                        Share Game
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
