@@ -87,6 +87,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [profileImage, setProfileImage] = useState<string>('');
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [endedByTimer, setEndedByTimer] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // SDK initialization
   useEffect(() => {
@@ -114,6 +115,31 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       }
     };
     getProfileImage();
+  }, [frameContext]);
+
+  useEffect(() => {
+    const loadAssets = async () => {
+      try {
+        // Wait for SDK to load
+        await sdk.context;
+        // Wait for profile image if available
+        if (frameContext?.user?.pfpUrl) {
+          await new Promise<void>((resolve) => {
+            const img = new HTMLImageElement();
+            if (frameContext.user.pfpUrl) {  // Add null check
+              img.src = frameContext.user.pfpUrl;
+            }
+            img.onload = () => resolve();
+          });
+        }
+        // Add a minimum loading time of 1 second
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadAssets();
   }, [frameContext]);
 
   const handleStartGame = useCallback((diff: Difficulty, piece: PlayerPiece) => {
@@ -474,8 +500,13 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     }
   };
 
-  if (!isSDKLoaded) {
-    return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-purple-900">
+        <div className="w-16 h-16 border-4 border-purple-500 border-t-white rounded-full animate-spin mb-4" />
+        <p className="text-white text-xl">Loading POD Play...</p>
+      </div>
+    );
   }
 
   return (
