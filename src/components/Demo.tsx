@@ -128,10 +128,20 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
 
-        // Load all required images
+        // Load wreath first and wait extra time to ensure it's ready
+        await new Promise<void>((resolve) => {
+          const wreathImg = new HTMLImageElement();
+          wreathImg.src = '/wreath.png';
+          wreathImg.onload = () => {
+            // Add 1 second buffer after wreath loads
+            setTimeout(resolve, 1000);
+          };
+          wreathImg.onerror = () => resolve();
+        });
+
+        // Then load remaining images
         const imagesToLoad = [
           frameContext?.user?.pfpUrl,
-          '/wreath.png',
           '/fantokenlogo.png',
           '/maxi.png',
           '/scarygary.png',
@@ -139,7 +149,6 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           '/podplaylogo.png'
         ].filter(Boolean);
 
-        // Wait for all images to load
         await Promise.all(
           imagesToLoad.map(
             (src) =>
@@ -147,7 +156,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                 const img = new HTMLImageElement();
                 img.src = src as string;
                 img.onload = () => resolve();
-                img.onerror = () => resolve(); // Prevent hanging on load errors
+                img.onerror = () => resolve();
               })
           )
         );
