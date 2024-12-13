@@ -420,7 +420,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [timerStarted, timeLeft, stopCountdownSound, playGameOver, isMuted, board, calculateWinner, isXNext]);
+  }, [timerStarted, timeLeft, calculateWinner, board]);
 
   const isDraw = board.every(square => square !== null);
   const isPlayerTurn = isXNext;
@@ -547,21 +547,17 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     }
   };
 
-  const handleShare = () => {
+  const handleShare = (event: React.MouseEvent<HTMLButtonElement>) => {
     playClick();
     const appUrl = 'https://podplayv2.vercel.app/';
     
     navigator.clipboard.writeText(appUrl).then(() => {
-      const shareButton = document.querySelector('[data-share-button]');
-      if (shareButton) {
-        const originalText = shareButton.textContent;
-        shareButton.textContent = '✓ URL Copied to Clipboard!';
-        setTimeout(() => {
-          shareButton.textContent = originalText;
-        }, 2000);
-      }
-    }).catch(err => {
-      console.error('Failed to copy:', err);
+      const button = event.currentTarget;
+      const originalContent = button.innerHTML;
+      button.innerHTML = '✓ URL Copied to Clipboard!';
+      setTimeout(() => {
+        button.innerHTML = originalContent;
+      }, 2000);
     });
   };
 
@@ -725,7 +721,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                 <Leaderboard />
                 <div className="flex flex-col w-full gap-2">
                   <Button
-                    onClick={handleShare}
+                    onClick={(e) => handleShare(e)}
                     data-share-button
                     className="w-full py-4 text-xl bg-purple-600 hover:bg-purple-500 transition-colors"
                   >
@@ -811,7 +807,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                           Leaderboard
                         </Button>
                         <Button
-                          onClick={handleShare}
+                          onClick={(e) => handleShare(e)}
                           data-share-button
                           className="w-1/2 py-4 text-xl bg-purple-600 hover:bg-purple-500 transition-colors"
                         >
