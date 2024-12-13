@@ -547,15 +547,15 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     }
   };
 
-  const handleShare = () => {
+  const handleGameBoardShare = () => {
     playClick();
     const appUrl = 'https://podplayv2.vercel.app/';
     
     navigator.clipboard.writeText(appUrl).then(() => {
-      const shareButton = document.querySelector('[data-share-button]');
+      const shareButton = document.querySelector('[data-gameboard-share]');
       if (shareButton) {
         const originalText = shareButton.textContent;
-        shareButton.textContent = '✓ URL Copied to Clipboard!';
+        shareButton.textContent = '✓ Copied!';
         setTimeout(() => {
           shareButton.textContent = originalText;
         }, 2000);
@@ -730,9 +730,9 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
               <Leaderboard />
               <div className="flex flex-col w-full gap-2">
                 <Button
-                  onClick={handleShare}
-                  data-share-button
-                  className="w-full py-4 text-xl bg-purple-600 hover:bg-purple-500 transition-colors"
+                  onClick={handleGameBoardShare}
+                  data-gameboard-share
+                  className="w-1/2 py-4 text-xl bg-purple-600 hover:bg-purple-500 transition-colors"
                 >
                   Share Game
                 </Button>
@@ -816,7 +816,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                         Leaderboard
                       </Button>
                       <Button
-                        onClick={handleShare}
+                        onClick={handleGameBoardShare}
+                        data-gameboard-share
                         className="w-1/2 py-4 text-xl bg-purple-600 hover:bg-purple-500 transition-colors"
                       >
                         Share Game
