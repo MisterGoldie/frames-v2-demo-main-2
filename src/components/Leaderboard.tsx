@@ -21,13 +21,13 @@ type LeaderboardProps = {
 export default function Leaderboard({ isMuted, playGameJingle }: LeaderboardProps) {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const isJinglePlaying = useRef(false);
+  const prevMutedState = useRef(isMuted);
 
   useEffect(() => {
-    if (!isMuted && !isJinglePlaying.current) {
-      isJinglePlaying.current = true;
+    if (prevMutedState.current === true && isMuted === false) {
       playGameJingle();
     }
+    prevMutedState.current = isMuted;
   }, [isMuted, playGameJingle]);
 
   useEffect(() => {
