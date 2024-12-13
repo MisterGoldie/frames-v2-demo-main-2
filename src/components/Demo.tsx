@@ -546,6 +546,15 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     }
   };
 
+  const handleShare = () => {
+    playClick();
+    // Use the environment URL or fallback to a default
+    const appUrl = process.env.NEXT_PUBLIC_URL || 'https://podplay.xyz';
+    
+    // Open the URL in a new window/tab
+    window.open(`https://warpcast.com/~/compose?text=I%20just%20played%20POD%20Play%20v2!%20Can%20you%20beat%20Maxi%3F%0A%0A&embeds[]=${appUrl}`, '_blank');
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-purple-900">
@@ -709,6 +718,20 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           {showLeaderboard ? (
             <div className="flex flex-col items-center w-full gap-4 mt-8">
               <Leaderboard />
+              <div className="flex flex-col w-full gap-2">
+                <Button
+                  onClick={handleViewLeaderboard}
+                  className="w-full py-4 text-xl bg-purple-700"
+                >
+                  Leaderboard
+                </Button>
+                <Button
+                  onClick={handleShare}
+                  className="w-full py-4 text-xl bg-purple-600 hover:bg-purple-500 transition-colors"
+                >
+                  Share Game
+                </Button>
+              </div>
               <Button
                 onClick={handleBackFromLeaderboard}
                 className="w-3/4 py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600"
@@ -779,12 +802,20 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                 </div>
                 
                 {(winner || isDraw || endedByTimer) && (
-                  <Button
-                    onClick={handleViewLeaderboard}
-                    className="w-full py-4 text-xl bg-purple-700"
-                  >
-                    Leaderboard
-                  </Button>
+                  <div className="flex flex-col w-full gap-2">
+                    <Button
+                      onClick={handleViewLeaderboard}
+                      className="w-full py-4 text-xl bg-purple-700"
+                    >
+                      Leaderboard
+                    </Button>
+                    <Button
+                      onClick={handleShare}
+                      className="w-full py-4 text-xl bg-purple-600 hover:bg-purple-500 transition-colors"
+                    >
+                      Share Game
+                    </Button>
+                  </div>
                 )}
               </div>
             </>
