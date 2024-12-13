@@ -209,47 +209,98 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       .filter((spot): spot is number => spot !== null);
 
     if (difficulty === 'easy') {
-      // Random move
+      // Easy Mode - 30% strategic, 70% random
+      if (Math.random() < 0.3) {
+        // Try to win
+        for (const spot of availableSpots) {
+          const boardCopy = [...currentBoard];
+          boardCopy[spot] = 'X';
+          if (calculateWinner(boardCopy) === 'X') {
+            return spot;
+          }
+        }
+        
+        // Block obvious wins
+        for (const spot of availableSpots) {
+          const boardCopy = [...currentBoard];
+          boardCopy[spot] = selectedPiece;
+          if (calculateWinner(boardCopy) === selectedPiece) {
+            return spot;
+          }
+        }
+      }
+
+      // Take center if available (30% chance)
+      if (availableSpots.includes(4) && Math.random() < 0.3) return 4;
+      
+      // Otherwise random move
       return availableSpots[Math.floor(Math.random() * availableSpots.length)];
     }
 
-    if (difficulty === 'hard') {
-      // Try to win
-      for (const spot of availableSpots) {
-        const boardCopy = [...currentBoard];
-        boardCopy[spot] = 'X';
-        if (calculateWinner(boardCopy) === 'X') {
-          return spot;
+    if (difficulty === 'medium') {
+      // Medium Mode - 70% strategic, 30% random
+      if (Math.random() < 0.7) {
+        // Try to win first
+        for (const spot of availableSpots) {
+          const boardCopy = [...currentBoard];
+          boardCopy[spot] = 'X';
+          if (calculateWinner(boardCopy) === 'X') {
+            return spot;
+          }
+        }
+
+        // Block player from winning
+        for (const spot of availableSpots) {
+          const boardCopy = [...currentBoard];
+          boardCopy[spot] = selectedPiece;
+          if (calculateWinner(boardCopy) === selectedPiece) {
+            return spot;
+          }
+        }
+        
+        // Take center if available
+        if (availableSpots.includes(4)) return 4;
+        
+        // Take corners if available
+        const corners = [0, 2, 6, 8].filter(corner => availableSpots.includes(corner));
+        if (corners.length > 0) {
+          return corners[Math.floor(Math.random() * corners.length)];
         }
       }
+      
+      // Random move for remaining cases
+      return availableSpots[Math.floor(Math.random() * availableSpots.length)];
+    }
 
-      // Block player from winning
-      for (const spot of availableSpots) {
-        const boardCopy = [...currentBoard];
-        boardCopy[spot] = selectedPiece;
-        if (calculateWinner(boardCopy) === selectedPiece) {
-          return spot;
-        }
+    // Hard Mode (unchanged)
+    // Try to win first
+    for (const spot of availableSpots) {
+      const boardCopy = [...currentBoard];
+      boardCopy[spot] = 'X';
+      if (calculateWinner(boardCopy) === 'X') {
+        return spot;
       }
     }
 
-    // Medium difficulty or fallback
-    // Mix of random moves and blocking
-    if (Math.random() > 0.5) {
-      // Try blocking
-      for (const spot of availableSpots) {
-        const boardCopy = [...currentBoard];
-        boardCopy[spot] = selectedPiece;
-        if (calculateWinner(boardCopy) === selectedPiece) {
-          return spot;
-        }
+    // Block player from winning
+    for (const spot of availableSpots) {
+      const boardCopy = [...currentBoard];
+      boardCopy[spot] = selectedPiece;
+      if (calculateWinner(boardCopy) === selectedPiece) {
+        return spot;
       }
     }
 
     // Take center if available
     if (availableSpots.includes(4)) return 4;
     
-    // Random move
+    // Take corners if available
+    const corners = [0, 2, 6, 8].filter(corner => availableSpots.includes(corner));
+    if (corners.length > 0) {
+      return corners[Math.floor(Math.random() * corners.length)];
+    }
+    
+    // Random move as last resort
     return availableSpots[Math.floor(Math.random() * availableSpots.length)];
   }, [difficulty, selectedPiece]);
 
