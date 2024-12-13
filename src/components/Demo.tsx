@@ -87,8 +87,6 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [profileImage, setProfileImage] = useState<string>('');
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [endedByTimer, setEndedByTimer] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [wreathLoaded, setWreathLoaded] = useState(false);
 
   // SDK initialization
   useEffect(() => {
@@ -117,65 +115,6 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     };
     getProfileImage();
   }, [frameContext]);
-
-  useEffect(() => {
-    const loadAssets = async () => {
-      try {
-        // Wait for SDK to load
-        await sdk.context;
-
-        // Wait for token balance to be set
-        while (tokenBalance === undefined) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-
-        // Load wreath first with a strict check
-        const wreathImg = new HTMLImageElement();
-        await new Promise<void>((resolve) => {
-          wreathImg.src = '/wreath.png';
-          wreathImg.onload = () => {
-            setWreathLoaded(true);
-            // Add 1.5 second buffer after wreath loads
-            setTimeout(resolve, 1500);
-          };
-        });
-
-        // Only proceed after wreath is confirmed loaded
-        if (!wreathLoaded) {
-          throw new Error('Wreath not loaded');
-        }
-
-        // Then load remaining images
-        const imagesToLoad = [
-          frameContext?.user?.pfpUrl,
-          '/fantokenlogo.png',
-          '/maxi.png',
-          '/scarygary.png',
-          '/chili.png',
-          '/podplaylogo.png'
-        ].filter(Boolean);
-
-        await Promise.all(
-          imagesToLoad.map(
-            (src) =>
-              new Promise<void>((resolve) => {
-                const img = new HTMLImageElement();
-                img.src = src as string;
-                img.onload = () => resolve();
-                img.onerror = () => resolve();
-              })
-          )
-        );
-
-        // Add a minimum loading time of 2.5 seconds
-        await new Promise(resolve => setTimeout(resolve, 2500));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadAssets();
-  }, [frameContext, tokenBalance]);
 
   const handleStartGame = useCallback((diff: Difficulty, piece: PlayerPiece) => {
     playClick();
@@ -535,13 +474,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-purple-900">
-        <div className="w-16 h-16 border-4 border-purple-500 border-t-white rounded-full animate-spin mb-4" />
-        <p className="text-white text-xl">Loading POD Play...</p>
-      </div>
-    );
+  if (!isSDKLoaded) {
+    return <div>Loading...</div>;
   }
 
   return (
@@ -563,9 +497,14 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
         <div className="absolute top-16 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
           {pfpUrl && (
             <div className="relative">
-              <div className="absolute inset-0 w-[132px] h-[132px] -m-3 -translate-x-[5.5px] rounded-full border-[6px] border-purple-400 
-                before:content-[''] before:absolute before:inset-0 before:rounded-full before:border-[6px] before:border-purple-300 before:-m-2
-                after:content-[''] after:absolute after:inset-0 after:rounded-full after:border-[6px] after:border-purple-500 after:m-2">
+              <div className="absolute inset-0 w-[132px] h-[132px] -m-3 -translate-x-[5.5px]">
+                <Image 
+                  src="/wreath.png"
+                  alt="Wreath border"
+                  width={132}
+                  height={132}
+                  className="object-contain"
+                />
               </div>
               <img 
                 src={pfpUrl} 
@@ -820,7 +759,3 @@ async function updateGameResult(fid: string, action: 'win' | 'loss' | 'tie', dif
 function playGameOver() {
   throw new Error("Function not implemented.");
 }
-function checkFanTokenOwnership(arg0: string) {
-  throw new Error("Function not implemented.");
-}
-
