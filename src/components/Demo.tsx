@@ -576,7 +576,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
 
   return (
     <div className="w-[300px] h-[600px] mx-auto flex items-start justify-center relative pt-48">
-      <Snow />
+      {(gameState === 'menu' || showLeaderboard) && <Snow />}
       
       <div className="absolute top-16 left-4">
         <button 
