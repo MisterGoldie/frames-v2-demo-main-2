@@ -436,7 +436,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     if (endedByTimer) {
       return "Time's Up!";
     }
-    return isPlayerTurn ? "Your Turn" : "";
+    return isPlayerTurn ? "Your Turn" : "Maxi's Turn";
   };
 
   // Add rotation effect for hard modes
