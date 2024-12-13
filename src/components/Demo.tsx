@@ -548,11 +548,21 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
 
   const handleShare = () => {
     playClick();
-    // Use the correct POD Play v2 URL
     const appUrl = 'https://podplayv2.vercel.app/';
     
-    // Open the URL in a new window/tab with encoded URL
-    window.open(`https://warpcast.com/~/compose?text=I%20just%20played%20POD%20Play%20v2!%20Can%20you%20beat%20Maxi%3F%0A%0A&embeds[]=${encodeURIComponent(appUrl)}`, '_blank');
+    // Just copy to clipboard, no window.open
+    navigator.clipboard.writeText(appUrl).then(() => {
+      const shareButton = document.querySelector('[data-share-button]');
+      if (shareButton) {
+        const originalText = shareButton.textContent;
+        shareButton.textContent = 'Copied!';
+        setTimeout(() => {
+          shareButton.textContent = originalText;
+        }, 2000);
+      }
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+    });
   };
 
   if (isLoading) {
