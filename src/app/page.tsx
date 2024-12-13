@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import App from "./app";
 
-const appUrl = 'https://podplayv2.vercel.app';
+const appUrl = process.env.NEXT_PUBLIC_URL;
 
 const frame = {
   version: "next",
@@ -13,7 +13,7 @@ const frame = {
       name: "POD Play v2",
       url: appUrl,
       splashImageUrl: `${appUrl}/splash.png`,
-      splashBackgroundColor: "#7e22ce",
+      splashBackgroundColor: "#9d00ff",
     },
   },
 };
@@ -25,8 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: "POD Play v2",
     openGraph: {
       title: "Tic-Tac-Maxi",
-      description: "Can you beat Maxi in this POD-themed Tic-Tac-Toe game?",
-      images: [`${appUrl}/game-board.png`],
+      description: "Tic-Tac-Toe style game by @goldie and @themrsazon.",
     },
     other: {
       "fc:frame": JSON.stringify(frame),
