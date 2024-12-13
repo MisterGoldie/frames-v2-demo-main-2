@@ -52,7 +52,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [gameState, setGameState] = useState<GameState>('menu');
   const [menuStep, setMenuStep] = useState<MenuStep>('game');
   const [board, setBoard] = useState<Board>(Array(9).fill(null));
-  const [isXNext, setIsXNext] = useState(true);
+  const [isXNext, setIsXNext] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [selectedPiece, setSelectedPiece] = useState<PlayerPiece>('chili');
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
@@ -564,6 +564,24 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       console.error('Failed to copy:', err);
     });
   };
+
+  useEffect(() => {
+    if (gameState === 'game' && !board.some(square => square !== null)) {
+      // Get random initial position for CPU
+      const availableSpots = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+      const randomIndex = Math.floor(Math.random() * availableSpots.length);
+      const cpuMove = availableSpots[randomIndex];
+      
+      setTimeout(() => {
+        const newBoard = [...board];
+        newBoard[cpuMove] = 'X';
+        setBoard(newBoard);
+        setIsXNext(true);
+        
+        // Remove timer start from here - it will start on player's first move instead
+      }, 500);
+    }
+  }, [gameState, board]);
 
   if (isLoading) {
     return (
