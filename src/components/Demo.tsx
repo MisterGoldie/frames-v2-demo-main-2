@@ -817,6 +817,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                       </Button>
                       <Button
                         onClick={handleShare}
+                        data-share-button
                         className="w-1/2 py-4 text-xl bg-purple-600 hover:bg-purple-500 transition-colors"
                       >
                         Share Game
