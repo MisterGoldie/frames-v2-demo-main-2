@@ -555,7 +555,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       const shareButton = document.querySelector('[data-gameboard-share]');
       if (shareButton) {
         const originalText = shareButton.textContent;
-        shareButton.textContent = '✓ Copied!';
+        shareButton.textContent = '✓ URL Copied!';
         setTimeout(() => {
           shareButton.textContent = originalText;
         }, 2000);
@@ -732,7 +732,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                 <Button
                   onClick={handleGameBoardShare}
                   data-gameboard-share
-                  className="w-1/2 py-4 text-xl bg-purple-600 hover:bg-purple-500 transition-colors"
+                  className="w-1/2 py-4 text-xl bg-purple-700 hover:bg-purple-600 transition-colors"
                 >
                   Share Game
                 </Button>
@@ -818,7 +818,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                       <Button
                         onClick={handleGameBoardShare}
                         data-gameboard-share
-                        className="w-1/2 py-4 text-xl bg-purple-600 hover:bg-purple-500 transition-colors"
+                        className="w-1/2 py-4 text-xl bg-purple-700 hover:bg-purple-600 transition-colors"
                       >
                         Share Game
                       </Button>
