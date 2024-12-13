@@ -384,7 +384,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   useEffect(() => {
     let timer: NodeJS.Timeout;
     
-    if (timerStarted && timeLeft > 0) {
+    if (timerStarted && timeLeft > 0 && !winner && !isDraw) {
       timer = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
@@ -403,7 +403,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [timerStarted, timeLeft, stopCountdownSound, playGameOver, isMuted]);
+  }, [timerStarted, timeLeft, stopCountdownSound, playGameOver, isMuted, board, calculateWinner, isXNext]);
 
   const isDraw = board.every(square => square !== null);
   const isPlayerTurn = isXNext;
