@@ -87,7 +87,6 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [profileImage, setProfileImage] = useState<string>('');
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [endedByTimer, setEndedByTimer] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   // SDK initialization
   useEffect(() => {
@@ -116,60 +115,6 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     };
     getProfileImage();
   }, [frameContext]);
-
-  useEffect(() => {
-    const loadAssets = async () => {
-      try {
-        // Wait for SDK to load
-        await sdk.context;
-
-        // Wait for token balance to be set (non-zero or explicitly 0)
-        while (tokenBalance === undefined) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-
-        // Load wreath first and wait extra time to ensure it's ready
-        await new Promise<void>((resolve) => {
-          const wreathImg = new HTMLImageElement();
-          wreathImg.src = '/wreath.png';
-          wreathImg.onload = () => {
-            // Add 1 second buffer after wreath loads
-            setTimeout(resolve, 1000);
-          };
-          wreathImg.onerror = () => resolve();
-        });
-
-        // Then load remaining images
-        const imagesToLoad = [
-          frameContext?.user?.pfpUrl,
-          '/fantokenlogo.png',
-          '/maxi.png',
-          '/scarygary.png',
-          '/chili.png',
-          '/podplaylogo.png'
-        ].filter(Boolean);
-
-        await Promise.all(
-          imagesToLoad.map(
-            (src) =>
-              new Promise<void>((resolve) => {
-                const img = new HTMLImageElement();
-                img.src = src as string;
-                img.onload = () => resolve();
-                img.onerror = () => resolve();
-              })
-          )
-        );
-
-        // Add a minimum loading time of 2.5 seconds
-        await new Promise(resolve => setTimeout(resolve, 2500));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadAssets();
-  }, [frameContext, tokenBalance]);
 
   const handleStartGame = useCallback((diff: Difficulty, piece: PlayerPiece) => {
     playClick();
@@ -384,7 +329,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   useEffect(() => {
     let timer: NodeJS.Timeout;
     
-    if (timerStarted && timeLeft > 0 && !winner && !isDraw) {
+    if (timerStarted && timeLeft > 0) {
       timer = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
@@ -403,7 +348,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [timerStarted, timeLeft, stopCountdownSound, playGameOver, isMuted, board, calculateWinner, isXNext]);
+  }, [timerStarted, timeLeft, stopCountdownSound, playGameOver, isMuted]);
 
   const isDraw = board.every(square => square !== null);
   const isPlayerTurn = isXNext;
@@ -529,13 +474,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-purple-900">
-        <div className="w-16 h-16 border-4 border-purple-500 border-t-white rounded-full animate-spin mb-4" />
-        <p className="text-white text-xl">Loading POD Play...</p>
-      </div>
-    );
+  if (!isSDKLoaded) {
+    return <div>Loading...</div>;
   }
 
   return (
@@ -817,8 +757,5 @@ async function updateGameResult(fid: string, action: 'win' | 'loss' | 'tie', dif
 }
 
 function playGameOver() {
-  throw new Error("Function not implemented.");
-}
-function checkFanTokenOwnership(arg0: string) {
   throw new Error("Function not implemented.");
 }
