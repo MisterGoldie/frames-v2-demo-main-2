@@ -548,11 +548,11 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
 
   const handleShare = () => {
     playClick();
-    // Use the environment URL or fallback to a default
-    const appUrl = process.env.NEXT_PUBLIC_URL || 'https://podplay.xyz';
+    // Use the correct POD Play v2 URL
+    const appUrl = 'https://podplayv2.vercel.app/';
     
-    // Open the URL in a new window/tab
-    window.open(`https://warpcast.com/~/compose?text=I%20just%20played%20POD%20Play%20v2!%20Can%20you%20beat%20Maxi%3F%0A%0A&embeds[]=${appUrl}`, '_blank');
+    // Open the URL in a new window/tab with encoded URL
+    window.open(`https://warpcast.com/~/compose?text=I%20just%20played%20POD%20Play%20v2!%20Can%20you%20beat%20Maxi%3F%0A%0A&embeds[]=${encodeURIComponent(appUrl)}`, '_blank');
   };
 
   if (isLoading) {
