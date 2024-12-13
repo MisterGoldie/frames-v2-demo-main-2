@@ -172,18 +172,35 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   }, [frameContext, tokenBalance]);
 
   const handleStartGame = useCallback((diff: Difficulty, piece: PlayerPiece) => {
+    // Reset all game states
     playClick();
     stopHalloweenMusic();
     if (!isMuted && !isJinglePlaying.current) {
       isJinglePlaying.current = true;
       playGameJingle();
     }
-    setGameState('game');
+    
+    // Clear previous game results
     setBoard(Array(9).fill(null));
     setIsXNext(true);
+    setTimeLeft(15);
+    setTimerStarted(false);
+    setEndedByTimer(false);
+    setShowLeaderboard(false);
+    setGameSession(prev => prev + 1);
+    
+    // Set new game settings
+    setGameState('game');
     setSelectedPiece(piece);
     setDifficulty(diff);
-    setTimeLeft(15);
+    
+    // Reset board rotation if any
+    if (boardRef.current) {
+      boardRef.current.style.transform = 'rotate(0deg)';
+    }
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
   }, [playClick, stopHalloweenMusic, playGameJingle, isMuted]);
 
   const getComputerMove = useCallback((currentBoard: Board): number => {
