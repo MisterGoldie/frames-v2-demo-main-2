@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: "Tic-Tac-Maxi",
       description: "Can you beat Maxi in this POD-themed Tic-Tac-Toe game?",
-      images: [`${appUrl}/urlimage.png`],
+      images: [`${appUrl}/game-board.png`],
     },
     other: {
       "fc:frame": JSON.stringify(frame),
