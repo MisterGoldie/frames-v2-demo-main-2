@@ -88,6 +88,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [endedByTimer, setEndedByTimer] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [wreathLoaded, setWreathLoaded] = useState(false);
 
   // SDK initialization
   useEffect(() => {
@@ -123,21 +124,26 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
         // Wait for SDK to load
         await sdk.context;
 
-        // Wait for token balance to be set (non-zero or explicitly 0)
+        // Wait for token balance to be set
         while (tokenBalance === undefined) {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
 
-        // Load wreath first and wait extra time to ensure it's ready
+        // Load wreath first with a strict check
+        const wreathImg = new HTMLImageElement();
         await new Promise<void>((resolve) => {
-          const wreathImg = new HTMLImageElement();
           wreathImg.src = '/wreath.png';
           wreathImg.onload = () => {
-            // Add 1 second buffer after wreath loads
-            setTimeout(resolve, 1000);
+            setWreathLoaded(true);
+            // Add 1.5 second buffer after wreath loads
+            setTimeout(resolve, 1500);
           };
-          wreathImg.onerror = () => resolve();
         });
+
+        // Only proceed after wreath is confirmed loaded
+        if (!wreathLoaded) {
+          throw new Error('Wreath not loaded');
+        }
 
         // Then load remaining images
         const imagesToLoad = [
