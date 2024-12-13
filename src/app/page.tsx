@@ -5,14 +5,14 @@ const appUrl = 'https://podplayv2.vercel.app';
 
 const frame = {
   version: "next",
-  imageUrl: `${appUrl}/game-board.png`,
+  imageUrl: `${appUrl}/urlimage.png`,
   button: {
     title: "Play Now",
     action: {
       type: "launch_frame",
       name: "POD Play v2",
       url: appUrl,
-      splashImageUrl: `${appUrl}/game-board.png`,
+      splashImageUrl: `${appUrl}/urlimage.png`,
       splashBackgroundColor: "#345fa8",
     },
   },
@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: "Tic-Tac-Maxi",
       description: "Can you beat Maxi in this POD-themed Tic-Tac-Toe game?",
-      images: [`${appUrl}/game-board.png`],
+      images: [`${appUrl}/urlimage.png`],
     },
     other: {
       "fc:frame": JSON.stringify(frame),
