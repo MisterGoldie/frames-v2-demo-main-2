@@ -550,12 +550,11 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     playClick();
     const appUrl = 'https://podplayv2.vercel.app/';
     
-    // Just copy to clipboard, no window.open
     navigator.clipboard.writeText(appUrl).then(() => {
       const shareButton = document.querySelector('[data-share-button]');
       if (shareButton) {
         const originalText = shareButton.textContent;
-        shareButton.textContent = 'Copied!';
+        shareButton.textContent = '✓ URL Copied to Clipboard!';
         setTimeout(() => {
           shareButton.textContent = originalText;
         }, 2000);
@@ -730,24 +729,19 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
               <Leaderboard />
               <div className="flex flex-col w-full gap-2">
                 <Button
-                  onClick={handleViewLeaderboard}
-                  className="w-full py-4 text-xl bg-purple-700"
-                >
-                  Leaderboard
-                </Button>
-                <Button
                   onClick={handleShare}
+                  data-share-button
                   className="w-full py-4 text-xl bg-purple-600 hover:bg-purple-500 transition-colors"
                 >
                   Share Game
                 </Button>
+                <Button
+                  onClick={handleBackFromLeaderboard}
+                  className="w-3/4 py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto"
+                >
+                  Back to Menu
+                </Button>
               </div>
-              <Button
-                onClick={handleBackFromLeaderboard}
-                className="w-3/4 py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600"
-              >
-                Back to Menu
-              </Button>
             </div>
           ) : (
             <>
