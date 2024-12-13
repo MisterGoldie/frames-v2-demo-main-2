@@ -72,13 +72,13 @@ body {
 
 /* Much slower animation durations */
 .snow:nth-child(odd) {
-  animation-duration: 80s;
-  animation-delay: calc(random() * -80s);
+  animation-duration: 15s;
+  animation-delay: calc(random() * -15s);
 }
 
 .snow:nth-child(even) {
-  animation-duration: 65s;
-  animation-delay: calc(random() * -65s);
+  animation-duration: 12s;
+  animation-delay: calc(random() * -12s);
   left: calc(random() * 100vw);
 }
 
