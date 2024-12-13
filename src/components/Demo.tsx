@@ -796,7 +796,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
         <div className="flex flex-col items-center -mt-20">
           {showLeaderboard ? (
             <div className="flex flex-col items-center w-full gap-4 mt-8">
-              <Leaderboard />
+              <Leaderboard 
+                isMuted={isMuted}
+                playGameJingle={playGameJingle}
+              />
               <div className="flex flex-col w-full gap-2">
                 <Button
                   onClick={handleGameBoardShare}

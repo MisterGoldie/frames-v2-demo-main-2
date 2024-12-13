@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 
 type LeaderboardEntry = {
@@ -13,9 +13,22 @@ type LeaderboardEntry = {
   podScore: number;
 };
 
-export default function Leaderboard() {
+type LeaderboardProps = {
+  isMuted: boolean;
+  playGameJingle: () => void;
+};
+
+export default function Leaderboard({ isMuted, playGameJingle }: LeaderboardProps) {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const isJinglePlaying = useRef(false);
+
+  useEffect(() => {
+    if (!isMuted && !isJinglePlaying.current) {
+      isJinglePlaying.current = true;
+      playGameJingle();
+    }
+  }, [isMuted, playGameJingle]);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
