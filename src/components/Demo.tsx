@@ -123,13 +123,21 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
         // Wait for SDK to load
         await sdk.context;
 
+        // Wait for token balance to be set (non-zero or explicitly 0)
+        while (tokenBalance === undefined) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
         // Load all required images
         const imagesToLoad = [
-          // Profile picture if available
           frameContext?.user?.pfpUrl,
-          // Always load wreath
-          '/wreath.png'
-        ].filter(Boolean); // Remove undefined values
+          '/wreath.png',
+          '/fantokenlogo.png',
+          '/maxi.png',
+          '/scarygary.png',
+          '/chili.png',
+          '/podplaylogo.png'
+        ].filter(Boolean);
 
         // Wait for all images to load
         await Promise.all(
@@ -139,14 +147,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                 const img = new HTMLImageElement();
                 img.src = src as string;
                 img.onload = () => resolve();
+                img.onerror = () => resolve(); // Prevent hanging on load errors
               })
           )
         );
-
-        // Wait for token balance check
-        if (frameContext?.user?.fid) {
-          await checkFanTokenOwnership(frameContext.user.fid.toString());
-        }
 
         // Add a minimum loading time of 2.5 seconds
         await new Promise(resolve => setTimeout(resolve, 2500));
@@ -156,7 +160,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     };
 
     loadAssets();
-  }, [frameContext]);
+  }, [frameContext, tokenBalance]);
 
   const handleStartGame = useCallback((diff: Difficulty, piece: PlayerPiece) => {
     playClick();
