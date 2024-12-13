@@ -22,7 +22,6 @@ export default function Leaderboard() {
       try {
         const response = await fetch('/api/firebase');
         const data = await response.json();
-        console.log('Leaderboard data:', data);
         setLeaderboard(data.leaderboard);
       } catch (error) {
         console.error('Error fetching leaderboard:', error);
@@ -37,28 +36,30 @@ export default function Leaderboard() {
   if (isLoading) return <div>Loading leaderboard...</div>;
 
   return (
-    <div className="bg-purple-900/80 p-4 rounded-lg shadow-lg max-w-sm w-full -mt-12">
-      <h2 className="text-2xl font-bold text-white mb-4 text-center">Leaderboard</h2>
-      <div className="space-y-2">
+    <div className="bg-purple-900/90 p-6 rounded-xl shadow-2xl w-full max-h-[400px] overflow-y-auto">
+      <h2 className="text-3xl font-bold text-white mb-6 text-center text-shadow">
+        Leaderboard
+      </h2>
+      <div className="space-y-3">
         {leaderboard.map((entry, index) => (
           <div 
             key={entry.fid}
-            className="flex justify-between items-center bg-purple-800/50 p-2 rounded"
+            className="flex justify-between items-center bg-purple-800/70 p-3 rounded-lg hover:bg-purple-800/90 transition-colors"
           >
-            <div className="flex items-center gap-2">
-              <span className="text-purple-300 w-6">#{index + 1}</span>
+            <div className="flex items-center gap-3">
+              <span className="text-purple-300 text-xl font-bold w-8">#{index + 1}</span>
               <div className="flex flex-col">
-                <span className="text-white font-medium">{entry.username}</span>
-                <span className="text-xs text-purple-300">fid:{entry.fid}</span>
+                <span className="text-white font-semibold text-lg">{entry.username}</span>
+                <span className="text-xs text-purple-300/80">fid:{entry.fid}</span>
               </div>
             </div>
             <div className="text-right">
-              <div className="flex items-center justify-end gap-2">
-                <span className="text-green-400 font-bold">{entry.wins} W</span>
-                <span className="text-yellow-400 font-bold">({entry.podScore?.toFixed(1) || '0.0'} PS)</span>
+              <div className="flex items-center justify-end gap-3 mb-1">
+                <span className="text-green-400 font-bold text-lg">{entry.wins}W</span>
+                <span className="text-yellow-400 font-bold">({entry.podScore?.toFixed(1)}PS)</span>
               </div>
-              <div className="text-xs text-purple-300">
-                {entry.easyWins || 0}/{entry.mediumWins || 0}/{entry.hardWins || 0}
+              <div className="text-xs text-purple-300/80 font-medium">
+                E:{entry.easyWins || 0} M:{entry.mediumWins || 0} H:{entry.hardWins || 0}
               </div>
             </div>
           </div>

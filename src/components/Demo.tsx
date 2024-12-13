@@ -707,13 +707,13 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       ) : (
         <div className="flex flex-col items-center -mt-20">
           {showLeaderboard ? (
-            <div className="flex flex-col items-center w-full mt-20">
+            <div className="flex flex-col items-center w-full gap-4 mt-8">
               <Leaderboard />
               <Button
                 onClick={handleBackFromLeaderboard}
-                className="mt-4 w-full py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
+                className="w-3/4 py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600"
               >
-                Back to menu
+                Back to Menu
               </Button>
             </div>
           ) : (
