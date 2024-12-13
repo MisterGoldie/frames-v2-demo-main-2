@@ -13,7 +13,7 @@ const frame = {
       name: "POD Play v2",
       url: appUrl,
       splashImageUrl: `${appUrl}/splash.png`,
-      splashBackgroundColor: "#345fa8",
+      splashBackgroundColor: "#7e22ce",
     },
   },
 };
