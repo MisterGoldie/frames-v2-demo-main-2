@@ -44,20 +44,6 @@ type DemoProps = {
   frameContext?: FrameContext;
 };
 
-const SplashScreen = () => (
-  <div className="absolute inset-0 z-50 flex items-center justify-center bg-purple-900">
-    <div className="relative w-64 h-64 animate-pulse">
-      <Image
-        src="/splash.png"  // Make sure this image exists in public folder
-        alt="POD Play v2"
-        fill
-        className="object-contain"
-        priority
-      />
-    </div>
-  </div>
-);
-
 export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [gameSession, setGameSession] = useState(0);
   const boardRef = useRef<HTMLDivElement>(null);
@@ -672,23 +658,24 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   }, [gameState, board]);
 
   if (isLoading) {
-    return <SplashScreen />;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-purple-900">
+        <div className="w-16 h-16 border-4 border-purple-500 border-t-white rounded-full animate-spin mb-4" />
+        <p className="text-white text-xl">Loading POD Play...</p>
+      </div>
+    );
   }
 
   return (
-    <div className="w-[300px] h-[600px] mx-auto flex items-start justify-center relative pt-48">
-      {(gameState === 'menu' || showLeaderboard) && <Snow />}
+    <div className="min-h-screen bg-gradient-to-b from-blue-600 to-blue-800 flex flex-col items-center justify-between p-4 relative">
+      <Snow />
       
-      <div className="absolute top-16 left-4">
-        <button 
-          onClick={toggleMute}
-          className={`p-2 rounded-full shadow-lg transition-colors ${
-            isMuted ? 'bg-red-600 hover:bg-red-700' : 'bg-purple-600 hover:bg-purple-700'
-          }`}
-        >
-          {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
-        </button>
-      </div>
+      <button
+        onClick={toggleMute}
+        className="absolute top-4 left-4 z-10 bg-red-500 rounded-full p-2"
+      >
+        {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
+      </button>
 
       {gameState === 'menu' && (
         <div className="absolute top-16 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
@@ -750,7 +737,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                 </div>
               )}
               <div className="absolute bottom-4 text-white/50 text-sm">
-                version 1.0
+                version 1.1
               </div>
             </>
           )}
@@ -934,6 +921,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           )}
         </div>
       )}
+
+      <div className="text-white/50 text-sm absolute bottom-4">
+        version 1.1
+      </div>
     </div>
   );
 }
