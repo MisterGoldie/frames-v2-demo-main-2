@@ -614,8 +614,15 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       });
 
       const data = await response.json();
-      console.log('Notification API response:', data);
+      
+      // Add rate limit handling
+      if (data.error === "Rate limited") {
+        console.log('Notification rate limited - user is playing too frequently');
+        // Optionally show a message to the user
+        return;
+      }
 
+      console.log('Notification API response:', data);
     } catch (error) {
       console.error('Failed to send notification:', error);
     }
