@@ -44,6 +44,20 @@ type DemoProps = {
   frameContext?: FrameContext;
 };
 
+const SplashScreen = () => (
+  <div className="absolute inset-0 z-50 flex items-center justify-center bg-purple-900">
+    <div className="relative w-64 h-64 animate-pulse">
+      <Image
+        src="/splash.png"  // Make sure this image exists in public folder
+        alt="POD Play v2"
+        fill
+        className="object-contain"
+        priority
+      />
+    </div>
+  </div>
+);
+
 export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [gameSession, setGameSession] = useState(0);
   const boardRef = useRef<HTMLDivElement>(null);
@@ -564,10 +578,33 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       return;
     }
 
+    const winMessages = [
+      "Congratulations! You've defeated Maxi!",
+      "Victory! You're unstoppable! 🏆",
+      "Game Over - You Win! 🕹️",
+      "Maxi's been POD played! 😎",
+      "Good win against Maxi! 🌟",
+      "You're the POD Play Master! 👑"
+    ];
+
+    const lossMessages = [
+      "Maxi beat you. Try again?",
+      "Almost had it! One more try?",
+      "Maxi got lucky. Rematch? 👀",
+      "Don't give up! Play again?"
+    ];
+
+    const drawMessages = [
+      "It's a draw! Good game! 👏",
+      "Neck and neck! What a match!",
+      "Perfect balance! Try again?",
+      "Neither wins - both legends!"
+    ];
+
     const messages = {
-      win: "Congratulations! You've defeated Maxi!",
-      loss: "Maxi has won! Try again?",
-      draw: "It's a draw! Great game!"
+      win: winMessages[Math.floor(Math.random() * winMessages.length)],
+      loss: lossMessages[Math.floor(Math.random() * lossMessages.length)],
+      draw: drawMessages[Math.floor(Math.random() * drawMessages.length)]
     };
 
     console.log('Attempting to send notification:', {
@@ -635,12 +672,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   }, [gameState, board]);
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-purple-900">
-        <div className="w-16 h-16 border-4 border-purple-500 border-t-white rounded-full animate-spin mb-4" />
-        <p className="text-white text-xl">Loading POD Play...</p>
-      </div>
-    );
+    return <SplashScreen />;
   }
 
   return (
