@@ -667,15 +667,19 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-600 to-blue-800 flex flex-col items-center justify-between p-4 relative">
-      <Snow />
+    <div className="w-[300px] h-[600px] mx-auto flex items-start justify-center relative pt-48">
+      {(gameState === 'menu' || showLeaderboard) && <Snow />}
       
-      <button
-        onClick={toggleMute}
-        className="absolute top-4 left-4 z-10 bg-red-500 rounded-full p-2"
-      >
-        {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
-      </button>
+      <div className="absolute top-16 left-4">
+        <button 
+          onClick={toggleMute}
+          className={`p-2 rounded-full shadow-lg transition-colors ${
+            isMuted ? 'bg-red-600 hover:bg-red-700' : 'bg-purple-600 hover:bg-purple-700'
+          }`}
+        >
+          {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
+        </button>
+      </div>
 
       {gameState === 'menu' && (
         <div className="absolute top-16 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
@@ -737,7 +741,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                 </div>
               )}
               <div className="absolute bottom-4 text-white/50 text-sm">
-                version 1.1
+                version 1.0
               </div>
             </>
           )}
@@ -921,10 +925,6 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           )}
         </div>
       )}
-
-      <div className="text-white/50 text-sm absolute bottom-4">
-        version 1.1
-      </div>
     </div>
   );
 }
