@@ -1,19 +1,7 @@
-import admin from 'firebase-admin';
+import admin, { db } from '~/utils/firebase';
 import { fetchUserDataByFid } from '../../../utils/neynarUtils';
 import { checkFanTokenOwnership } from '../../../utils/tokenUtils';
 import { calculatePODScore } from '../../../utils/scoreUtils';
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    }),
-  });
-}
-
-const db = admin.firestore();
 
 export async function POST(request: Request) {
   try {
