@@ -7,6 +7,7 @@ import useSound from 'use-sound';
 import Image from 'next/image';
 import Snow from './Snow';
 import Leaderboard from './Leaderboard';
+import { shouldSendNotification } from "~/utils/notificationUtils";
 
 type PlayerPiece = 'scarygary' | 'chili' | 'podplaylogo';
 type Square = 'X' | PlayerPiece | null;
@@ -326,7 +327,9 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       playWinning();
       if (frameContext?.user?.fid) {
         await updateGameResult(frameContext.user.fid.toString(), 'win', difficulty);
-        await sendGameNotification('win');
+        if (shouldSendNotification('win')) {
+          await sendGameNotification('win');
+        }
       }
       return;
     }
@@ -348,7 +351,9 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           playLosing();
           if (frameContext?.user?.fid) {
             await updateGameResult(frameContext.user.fid.toString(), 'loss', difficulty);
-            await sendGameNotification('loss');
+            if (shouldSendNotification('loss')) {
+              await sendGameNotification('loss');
+            }
           }
         } else if (nextBoard.every(square => square !== null)) {
           stopGameJingle();
@@ -356,7 +361,9 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           playDrawing();
           if (frameContext?.user?.fid) {
             await updateGameResult(frameContext.user.fid.toString(), 'tie');
-            await sendGameNotification('draw');
+            if (shouldSendNotification('draw')) {
+              await sendGameNotification('draw');
+            }
           }
         }
       }
