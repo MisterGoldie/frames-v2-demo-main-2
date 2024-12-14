@@ -1,71 +1,63 @@
-import {
-  eventHeaderSchema,
-  eventPayloadSchema,
-  eventSchema,
-} from "@farcaster/frame-sdk";
-import { NextRequest } from "next/server";
+import { NextRequest } from 'next/server';
 import { storeNotificationDetails, removeNotificationDetails } from '~/utils/notificationStore';
+import { validateSignature } from '~/utils/validateSignature';
 
 export async function POST(request: NextRequest) {
-  const requestJson = await request.json();
+  try {
+    // Parse the signature packet
+    const body = await request.json();
+    const { header, payload: rawPayload, signature } = body;
 
-  const requestBody = eventSchema.safeParse(requestJson);
+    // Decode base64url payload
+    const payload = JSON.parse(Buffer.from(rawPayload, 'base64url').toString());
+    const decodedHeader = JSON.parse(Buffer.from(header, 'base64url').toString());
 
-  if (requestBody.success === false) {
-    return Response.json(
-      { success: false, errors: requestBody.error.errors },
-      { status: 400 }
-    );
-  }
+    console.log('Webhook received:', {
+      fid: decodedHeader.fid,
+      type: decodedHeader.type,
+      event: payload.event
+    });
 
-  // TODO: verify signature
+    // Validate signature (you'll need to implement validateSignature)
+    const isValid = await validateSignature(header, rawPayload, signature);
+    if (!isValid) {
+      console.error('Invalid signature received');
+      return Response.json({ success: false, error: 'Invalid signature' }, { status: 401 });
+    }
 
-  const headerData = JSON.parse(
-    Buffer.from(requestBody.data.header, "base64url").toString("utf-8")
-  );
-  const header = eventHeaderSchema.safeParse(headerData);
-  if (header.success === false) {
-    return Response.json(
-      { success: false, errors: header.error.errors },
-      { status: 400 }
-    );
-  }
-  const fid = header.data.fid;
+    switch (payload.event) {
+      case "frame_added":
+        if (payload.notificationDetails) {
+          console.log('Storing notification details for FID:', decodedHeader.fid);
+          await storeNotificationDetails(decodedHeader.fid.toString(), {
+            url: payload.notificationDetails.url,
+            token: payload.notificationDetails.token
+          });
+        }
+        break;
 
-  const payloadData = JSON.parse(
-    Buffer.from(requestBody.data.payload, "base64url").toString("utf-8")
-  );
-  const payload = eventPayloadSchema.safeParse(payloadData);
+      case "frame_removed":
+        console.log('Removing notification details for FID:', decodedHeader.fid);
+        await removeNotificationDetails(decodedHeader.fid.toString());
+        break;
 
-  if (payload.success === false) {
-    return Response.json(
-      { success: false, errors: payload.error.errors },
-      { status: 400 }
-    );
-  }
-
-  switch (payload.data.event) {
-    case "frame-added":
-      if (payload.data.notificationDetails) {
-        await storeNotificationDetails(fid.toString(), {
-          url: payload.data.notificationDetails.url,
-          token: payload.data.notificationDetails.token
+      case "notifications_enabled":
+        console.log('Notifications enabled for FID:', decodedHeader.fid);
+        await storeNotificationDetails(decodedHeader.fid.toString(), {
+          url: payload.notificationDetails.url,
+          token: payload.notificationDetails.token
         });
-      }
-      break;
-    case "frame-removed":
-      await removeNotificationDetails(fid.toString());
-      break;
-    case "notifications-enabled":
-      await storeNotificationDetails(fid.toString(), {
-        url: payload.data.notificationDetails.url,
-        token: payload.data.notificationDetails.token
-      });
-      break;
-    case "notifications-disabled":
-      await removeNotificationDetails(fid.toString());
-      break;
-  }
+        break;
 
-  return Response.json({ success: true });
+      case "notifications_disabled":
+        console.log('Notifications disabled for FID:', decodedHeader.fid);
+        await removeNotificationDetails(decodedHeader.fid.toString());
+        break;
+    }
+
+    return Response.json({ success: true });
+  } catch (error) {
+    console.error('Webhook error:', error);
+    return Response.json({ success: false, error: 'Internal server error' }, { status: 500 });
+  }
 }

@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: "POD Play v2",
     openGraph: {
       title: "Tic-Tac-Maxi",
-      description: "Tic-Tac-Toe style game by @goldie and @themrsazon.",
+      description: "Tic-Tac-Toe style game by @goldie and the POD team.",
     },
     other: {
       "fc:frame": JSON.stringify(frame),
