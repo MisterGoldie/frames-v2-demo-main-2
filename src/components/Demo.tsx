@@ -305,7 +305,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   }, [difficulty, selectedPiece]);
 
   const handleMove = useCallback(async (index: number) => {
-    if (board[index] || calculateWinner(board) || !isXNext) return;
+    if (board[index] || calculateWinner(board) || !isXNext || timeLeft === 0) return;
 
     const newBoard = [...board];
     newBoard[index] = selectedPiece;
