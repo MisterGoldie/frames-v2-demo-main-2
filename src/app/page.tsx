@@ -26,6 +26,14 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: "Tic-Tac-Maxi",
       description: "Tic-Tac-Toe style game by @goldie and the POD team.",
+      images: [
+        {
+          url: `${appUrl}/game-board.png`,
+          width: 1200,
+          height: 630,
+          alt: "Tic-Tac-Maxi Game Board",
+        },
+      ],
     },
     other: {
       "fc:frame": JSON.stringify(frame),

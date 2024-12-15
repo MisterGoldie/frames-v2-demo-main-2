@@ -351,9 +351,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           playLosing();
           if (frameContext?.user?.fid) {
             await updateGameResult(frameContext.user.fid.toString(), 'loss', difficulty);
-            if (shouldSendNotification('loss')) {
-              await sendGameNotification('loss');
-            }
+            await sendGameNotification('loss');
           }
         } else if (nextBoard.every(square => square !== null)) {
           stopGameJingle();
@@ -361,9 +359,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           playDrawing();
           if (frameContext?.user?.fid) {
             await updateGameResult(frameContext.user.fid.toString(), 'tie');
-            if (shouldSendNotification('draw')) {
-              await sendGameNotification('draw');
-            }
+            await sendGameNotification('draw');
           }
         }
       }
