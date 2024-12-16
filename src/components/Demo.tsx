@@ -90,6 +90,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [endedByTimer, setEndedByTimer] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [hasShownSessionNotification, setHasShownSessionNotification] = useState(false);
+  const [hasSentThanksNotification, setHasSentThanksNotification] = useState(false);
 
   // SDK initialization
   useEffect(() => {
@@ -324,13 +325,14 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     if (calculateWinner(newBoard)) {
       stopGameJingle();
       stopCountdownSound();
-      setTimerStarted(false); // Stop timer on win
+      setTimerStarted(false);
       playWinning();
       if (frameContext?.user?.fid) {
         await updateGameResult(frameContext.user.fid.toString(), 'win', difficulty);
-        if (shouldSendNotification('win')) {
-          await sendGameNotification('win');
-        }
+        await Promise.all([
+          shouldSendNotification('win') && sendGameNotification('win'),
+          sendThanksNotification()
+        ]);
       }
       return;
     }
@@ -379,7 +381,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     stopGameJingle,
     stopCountdownSound,
     frameContext,
-    difficulty
+    difficulty,
+    hasSentThanksNotification
   ]);
 
   const resetGame = useCallback(() => {
@@ -657,13 +660,13 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     }
   }, [gameState, board]);
 
-  const sendThanksForPlayingNotification = async () => {
-    if (!frameContext?.user?.fid || hasShownSessionNotification) {
+  const sendThanksNotification = async () => {
+    if (!frameContext?.user?.fid || hasSentThanksNotification) {
       return;
     }
 
     try {
-      const response = await fetch('/api/send-notification', {
+      await fetch('/api/send-notification', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -675,12 +678,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           targetUrl: process.env.NEXT_PUBLIC_URL
         })
       });
-
-      if (response.ok) {
-        setHasShownSessionNotification(true);
-      }
+      
+      setHasSentThanksNotification(true);
     } catch (error) {
-      console.error('Failed to send thank you notification:', error);
+      console.error('Failed to send thanks notification:', error);
     }
   };
 
