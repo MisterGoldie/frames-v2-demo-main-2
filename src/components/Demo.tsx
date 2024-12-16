@@ -89,6 +89,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [endedByTimer, setEndedByTimer] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasShownSessionNotification, setHasShownSessionNotification] = useState(false);
 
   // SDK initialization
   useEffect(() => {
@@ -655,6 +656,33 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       }, 500);
     }
   }, [gameState, board]);
+
+  const sendThanksForPlayingNotification = async () => {
+    if (!frameContext?.user?.fid || hasShownSessionNotification) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/send-notification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fid: frameContext.user.fid.toString(),
+          title: 'POD Play Game Result',
+          body: 'Thanks for playing POD Play! 🎮',
+          targetUrl: process.env.NEXT_PUBLIC_URL
+        })
+      });
+
+      if (response.ok) {
+        setHasShownSessionNotification(true);
+      }
+    } catch (error) {
+      console.error('Failed to send thank you notification:', error);
+    }
+  };
 
   if (isLoading) {
     return (
