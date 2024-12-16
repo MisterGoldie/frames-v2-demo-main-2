@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
+import sdk from '@farcaster/frame-sdk';
 
 type LeaderboardEntry = {
   fid: string;
@@ -113,7 +114,8 @@ export default function Leaderboard({ isMuted, playGameJingle, currentUserFid, p
               <div className="flex justify-center mt-4">
                 <button
                   onClick={() => {
-                    window.location.href = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`;
+                    const shareText = `Have you played POD Play v2? 🕹️\n\npodplayv2.vercel.app`;
+                    sdk.actions.openUrl(`https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`);
                   }}
                   className="w-[85%] py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 rounded-lg"
                 >
@@ -215,7 +217,7 @@ export default function Leaderboard({ isMuted, playGameJingle, currentUserFid, p
                 <button
                   onClick={() => {
                     const shareText = `Have you played POD Play v2? 🕹️\n\npodplayv2.vercel.app`;
-                    window.location.href = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`;
+                    sdk.actions.openUrl(`https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`);
                   }}
                   className="w-[85%] py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto rounded-lg"
                 >
