@@ -114,8 +114,9 @@ export default function Leaderboard({ isMuted, playGameJingle, currentUserFid, p
               <div className="flex justify-center mt-4">
                 <button
                   onClick={() => {
-                    const shareText = 'Have you played POD Play v2? 🕹️\n\npodplayv2.vercel.app';
-                    sdk.actions.openUrl(`https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`);
+                    const shareText = 'Have you played POD Play v2? 🕹️';
+                    const shareUrl = 'podplayv2.vercel.app';
+                    sdk.actions.openUrl(`https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`);
                   }}
                   className="w-[85%] py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 rounded-lg"
                 >
@@ -216,8 +217,9 @@ export default function Leaderboard({ isMuted, playGameJingle, currentUserFid, p
               <div className="flex flex-col gap-4 justify-center">
                 <button
                   onClick={() => {
-                    const shareText = 'Have you played POD Play v2? 🕹️\n\npodplayv2.vercel.app';
-                    sdk.actions.openUrl(`https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`);
+                    const shareText = 'Have you played POD Play v2? 🕹️';
+                    const shareUrl = 'podplayv2.vercel.app';
+                    sdk.actions.openUrl(`https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`);
                   }}
                   className="w-[85%] py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto rounded-lg"
                 >

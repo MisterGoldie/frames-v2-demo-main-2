@@ -633,8 +633,9 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
 
   const handleGameBoardShare = () => {
     playClick();
-    const shareText = 'Have you played POD Play v2? 🕹️\n\npodplayv2.vercel.app';
-    sdk.actions.openUrl(`https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`);
+    const shareText = 'Have you played POD Play v2? 🕹️';
+    const shareUrl = 'podplayv2.vercel.app';
+    sdk.actions.openUrl(`https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`);
   };
 
   useEffect(() => {
