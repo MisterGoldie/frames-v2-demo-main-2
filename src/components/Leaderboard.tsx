@@ -174,10 +174,15 @@ export default function Leaderboard({ isMuted, playGameJingle, currentUserFid, p
                   </div>
                   <div className="text-center">
                     <div className="text-purple-300 text-3xl font-bold">
-                      #{leaderboard
+                      POD #{leaderboard
                         .slice()
                         .sort((a, b) => b.podScore - a.podScore)
-                        .findIndex(e => e.fid === currentUserFid) + 1}
+                        .findIndex(e => e.fid === currentUserFid) === -1
+                          ? leaderboard.length + 1
+                          : leaderboard
+                            .slice()
+                            .sort((a, b) => b.podScore - a.podScore)
+                            .findIndex(e => e.fid === currentUserFid) + 1}
                     </div>
                     <div className="text-sm text-purple-300">POD Rank</div>
                   </div>
