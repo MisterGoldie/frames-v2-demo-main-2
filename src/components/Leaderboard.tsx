@@ -125,7 +125,9 @@ export default function Leaderboard({ isMuted, playGameJingle, currentUserFid, p
                   <div className="flex flex-col">
                     <span className="text-2xl text-white">{currentUserData.username}</span>
                     <span className="text-lg text-purple-300">
-                      Rank #{leaderboard.findIndex(e => e.fid === currentUserFid) + 1}
+                      Rank #{leaderboard.findIndex(e => e.fid === currentUserFid) === -1 
+                        ? leaderboard.length + 1 
+                        : leaderboard.findIndex(e => e.fid === currentUserFid) + 1}
                     </span>
                   </div>
                 </div>
