@@ -24,10 +24,27 @@ type LeaderboardProps = {
 };
 
 export default function Leaderboard({ isMuted, playGameJingle, currentUserFid, pfpUrl }: LeaderboardProps) {
+  const [view, setView] = useState<LeaderboardView>('top');
+  const [isLoading, setIsLoading] = useState(true);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [currentUserData, setCurrentUserData] = useState<LeaderboardEntry | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [view, setView] = useState<LeaderboardView>('top');
+  const isJinglePlaying = useRef(false);
+
+  // Handle jingle playback
+  useEffect(() => {
+    if (!isMuted && !isJinglePlaying.current) {
+      isJinglePlaying.current = true;
+      playGameJingle();
+    }
+    return () => {
+      isJinglePlaying.current = false;
+    };
+  }, [isMuted, playGameJingle]);
+
+  const handleViewChange = (newView: LeaderboardView) => {
+    setView(newView);
+    // Remove jingle from here since it's handled by useEffect
+  };
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
@@ -167,7 +184,7 @@ export default function Leaderboard({ isMuted, playGameJingle, currentUserFid, p
 
               <div className="flex justify-center">
                 <button
-                  onClick={() => setView('top')}
+                  onClick={() => handleViewChange('top')}
                   className="w-[85%] py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 rounded-lg"
                 >
                   Back to Leaderboard
@@ -183,7 +200,7 @@ export default function Leaderboard({ isMuted, playGameJingle, currentUserFid, p
       {view === 'top' && (
         <div className="flex flex-col w-full gap-2">
           <button
-            onClick={() => setView('personal')}
+            onClick={() => handleViewChange('personal')}
             className="w-3/4 py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto rounded-lg"
           >
             View My Stats
