@@ -23,6 +23,8 @@ type LeaderboardProps = {
   pfpUrl?: string;
 };
 
+const shareText = `Have you played POD Play v2? 🕹️\n\npodplayv2.vercel.app`;
+
 export default function Leaderboard({ isMuted, playGameJingle, currentUserFid, pfpUrl }: LeaderboardProps) {
   const [view, setView] = useState<LeaderboardView>('top');
   const [isLoading, setIsLoading] = useState(true);
@@ -76,37 +78,57 @@ export default function Leaderboard({ isMuted, playGameJingle, currentUserFid, p
   return (
     <div className="flex flex-col gap-4">
       {view === 'top' ? (
-        <div className="bg-purple-900/90 p-6 rounded-xl shadow-2xl w-full max-h-[400px] overflow-y-auto">
-          <h2 className="text-3xl font-bold text-white mb-6 text-center text-shadow">
-            Leaderboard
-          </h2>
-          <div className="space-y-3">
-            {leaderboard.map((entry, index) => (
-              <div 
-                key={entry.fid}
-                className="flex justify-between items-center bg-purple-800/70 p-3 rounded-lg hover:bg-purple-800/90 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-purple-300 text-xl font-bold w-8">#{index + 1}</span>
-                  <div className="flex flex-col">
-                    <span className="text-white font-semibold text-lg">{entry.username}</span>
-                    <span className="text-xs text-purple-300/80">fid:{entry.fid}</span>
+        <div className="flex flex-col gap-4">
+          <div className="bg-purple-900/90 p-6 rounded-xl shadow-2xl w-full max-h-[400px] overflow-y-auto">
+            <h2 className="text-3xl font-bold text-white mb-6 text-center text-shadow">
+              Leaderboard
+            </h2>
+            <div className="space-y-3">
+              {leaderboard.map((entry, index) => (
+                <div 
+                  key={entry.fid}
+                  className="flex justify-between items-center bg-purple-800/70 p-3 rounded-lg hover:bg-purple-800/90 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-purple-300 text-xl font-bold w-8">#{index + 1}</span>
+                    <div className="flex flex-col">
+                      <span className="text-white font-semibold text-lg">{entry.username}</span>
+                      <span className="text-xs text-purple-300/80">fid:{entry.fid}</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex items-center justify-end gap-3 mb-1">
+                      <span className="text-green-400 font-bold text-lg">{entry.wins}W</span>
+                      <span className="text-yellow-400 font-bold">({entry.podScore?.toFixed(1)}PS)</span>
+                    </div>
+                    <div className="text-xs text-purple-300/80 font-medium flex flex-col gap-1">
+                      <div>Easy: {entry.easyWins || 0}</div>
+                      <div>Medium: {entry.mediumWins || 0}</div>
+                      <div>Hard: {entry.hardWins || 0}</div>
+                    </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="flex items-center justify-end gap-3 mb-1">
-                    <span className="text-green-400 font-bold text-lg">{entry.wins}W</span>
-                    <span className="text-yellow-400 font-bold">({entry.podScore?.toFixed(1)}PS)</span>
-                  </div>
-                  <div className="text-xs text-purple-300/80 font-medium flex flex-col gap-1">
-                    <div>Easy: {entry.easyWins || 0}</div>
-                    <div>Medium: {entry.mediumWins || 0}</div>
-                    <div>Hard: {entry.hardWins || 0}</div>
-                  </div>
-                </div>
+              ))}
+              
+              <div className="flex justify-center mt-4">
+                <button
+                  onClick={() => {
+                    window.location.href = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`;
+                  }}
+                  className="w-[85%] py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 rounded-lg"
+                >
+                  Share Game
+                </button>
               </div>
-            ))}
+            </div>
           </div>
+
+          <button
+            onClick={() => handleViewChange('personal')}
+            className="w-3/4 py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto rounded-lg"
+          >
+            View My Stats
+          </button>
         </div>
       ) : (
         <div className="bg-purple-900/90 p-6 rounded-xl shadow-2xl w-full max-h-[400px] overflow-y-auto">
@@ -174,7 +196,7 @@ export default function Leaderboard({ isMuted, playGameJingle, currentUserFid, p
                   </div>
                   <div className="text-center">
                     <div className="text-purple-300 text-3xl font-bold">
-                      POD #{leaderboard
+                      #{leaderboard
                         .slice()
                         .sort((a, b) => b.podScore - a.podScore)
                         .findIndex(e => e.fid === currentUserFid) === -1
@@ -189,10 +211,20 @@ export default function Leaderboard({ isMuted, playGameJingle, currentUserFid, p
                 </div>
               </div>
 
-              <div className="flex justify-center">
+              <div className="flex flex-col gap-4 justify-center">
+                <button
+                  onClick={() => {
+                    const shareText = `Have you played POD Play v2? 🕹️\n\npodplayv2.vercel.app`;
+                    window.location.href = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`;
+                  }}
+                  className="w-[85%] py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto rounded-lg"
+                >
+                  Share Game
+                </button>
+                
                 <button
                   onClick={() => handleViewChange('top')}
-                  className="w-[85%] py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 rounded-lg"
+                  className="w-[85%] py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto rounded-lg"
                 >
                   Back to Leaderboard
                 </button>
@@ -201,17 +233,6 @@ export default function Leaderboard({ isMuted, playGameJingle, currentUserFid, p
           ) : (
             <div className="text-white text-center">No stats available</div>
           )}
-        </div>
-      )}
-      
-      {view === 'top' && (
-        <div className="flex flex-col w-full gap-2">
-          <button
-            onClick={() => handleViewChange('personal')}
-            className="w-3/4 py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto rounded-lg"
-          >
-            View My Stats
-          </button>
         </div>
       )}
     </div>

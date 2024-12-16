@@ -633,20 +633,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
 
   const handleGameBoardShare = () => {
     playClick();
-    const appUrl = 'https://podplayv2.vercel.app/';
-    
-    navigator.clipboard.writeText(appUrl).then(() => {
-      const shareButton = document.querySelector('[data-gameboard-share]');
-      if (shareButton) {
-        const originalText = shareButton.textContent;
-        shareButton.textContent = '✓ URL Copied!';
-        setTimeout(() => {
-          shareButton.textContent = originalText;
-        }, 2000);
-      }
-    }).catch(err => {
-      console.error('Failed to copy:', err);
-    });
+    const shareText = `Have you played POD Play v2? 🕹️\n\npodplayv2.vercel.app`;
+    window.location.href = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}`;
   };
 
   useEffect(() => {
@@ -917,7 +905,6 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                       </Button>
                       <Button
                         onClick={handleGameBoardShare}
-                        data-gameboard-share
                         className="w-1/2 py-4 text-xl bg-purple-700 hover:bg-purple-600 transition-colors"
                       >
                         Share Game
