@@ -44,17 +44,22 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const userFid = searchParams.get('userFid');
+    
     const db = admin.firestore();
     const usersRef = db.collection('users');
-    const snapshot = await usersRef
+    
+    // Get leaderboard data
+    const leaderboardSnapshot = await usersRef
       .orderBy('wins', 'desc')
       .limit(10)
       .get();
 
     const leaderboard = await Promise.all(
-      snapshot.docs.map(async (doc) => {
+      leaderboardSnapshot.docs.map(async (doc) => {
         const data = doc.data();
         const userData = await fetchUserDataByFid(doc.id);
         const totalGames = (data.wins || 0) + (data.losses || 0) + (data.ties || 0);
@@ -83,10 +88,44 @@ export async function GET() {
       })
     );
 
-    return Response.json({ leaderboard });
+    // If userFid is provided, get user's data
+    let userData = null;
+    if (userFid) {
+      const userDoc = await usersRef.doc(userFid).get();
+      if (userDoc.exists) {
+        const data = userDoc.data();
+        if (!data) {
+          throw new Error('User data is undefined');
+        }
+        const userDataFromFarcaster = await fetchUserDataByFid(userFid);
+        const totalGames = (data.wins || 0) + (data.losses || 0) + (data.ties || 0);
+        const { balance } = await checkFanTokenOwnership(userFid);
+        
+        userData = {
+          fid: userFid,
+          username: userDataFromFarcaster?.username || `fid:${userFid}`,
+          wins: data?.wins || 0,
+          losses: data?.losses || 0,
+          ties: data?.ties || 0,
+          easyWins: data?.easyWins || 0,
+          mediumWins: data?.mediumWins || 0,
+          hardWins: data.hardWins || 0,
+          pfp: userDataFromFarcaster?.pfp || '',
+          podScore: calculatePODScore(
+            data.wins || 0,
+            data.ties || 0,
+            data.losses || 0,
+            totalGames,
+            balance || 0
+          )
+        };
+      }
+    }
+
+    return Response.json({ leaderboard, userData });
   } catch (error) {
-    console.error('Error fetching leaderboard:', error);
-    return Response.json({ error: 'Failed to fetch leaderboard' }, { status: 500 });
+    console.error('Error fetching data:', error);
+    return Response.json({ error: 'Failed to fetch data' }, { status: 500 });
   }
 } 
 

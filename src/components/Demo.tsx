@@ -751,7 +751,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                 </div>
               )}
               <div className="absolute bottom-4 text-white/50 text-sm">
-                version 1.1
+                version 1.2
               </div>
             </>
           )}
@@ -832,15 +832,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
               <Leaderboard 
                 isMuted={isMuted}
                 playGameJingle={playGameJingle}
+                currentUserFid={frameContext?.user?.fid?.toString()}
+                pfpUrl={frameContext?.user?.pfpUrl}
               />
               <div className="flex flex-col w-full gap-2">
-                <Button
-                  onClick={handleGameBoardShare}
-                  data-gameboard-share
-                  className="w-1/2 py-4 text-xl bg-purple-700 hover:bg-purple-600 transition-colors"
-                >
-                  Share Game
-                </Button>
                 <Button
                   onClick={handleBackFromLeaderboard}
                   className="w-3/4 py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto"
