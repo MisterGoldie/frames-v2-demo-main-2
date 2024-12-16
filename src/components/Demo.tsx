@@ -91,6 +91,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasShownSessionNotification, setHasShownSessionNotification] = useState(false);
   const [hasSentThanksNotification, setHasSentThanksNotification] = useState(false);
+  const [playGameOver] = useSound('/sounds/gameover.mp3', { volume: 0.5, soundEnabled: !isMuted });
 
   // SDK initialization
   useEffect(() => {
@@ -457,6 +458,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   ]);
 
   useEffect(() => {
+    // First declare winner and isDraw
+    const winner = calculateWinner(board);
+    const isDraw = !winner && board.every((square) => square !== null);
+    
     let timer: NodeJS.Timeout;
     
     if (timerStarted && timeLeft > 0 && !winner && !isDraw) {
@@ -465,8 +470,9 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           if (prev <= 1) {
             setEndedByTimer(true);
             stopCountdownSound();
+            stopGameJingle();
             if (!isMuted) {
-              playGameOver();
+              playLosing();
             }
             return 0;
           }
@@ -478,7 +484,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [timerStarted, timeLeft, stopCountdownSound, playGameOver, isMuted, board, calculateWinner, isXNext]);
+  }, [timerStarted, timeLeft, stopCountdownSound, playLosing, stopGameJingle, isMuted, board, calculateWinner]);
 
   const isDraw = board.every(square => square !== null);
   const isPlayerTurn = isXNext;
