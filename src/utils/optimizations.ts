@@ -8,6 +8,8 @@ export const preloadAssets = () => {
     '/splash.png',
     '/sounds/click.mp3',
     '/sounds/win.mp3',
+    '/sounds/halloween.mp3',
+    '/sounds/jingle.mp3',
     '/sounds/lose.mp3',
     '/sounds/draw.mp3'
   ];
