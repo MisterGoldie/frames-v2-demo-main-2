@@ -15,9 +15,10 @@
 }
 
 body {
-  background-color: #345fa8;
+  background: linear-gradient(135deg, #0d316f 0%, #9c2d8b 50%, #c92424 100%);
   color: var(--foreground);
   font-family: 'Inter', Helvetica, Arial, sans-serif;
+  min-height: 100vh;
 }
 
 * {
@@ -27,59 +28,6 @@ body {
 
 *::-webkit-scrollbar {
   display: none;
-}
-
-.snow-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.snow {
-  position: fixed;
-  color: white;
-  opacity: 0.8;
-  animation: snowfall linear infinite;
-  font-size: 22px;
-}
-
-.snow::after {
-  content: "❄";
-}
-
-.snow-1::after {
-  content: "❅";
-}
-
-.snow-2::after {
-  content: "❆";
-}
-
-@keyframes snowfall {
-  0% {
-    transform: translateY(-100vh) translateX(-10px) rotate(0deg);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(100vh) translateX(10px) rotate(360deg);
-    opacity: 0.3;
-  }
-}
-
-/* Much slower animation durations */
-.snow:nth-child(odd) {
-  animation-duration: 15s;
-  animation-delay: calc(random() * -15s);
-}
-
-.snow:nth-child(even) {
-  animation-duration: 12s;
-  animation-delay: calc(random() * -12s);
-  left: calc(random() * 100vw);
 }
 
 /* Add these new utility classes after your existing styles */

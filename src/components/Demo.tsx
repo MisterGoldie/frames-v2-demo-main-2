@@ -5,9 +5,9 @@ import sdk, { FrameContext } from "@farcaster/frame-sdk";
 import { Button } from "~/components/ui/Button";
 import useSound from 'use-sound';
 import Image from 'next/image';
-import Snow from './Snow';
 import Leaderboard from './Leaderboard';
 import { shouldSendNotification } from "~/utils/notificationUtils";
+import { preloadAssets } from "~/utils/optimizations";
 
 type PlayerPiece = 'scarygary' | 'chili' | 'podplaylogo';
 type Square = 'X' | PlayerPiece | null;
@@ -124,56 +124,17 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   useEffect(() => {
     const loadAssets = async () => {
       try {
-        // Wait for SDK to load
-        await sdk.context;
-
-        // Wait for token balance to be set (non-zero or explicitly 0)
-        while (tokenBalance === undefined) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-
-        // Load wreath first and wait extra time to ensure it's ready
-        await new Promise<void>((resolve) => {
-          const wreathImg = new HTMLImageElement();
-          wreathImg.src = '/wreath.png';
-          wreathImg.onload = () => {
-            // Add 1 second buffer after wreath loads
-            setTimeout(resolve, 1000);
-          };
-          wreathImg.onerror = () => resolve();
-        });
-
-        // Then load remaining images
-        const imagesToLoad = [
-          frameContext?.user?.pfpUrl,
-          '/fantokenlogo.png',
-          '/maxi.png',
-          '/scarygary.png',
-          '/chili.png',
-          '/podplaylogo.png'
-        ].filter(Boolean);
-
-        await Promise.all(
-          imagesToLoad.map(
-            (src) =>
-              new Promise<void>((resolve) => {
-                const img = new HTMLImageElement();
-                img.src = src as string;
-                img.onload = () => resolve();
-                img.onerror = () => resolve();
-              })
-          )
-        );
-
-        // Add a minimum loading time of 2.5 seconds
-        await new Promise(resolve => setTimeout(resolve, 2500));
-      } finally {
+        // Preload all game assets
+        await preloadAssets();
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error loading assets:', error);
         setIsLoading(false);
       }
     };
 
     loadAssets();
-  }, [frameContext, tokenBalance]);
+  }, []);
 
   const handleStartGame = useCallback((diff: Difficulty, piece: PlayerPiece) => {
     // Reset all game states
@@ -702,8 +663,6 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
 
   return (
     <div className="w-[300px] h-[600px] mx-auto flex items-start justify-center relative pt-48">
-      {(gameState === 'menu' || showLeaderboard) && <Snow />}
-      
       <div className="absolute top-16 left-4">
         <button 
           onClick={toggleMute}
@@ -719,15 +678,6 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
         <div className="absolute top-16 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
           {pfpUrl && (
             <div className="relative">
-              <div className="absolute inset-0 w-[132px] h-[132px] -m-3 -translate-x-[5.5px]">
-                <Image 
-                  src="/wreath.png"
-                  alt="Wreath border"
-                  width={132}
-                  height={132}
-                  className="object-contain"
-                />
-              </div>
               <img 
                 src={pfpUrl} 
                 alt="Profile" 
@@ -775,7 +725,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                 </div>
               )}
               <div className="absolute bottom-4 text-white/50 text-sm">
-                version 1.2
+                version 1.3
               </div>
             </>
           )}
