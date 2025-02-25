@@ -58,10 +58,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [selectedPiece, setSelectedPiece] = useState<PlayerPiece>('chili');
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [playClick] = useSound('/sounds/click.mp3', { volume: 0.5 });
-  const [playGameJingle, { stop: stopGameJingle }] = useSound('/sounds/jingle.mp3', { 
+  const [playGameJingle, { pause: pauseGameJingle, sound: jingleSound }] = useSound('/sounds/jingle.mp3', { 
     volume: 0.3, 
-    loop: true, 
-    soundEnabled: !isMuted 
+    loop: true,
+    soundEnabled: true // Always enable the sound, we'll control it manually
   });
   const [playWinning] = useSound('/sounds/winning.mp3', { volume: 0.5, soundEnabled: !isMuted });
   const [playLosing] = useSound('/sounds/losing.mp3', { volume: 0.5, soundEnabled: !isMuted });
@@ -132,12 +132,30 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     loadAssets();
   }, []);
 
+  // Handle jingle state when muting/unmuting
+  useEffect(() => {
+    if (!jingleSound) return;
+    
+    if (isMuted) {
+      jingleSound.volume(0);
+    } else if (gameState === 'game' || gameState === 'menu') {
+      jingleSound.volume(0.3);
+      if (!jingleSound.playing()) {
+        playGameJingle();
+        isJinglePlaying.current = true;
+      }
+    }
+  }, [isMuted, jingleSound, gameState, playGameJingle]);
+
   const handleStartGame = useCallback((diff: Difficulty, piece: PlayerPiece) => {
     // Reset all game states
     playClick();
-    if (!isMuted && !isJinglePlaying.current) {
+    if (!isJinglePlaying.current) {
       isJinglePlaying.current = true;
       playGameJingle();
+      if (jingleSound) {
+        jingleSound.volume(isMuted ? 0 : 0.3);
+      }
     }
     
     // Clear previous game results
@@ -280,7 +298,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     }
 
     if (calculateWinner(newBoard)) {
-      stopGameJingle();
+      pauseGameJingle();
       stopCountdownSound();
       setTimerStarted(false);
       playWinning();
@@ -306,7 +324,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
         setIsXNext(true);
 
         if (calculateWinner(nextBoard)) {
-          stopGameJingle();
+          pauseGameJingle();
           stopCountdownSound();
           playLosing();
           if (frameContext?.user?.fid) {
@@ -314,7 +332,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
             await sendGameNotification('loss');
           }
         } else if (nextBoard.every(square => square !== null)) {
-          stopGameJingle();
+          pauseGameJingle();
           stopCountdownSound();
           playDrawing();
           if (frameContext?.user?.fid) {
@@ -335,7 +353,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     playWinning,
     playLosing,
     playDrawing,
-    stopGameJingle,
+    pauseGameJingle,
     stopCountdownSound,
     frameContext,
     difficulty,
@@ -355,8 +373,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     setTimerStarted(false);
     setStartTime(null);
     stopCountdownSound();
-    stopGameJingle();
-  }, [stopCountdownSound, stopGameJingle]);
+    pauseGameJingle();
+  }, [stopCountdownSound, pauseGameJingle]);
 
   const handlePlayAgain = useCallback(() => {
     setShowLeaderboard(false);
@@ -373,19 +391,23 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     setTimerStarted(false);
     setStartTime(null);
     stopCountdownSound();
-    playGameJingle();
+    if (!isMuted && !jingleSound?.playing()) {
+      playGameJingle();
+    } else if (!isMuted) {
+      jingleSound?.volume(0.3);
+    }
     setGameSession(prev => prev + 1);
-  }, [stopCountdownSound, playGameJingle]);
+  }, [stopCountdownSound, playGameJingle, isMuted, jingleSound]);
 
   useEffect(() => {
     if (isMuted) {
-      stopGameJingle();
+      pauseGameJingle();
       isJinglePlaying.current = false;
       return;
     }
 
     if (gameState === 'menu') {
-      stopGameJingle();
+      pauseGameJingle();
       isJinglePlaying.current = false;
     } else if (gameState === 'game' && !calculateWinner(board) && timeLeft > 0 && !isJinglePlaying.current) {
       isJinglePlaying.current = true;
@@ -403,7 +425,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     calculateWinner,
     board,
     timeLeft,
-    stopGameJingle,
+    pauseGameJingle,
     playGameJingle
   ]);
 
@@ -420,7 +442,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           if (prev <= 1) {
             setEndedByTimer(true);
             stopCountdownSound();
-            stopGameJingle();
+            pauseGameJingle();
             if (!isMuted) {
               playLosing();
             }
@@ -434,7 +456,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [timerStarted, timeLeft, stopCountdownSound, playLosing, stopGameJingle, isMuted, board, calculateWinner]);
+  }, [timerStarted, timeLeft, stopCountdownSound, playLosing, pauseGameJingle, isMuted, board, calculateWinner]);
 
   const isDraw = board.every(square => square !== null);
   const isPlayerTurn = isXNext;
@@ -507,7 +529,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     setShowLeaderboard(true);
     playClick();
     if (!isMuted) {
-      stopGameJingle();
+      pauseGameJingle();
       isJinglePlaying.current = false;
       playGameJingle();
     }
@@ -516,7 +538,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const handleBackFromLeaderboard = () => {
     setShowLeaderboard(false);
     playClick();
-    stopGameJingle();
+    pauseGameJingle();
     isJinglePlaying.current = false;
     resetGame();
   };

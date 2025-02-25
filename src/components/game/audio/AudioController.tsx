@@ -10,10 +10,10 @@ export interface AudioControllerProps {
 
 export const useGameSounds = (isMuted: boolean) => {
   const [playClick] = useSound('/sounds/click.mp3', { volume: 0.5, soundEnabled: !isMuted });
-  const [playGameJingle, { stop: stopGameJingle }] = useSound('/sounds/jingle.mp3', { 
+  const [playGameJingle, { pause: pauseGameJingle, sound: jingleSound }] = useSound('/sounds/jingle.mp3', { 
     volume: 0.3, 
-    loop: true, 
-    soundEnabled: !isMuted 
+    loop: true,
+    soundEnabled: true // Always enable the sound, we'll control it manually
   });
   const [playWinning] = useSound('/sounds/winning.mp3', { volume: 0.5, soundEnabled: !isMuted });
   const [playLosing] = useSound('/sounds/losing.mp3', { volume: 0.5, soundEnabled: !isMuted });
@@ -37,7 +37,7 @@ export const useGameSounds = (isMuted: boolean) => {
   return {
     playClick,
     playGameJingle,
-    stopGameJingle,
+    pauseGameJingle,
     playWinning,
     playLosing,
     playDrawing,

@@ -11,14 +11,17 @@ export const preloadAssets = async () => {
     '/fantokenlogo.png',
     '/game-board.png',
     '/splash.png',
+    '/maxi.png',
     // Sound assets
     '/sounds/click.mp3',
     '/sounds/winning.mp3',
     '/sounds/losing.mp3',
     '/sounds/drawing.mp3',
     '/sounds/jingle.mp3',
-    '/sounds/gameover.mp3',
-    '/sounds/countdown.mp3'
+    '/sounds/hover.mp3',
+    '/sounds/choose.mp3',
+    '/sounds/countdown.mp3',
+    '/sounds/openingtheme.mp3'
   ];
   
   const loadPromises = assets.map(asset => {
