@@ -2,32 +2,54 @@
 const soundCache = new Map();
 const assetCache = new Map();
 
-export const preloadAssets = () => {
+export const preloadAssets = async () => {
   const assets = [
+    // PNG assets
+    '/scarygary.png',
+    '/chili.png',
+    '/podplaylogo.png',
+    '/fantokenlogo.png',
     '/game-board.png',
     '/splash.png',
+    // Sound assets
     '/sounds/click.mp3',
-    '/sounds/win.mp3',
-    '/sounds/halloween.mp3',
+    '/sounds/winning.mp3',
+    '/sounds/losing.mp3',
+    '/sounds/drawing.mp3',
     '/sounds/jingle.mp3',
-    '/sounds/lose.mp3',
-    '/sounds/draw.mp3'
+    '/sounds/gameover.mp3',
+    '/sounds/countdown.mp3'
   ];
   
-  assets.forEach(asset => {
+  const loadPromises = assets.map(asset => {
     if (asset.endsWith('.mp3')) {
       if (!soundCache.has(asset)) {
-        const audio = new Audio(asset);
-        soundCache.set(asset, audio);
+        return new Promise((resolve, reject) => {
+          const audio = new Audio(asset);
+          audio.addEventListener('canplaythrough', () => {
+            soundCache.set(asset, audio);
+            resolve(audio);
+          });
+          audio.addEventListener('error', reject);
+        });
       }
     } else {
       if (!assetCache.has(asset)) {
-        const img = new Image();
-        img.src = asset;
-        assetCache.set(asset, img);
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => {
+            assetCache.set(asset, img);
+            resolve(img);
+          };
+          img.onerror = reject;
+          img.src = asset;
+        });
       }
     }
+    return Promise.resolve(); // Asset already cached
   });
+
+  await Promise.all(loadPromises);
 };
 
 export const playSound = (soundUrl: string) => {
