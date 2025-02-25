@@ -25,29 +25,26 @@ export const preloadAssets = async () => {
   ];
   
   const loadPromises = assets.map(asset => {
+    // Skip audio preloading on mobile
     if (asset.endsWith('.mp3')) {
-      if (!soundCache.has(asset)) {
-        return new Promise((resolve, reject) => {
-          const audio = new Audio(asset);
-          audio.addEventListener('canplaythrough', () => {
-            soundCache.set(asset, audio);
-            resolve(audio);
-          });
-          audio.addEventListener('error', reject);
-        });
-      }
-    } else {
-      if (!assetCache.has(asset)) {
-        return new Promise((resolve, reject) => {
-          const img = new Image();
-          img.onload = () => {
-            assetCache.set(asset, img);
-            resolve(img);
-          };
-          img.onerror = reject;
-          img.src = asset;
-        });
-      }
+      return Promise.resolve();
+    }
+
+    // Only preload images
+    if (!assetCache.has(asset)) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          assetCache.set(asset, img);
+          resolve(img);
+        };
+        img.onerror = () => {
+          // Don't fail on image load error
+          console.warn(`Failed to load asset: ${asset}`);
+          resolve(null);
+        };
+        img.src = asset;
+      });
     }
     return Promise.resolve(); // Asset already cached
   });

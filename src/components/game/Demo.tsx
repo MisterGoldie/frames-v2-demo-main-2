@@ -47,20 +47,24 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   // Initialize sounds
   const sounds = useGameSounds(isMuted);
 
-  // SDK initialization
+  // Initialize game
   useEffect(() => {
-    const loadFrameSDK = async () => {
+    const init = async () => {
       try {
-        const context = await sdk.context;
+        // Don't wait for assets, load them in background
+        preloadAssets().catch(console.error);
+        
+        // Just initialize SDK and continue
+        sdk.actions.ready();
         setIsLoading(false);
       } catch (error) {
-        console.error("Error loading Frame SDK:", error);
+        console.error("Initialization error:", error);
+        // Still continue on error
         setIsLoading(false);
       }
     };
 
-    loadFrameSDK();
-    preloadAssets();
+    init();
   }, []);
 
   const handleSquareClick = async (index: number) => {
@@ -135,7 +139,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-purple-900 relative">
+      <div className="w-[424px] h-[695px] mx-auto flex items-start justify-center relative bg-purple-900 overflow-hidden">
         <AudioController isMuted={isMuted} onMuteToggle={setIsMuted} />
         
         {gameState === 'menu' ? (

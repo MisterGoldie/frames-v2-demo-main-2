@@ -8,7 +8,7 @@ import sdk from "@farcaster/frame-sdk";
 import { ErrorBoundary } from "~/components/ErrorBoundary";
 import { preloadAssets } from "~/utils/optimizations";
 
-const Demo = dynamic(() => import("~/components/Demo"), {
+const Demo = dynamic(() => import("~/components/game/Demo"), {
   ssr: false,
   loading: () => (
     <div className="flex flex-col items-center justify-center min-h-screen bg-purple-900">
