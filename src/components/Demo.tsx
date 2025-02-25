@@ -9,6 +9,11 @@ import Leaderboard from './Leaderboard';
 import { shouldSendNotification } from "~/utils/notificationUtils";
 import { preloadAssets } from "~/utils/optimizations";
 
+import HomePage from './game/HomePage';
+import GameMenu from './game/GameMenu';
+import GameBoard from './game/GameBoard';
+import AudioController from './game/AudioController';
+
 type PlayerPiece = 'scarygary' | 'chili' | 'podplaylogo';
 type Square = 'X' | PlayerPiece | null;
 type Board = Square[];
@@ -16,29 +21,6 @@ type GameState = 'menu' | 'game';
 type MenuStep = 'game' | 'piece' | 'difficulty';
 type Difficulty = 'easy' | 'medium' | 'hard';
 
-const VolumeOnIcon = () => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    height="24px" 
-    viewBox="0 -960 960 960" 
-    width="24px" 
-    fill="#FFFFFF"
-  >
-    <path d="M400-120q-66 0-113-47t-47-113q0-66 47-113t113-47q23 0 42.5 5.5T480-418v-422h240v160H560v400q0 66-47 113t-113 47Z"/>
-  </svg>
-);
-
-const VolumeOffIcon = () => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    height="24px" 
-    viewBox="0 -960 960 960" 
-    width="24px" 
-    fill="#FFFFFF"
-  >
-    <path d="M792-56 56-792l56-56 736 736-56 56ZM560-514l-80-80v-246h240v160H560v166ZM400-120q-66 0-113-47t-47-113q0-66 47-113t113-47q23 0 42.5 5.5T480-418v-62l80 80v120q0 66-47 113t-113 47Z"/>
-  </svg>
-);
 
 type DemoProps = {
   tokenBalance: number;
@@ -48,7 +30,7 @@ type DemoProps = {
 export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [gameSession, setGameSession] = useState(0);
   const boardRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();  // Add ref for animation frame
+  const animationRef = useRef<number>();
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [gameState, setGameState] = useState<GameState>('menu');
   const [menuStep, setMenuStep] = useState<MenuStep>('game');
@@ -92,6 +74,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [hasShownSessionNotification, setHasShownSessionNotification] = useState(false);
   const [hasSentThanksNotification, setHasSentThanksNotification] = useState(false);
   const [playGameOver] = useSound('/sounds/gameover.mp3', { volume: 0.5, soundEnabled: !isMuted });
+  const [winner, setWinner] = useState(false);
+  const [isDraw, setIsDraw] = useState(false);
 
   // SDK initialization
   useEffect(() => {
@@ -152,6 +136,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     setTimerStarted(false);
     setEndedByTimer(false);
     setShowLeaderboard(false);
+    setWinner(false);
+    setIsDraw(false);
     setGameSession(prev => prev + 1);
     
     // Set new game settings
@@ -288,6 +274,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       stopGameJingle();
       stopCountdownSound();
       setTimerStarted(false);
+      setWinner(true);
       playWinning();
       if (frameContext?.user?.fid) {
         await updateGameResult(frameContext.user.fid.toString(), 'win', difficulty);
@@ -321,6 +308,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
         } else if (nextBoard.every(square => square !== null)) {
           stopGameJingle();
           stopCountdownSound();
+          setIsDraw(true);
           playDrawing();
           if (frameContext?.user?.fid) {
             await updateGameResult(frameContext.user.fid.toString(), 'tie');
@@ -367,6 +355,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const handlePlayAgain = useCallback(() => {
     setShowLeaderboard(false);
     setEndedByTimer(false);  // Reset timer end state
+    setWinner(false);
+    setIsDraw(false);
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
@@ -419,13 +409,11 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   ]);
 
   useEffect(() => {
-    // First declare winner and isDraw
-    const winner = calculateWinner(board);
-    const isDraw = !winner && board.every((square) => square !== null);
-    
     let timer: NodeJS.Timeout;
+    const currentWinner = calculateWinner(board);
+    const currentIsDraw = !currentWinner && board.every((square) => square !== null);
     
-    if (timerStarted && timeLeft > 0 && !winner && !isDraw) {
+    if (timerStarted && timeLeft > 0 && !currentWinner && !currentIsDraw) {
       timer = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
@@ -447,15 +435,16 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     };
   }, [timerStarted, timeLeft, stopCountdownSound, playLosing, stopGameJingle, isMuted, board, calculateWinner]);
 
-  const isDraw = board.every(square => square !== null);
   const isPlayerTurn = isXNext;
-  const winner = calculateWinner(board);
 
   const getGameStatus = () => {
-    if (winner) {
-      return winner === selectedPiece ? "You Won!" : "Maxi Won";
+    const currentWinner = calculateWinner(board);
+    const currentIsDraw = !currentWinner && board.every(square => square !== null);
+
+    if (currentWinner) {
+      return currentWinner === selectedPiece ? "You Won!" : "Maxi Won";
     }
-    if (isDraw) {
+    if (currentIsDraw) {
       return "It's a Draw!";
     }
     if (endedByTimer) {
@@ -663,16 +652,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
 
   return (
     <div className="w-[300px] h-[600px] mx-auto flex items-start justify-center relative pt-48">
-      <div className="absolute top-16 left-4">
-        <button 
-          onClick={toggleMute}
-          className={`p-2 rounded-full shadow-lg transition-colors ${
-            isMuted ? 'bg-red-600 hover:bg-red-700' : 'bg-purple-600 hover:bg-purple-700'
-          }`}
-        >
-          {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
-        </button>
-      </div>
+      <AudioController isMuted={isMuted} onMuteToggle={setIsMuted} />
 
       {gameState === 'menu' && (
         <div className="absolute top-16 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
@@ -689,116 +669,25 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       )}
 
       {gameState === 'menu' ? (
-        <div className="w-full flex flex-col items-center">
-          {menuStep === 'game' && frameContext?.user?.username && (
-            <div className="text-white text-xl mb-4 text-shadow">
-              Welcome, {frameContext.user.username}
-            </div>
-          )}
-          
-          <h1 className="text-3xl font-bold text-center text-white mb-12 text-shadow">
-            {menuStep === 'game' ? 'Select Game' :
-             menuStep === 'piece' ? 'Select Piece' :
-             'Choose Difficulty'}
-          </h1>
-          
-          {menuStep === 'game' && (
-            <>
-              <Button
-                onClick={() => {
-                  playClick();
-                  setMenuStep('piece');
-                }}
-                className="w-full py-4 text-2xl bg-purple-600 box-shadow"
-              >
-                Tic-Tac-Maxi
-              </Button>
-              {tokenBalance > 0 && (
-                <div className="mt-12 bg-purple-600 text-white px-3 py-1 rounded-full text-sm inline-flex items-center shadow-lg">
-                  <Image 
-                    src="/fantokenlogo.png"
-                    alt="Fan Token"
-                    width={24} 
-                    height={24}
-                  />
-                  {tokenBalance.toFixed(2)} /thepod fan tokens owned
-                </div>
-              )}
-              <div className="absolute bottom-4 text-white/50 text-sm">
-                version 1.3
-              </div>
-            </>
-          )}
-
-          {menuStep === 'piece' && (
-            <>
-              <Button 
-                onClick={() => {
-                  playClick();
-                  setSelectedPiece('scarygary');
-                  setMenuStep('difficulty');
-                }}
-                className="w-full mb-2 shadow-lg hover:shadow-xl transition-shadow"
-              >
-                Scary Gary
-              </Button>
-              <Button 
-                onClick={() => {
-                  playClick();
-                  setSelectedPiece('chili');
-                  setMenuStep('difficulty');
-                }}
-                className="w-full mb-2"
-              >
-                Chili
-              </Button>
-              <Button 
-                onClick={() => {
-                  playClick();
-                  setSelectedPiece('podplaylogo');
-                  setMenuStep('difficulty');
-                }}
-                className="w-full mb-2"
-              >
-                Pod Logo
-              </Button>
-            </>
-          )}
-
-          {menuStep === 'difficulty' && (
-            <>
-              <Button 
-                onClick={() => handleStartGame('easy', selectedPiece)}
-                className="w-full mb-2 shadow-lg hover:shadow-xl transition-shadow"
-              >
-                Easy
-              </Button>
-              <Button 
-                onClick={() => handleStartGame('medium', selectedPiece)}
-                className="w-full mb-2"
-              >
-                Medium
-              </Button>
-              <Button 
-                onClick={() => handleStartGame('hard', selectedPiece)}
-                className="w-full mb-2"
-              >
-                Hard
-              </Button>
-            </>
-          )}
-
-          {menuStep !== 'game' && (
-            <div className="flex justify-center w-full mt-4">
-              <Button 
-                onClick={() => setMenuStep(menuStep === 'difficulty' ? 'piece' : 'game')}
-                className="w-3/4"
-              >
-                Back
-              </Button>
-            </div>
-          )}
-        </div>
+        menuStep === 'game' ? (
+          <HomePage
+            tokenBalance={tokenBalance}
+            frameContext={frameContext}
+            onPlayClick={() => setMenuStep('piece')}
+            playClick={playClick}
+          />
+        ) : (
+          <GameMenu
+            menuStep={menuStep}
+            onSelectPiece={(piece) => {
+              setSelectedPiece(piece);
+              setMenuStep('difficulty');
+            }}
+            onSelectDifficulty={(diff) => handleStartGame(diff, selectedPiece)}
+            onBack={() => setMenuStep(menuStep === 'difficulty' ? 'piece' : 'game')}
+            playClick={playClick}
+          />
+        )
       ) : (
         <div className="flex flex-col items-center -mt-20">
           {showLeaderboard ? (
@@ -819,87 +708,20 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
               </div>
             </div>
           ) : (
-            <>
-              <div className={`absolute top-16 right-4 text-white text-sm ${
-                timeLeft === 0 ? 'bg-red-600' : 'bg-purple-800'
-              } px-3 py-1 rounded-full box-shadow`}>
-                {timeLeft}s
-              </div>
-              <div className="text-center mb-4 text-white text-xl text-shadow">
-                {getGameStatus()}
-              </div>
-              
-              <div 
-                ref={boardRef}
-                className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4"
-                style={{ transition: 'transform 0.1s linear' }}
-              >
-                <div className="absolute left-0 top-[33%] w-full h-[2px] bg-white shadow-glow" />
-                <div className="absolute left-0 top-[66%] w-full h-[2px] bg-white shadow-glow" />
-                
-                {board.map((square, index) => (
-                  <button
-                    key={index}
-                    className="h-[100px] flex items-center justify-center text-2xl font-bold bg-transparent"
-                    onClick={() => handleMove(index)}
-                  >
-                    {square === 'X' ? (
-                      <Image 
-                        src="/maxi.png" 
-                        alt="Maxi" 
-                        width={64}
-                        height={64}
-                        className="object-contain"
-                      />
-                    ) : square ? (
-                      <Image 
-                        src={`/${square}.png`} 
-                        alt={square} 
-                        width={64}
-                        height={64}
-                        className="object-contain"
-                      />
-                    ) : null}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex flex-col w-full gap-4">
-                <div className="flex justify-between w-full gap-4">
-                  <Button
-                    onClick={handlePlayAgain}
-                    className="w-1/2 py-4 text-xl bg-green-600 shadow-lg hover:shadow-xl transition-shadow"
-                  >
-                    Play Again
-                  </Button>
-                  <Button
-                    onClick={resetGame}
-                    className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
-                  >
-                    Back to Menu
-                  </Button>
-                </div>
-                
-                {(winner || isDraw || endedByTimer) && (
-                  <div className="flex flex-col w-full gap-4 mt-4 mb-8">
-                    <div className="flex justify-between w-full gap-4">
-                      <Button
-                        onClick={handleViewLeaderboard}
-                        className="w-1/2 py-4 text-xl bg-purple-700"
-                      >
-                        Leaderboard
-                      </Button>
-                      <Button
-                        onClick={handleGameBoardShare}
-                        className="w-1/2 py-4 text-xl bg-purple-700 hover:bg-purple-600 transition-colors"
-                      >
-                        Share Game
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </>
+            <GameBoard
+              timeLeft={timeLeft}
+              getGameStatus={getGameStatus}
+              boardRef={boardRef}
+              board={board}
+              handleMove={handleMove}
+              handlePlayAgain={handlePlayAgain}
+              resetGame={resetGame}
+              winner={winner}
+              isDraw={isDraw}
+              endedByTimer={endedByTimer}
+              handleViewLeaderboard={handleViewLeaderboard}
+              handleGameBoardShare={handleGameBoardShare}
+            />
           )}
         </div>
       )}
