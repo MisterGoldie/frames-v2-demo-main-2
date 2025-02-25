@@ -54,10 +54,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [menuStep, setMenuStep] = useState<MenuStep>('game');
   const [board, setBoard] = useState<Board>(Array(9).fill(null));
   const [isXNext, setIsXNext] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const [selectedPiece, setSelectedPiece] = useState<PlayerPiece>('chili');
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
-  const [playClick] = useSound('/sounds/click.mp3', { volume: 0.5, soundEnabled: !isMuted });
+  const [playClick] = useSound('/sounds/click.mp3', { volume: 0.5 });
   const [playGameJingle, { stop: stopGameJingle }] = useSound('/sounds/jingle.mp3', { 
     volume: 0.3, 
     loop: true, 
@@ -66,11 +66,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [playWinning] = useSound('/sounds/winning.mp3', { volume: 0.5, soundEnabled: !isMuted });
   const [playLosing] = useSound('/sounds/losing.mp3', { volume: 0.5, soundEnabled: !isMuted });
   const [playDrawing] = useSound('/sounds/drawing.mp3', { volume: 0.5, soundEnabled: !isMuted });
-  const [playHalloweenMusic, { stop: stopHalloweenMusic }] = useSound('/sounds/halloween.mp3', { 
-    volume: 0.3, 
-    loop: true, 
-    soundEnabled: !isMuted 
-  });
+
   const [timeLeft, setTimeLeft] = useState(15);
   const [timerStarted, setTimerStarted] = useState(false);
   const [playCountdownSound, { stop: stopCountdownSound }] = useSound('/sounds/countdown.mp3', { 
@@ -139,7 +135,6 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const handleStartGame = useCallback((diff: Difficulty, piece: PlayerPiece) => {
     // Reset all game states
     playClick();
-    stopHalloweenMusic();
     if (!isMuted && !isJinglePlaying.current) {
       isJinglePlaying.current = true;
       playGameJingle();
@@ -166,7 +161,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
-  }, [playClick, stopHalloweenMusic, playGameJingle, isMuted]);
+  }, [playClick, playGameJingle, isMuted]);
 
   const getComputerMove = useCallback((currentBoard: Board): number => {
     const availableSpots = currentBoard
@@ -361,8 +356,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     setStartTime(null);
     stopCountdownSound();
     stopGameJingle();
-    playHalloweenMusic();
-  }, [stopCountdownSound, stopGameJingle, playHalloweenMusic]);
+  }, [stopCountdownSound, stopGameJingle]);
 
   const handlePlayAgain = useCallback(() => {
     setShowLeaderboard(false);
@@ -386,7 +380,6 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   useEffect(() => {
     if (isMuted) {
       stopGameJingle();
-      stopHalloweenMusic();
       isJinglePlaying.current = false;
       return;
     }
@@ -394,9 +387,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     if (gameState === 'menu') {
       stopGameJingle();
       isJinglePlaying.current = false;
-      playHalloweenMusic();
     } else if (gameState === 'game' && !calculateWinner(board) && timeLeft > 0 && !isJinglePlaying.current) {
-      stopHalloweenMusic();
       isJinglePlaying.current = true;
       playGameJingle();
     }
@@ -413,9 +404,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     board,
     timeLeft,
     stopGameJingle,
-    stopHalloweenMusic,
-    playGameJingle,
-    playHalloweenMusic
+    playGameJingle
   ]);
 
   useEffect(() => {
@@ -737,7 +726,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
             <div className="relative w-full transform hover:scale-[1.02] transition-all duration-300">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-purple-800 rounded-xl blur-md -rotate-1"></div>
               <Button
-                onClick={() => setGameState('piece')}
+                onClick={() => {
+                  playClick();
+                  setGameState('piece');
+                }}
                 className="relative w-full py-4 text-2xl font-black bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 rounded-xl border-2 border-purple-400/30 shadow-[0_0_15px_rgba(168,85,247,0.5)] transition-all duration-300"
               >
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-purple-100">
@@ -779,6 +771,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           
           <Button 
             onClick={() => {
+              playClick();
               setSelectedPiece('scarygary');
               setGameState('difficulty');
             }}
@@ -788,6 +781,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           </Button>
           <Button 
             onClick={() => {
+              playClick();
               setSelectedPiece('chili');
               setGameState('difficulty');
             }}
@@ -797,6 +791,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           </Button>
           <Button 
             onClick={() => {
+              playClick();
               setSelectedPiece('podplaylogo');
               setGameState('difficulty');
             }}
@@ -806,7 +801,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           </Button>
 
           <Button 
-            onClick={() => setGameState('menu')}
+            onClick={() => {
+              playClick();
+              setGameState('menu');
+            }}
             className="w-3/4 mt-4 bg-purple-700 hover:bg-purple-800 transition-colors shadow-lg"
           >
             Back
@@ -822,26 +820,38 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           </h1>
           
           <Button 
-            onClick={() => handleStartGame('easy', selectedPiece)}
+            onClick={() => {
+              playClick();
+              handleStartGame('easy', selectedPiece);
+            }}
             className="w-full py-3 bg-purple-600 hover:bg-purple-700 transition-colors shadow-lg"
           >
             Easy
           </Button>
           <Button 
-            onClick={() => handleStartGame('medium', selectedPiece)}
+            onClick={() => {
+              playClick();
+              handleStartGame('medium', selectedPiece);
+            }}
             className="w-full py-3 bg-purple-600 hover:bg-purple-700 transition-colors shadow-lg"
           >
             Medium
           </Button>
           <Button 
-            onClick={() => handleStartGame('hard', selectedPiece)}
+            onClick={() => {
+              playClick();
+              handleStartGame('hard', selectedPiece);
+            }}
             className="w-full py-3 bg-purple-600 hover:bg-purple-700 transition-colors shadow-lg"
           >
             Hard
           </Button>
 
           <Button 
-            onClick={() => setGameState('piece')}
+            onClick={() => {
+              playClick();
+              setGameState('piece');
+            }}
             className="w-3/4 mt-4 bg-purple-700 hover:bg-purple-800 transition-colors shadow-lg"
           >
             Back
@@ -861,7 +871,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
               />
               <div className="flex flex-col w-full gap-2">
                 <Button
-                  onClick={handleBackFromLeaderboard}
+                  onClick={() => {
+                    playClick();
+                    handleBackFromLeaderboard();
+                  }}
                   className="w-3/4 py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto"
                 >
                   Back to Menu
@@ -891,7 +904,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                   <button
                     key={index}
                     className="h-[100px] flex items-center justify-center text-2xl font-bold bg-transparent"
-                    onClick={() => handleMove(index)}
+                    onClick={() => {
+                      playClick();
+                      handleMove(index);
+                    }}
                   >
                     {square === 'X' ? (
                       <Image 
