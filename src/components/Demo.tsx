@@ -685,16 +685,19 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
             </div>
           </div>
         )}
-      <div className="absolute top-16 left-4">
-        <button 
-          onClick={toggleMute}
-          className={`p-2 rounded-full shadow-lg transition-colors ${
-            isMuted ? 'bg-red-600 hover:bg-red-700' : 'bg-purple-600 hover:bg-purple-700'
-          }`}
-        >
-          {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
-        </button>
-      </div>
+      {/* Only show audio button on game and leaderboard pages */}
+      {(gameState === 'game' || showLeaderboard) && (
+        <div className="absolute top-16 left-4">
+          <button 
+            onClick={toggleMute}
+            className={`p-2 rounded-full shadow-lg transition-colors ${
+              isMuted ? 'bg-red-600 hover:bg-red-700' : 'bg-purple-600 hover:bg-purple-700'
+            }`}
+          >
+            {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
+          </button>
+        </div>
+      )}
 
       {/* Main Menu */}
       {gameState === 'menu' && (
