@@ -664,6 +664,27 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   return (
     <div className="bg-[#1A0B2E] w-full min-h-screen flex items-center justify-center">
       <div className="w-[424px] h-[695px] mx-auto flex items-start justify-center relative pt-48 overflow-hidden">
+        {/* Game Board Background with X's and O's - Show on all pages except game board */}
+        {gameState !== 'game' && (
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[424px] h-[424px]">
+              {/* Grid Lines */}
+              <div className="absolute left-1/3 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-400/10 via-purple-400/20 to-purple-400/10"></div>
+              <div className="absolute right-1/3 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-400/10 via-purple-400/20 to-purple-400/10"></div>
+              <div className="absolute top-1/3 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-400/10 via-purple-400/20 to-purple-400/10"></div>
+              <div className="absolute bottom-1/3 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-400/10 via-purple-400/20 to-purple-400/10"></div>
+              
+              {/* X's and O's */}
+              <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
+                {Array(9).fill(null).map((_, i) => (
+                  <div key={i} className="flex items-center justify-center text-purple-400/20 text-6xl font-bold">
+                    {i % 2 === 0 ? 'X' : 'O'}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       <div className="absolute top-16 left-4">
         <button 
           onClick={toggleMute}
@@ -678,41 +699,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       {/* Main Menu */}
       {gameState === 'menu' && (
         <div className="absolute inset-0 flex flex-col items-center px-6">
-          {/* Game Board Background with X's and O's */}
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] max-w-[500px] max-h-[500px]">
-              {/* Grid Lines */}
-              <div className="absolute left-1/3 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-400/50 via-purple-400 to-purple-400/50"></div>
-              <div className="absolute right-1/3 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-400/50 via-purple-400 to-purple-400/50"></div>
-              <div className="absolute top-1/3 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-400/50 via-purple-400 to-purple-400/50"></div>
-              <div className="absolute bottom-1/3 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-400/50 via-purple-400 to-purple-400/50"></div>
-              
-              {/* X's and O's */}
-              <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
-                {Array(9).fill(null).map((_, i) => (
-                  <div key={i} className="flex items-center justify-center text-purple-400/30 text-6xl font-bold">
-                    {i % 2 === 0 ? 'X' : 'O'}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] max-w-[500px] max-h-[500px]">
-              {/* Grid Lines */}
-              <div className="absolute left-1/3 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-400/50 via-purple-400 to-purple-400/50"></div>
-              <div className="absolute right-1/3 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-400/50 via-purple-400 to-purple-400/50"></div>
-              <div className="absolute top-1/3 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-400/50 via-purple-400 to-purple-400/50"></div>
-              <div className="absolute bottom-1/3 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-400/50 via-purple-400 to-purple-400/50"></div>
-              
-              {/* X's and O's */}
-              <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
-                {Array(9).fill(null).map((_, i) => (
-                  <div key={i} className="flex items-center justify-center text-purple-400/30 text-6xl font-bold">
-                    {i % 2 === 0 ? 'X' : 'O'}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+
 
           {/* Game Content */}
           <div className="relative flex flex-col items-center mt-24 mb-16">
