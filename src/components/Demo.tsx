@@ -696,6 +696,22 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                 ))}
               </div>
             </div>
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] max-w-[500px] max-h-[500px]">
+              {/* Grid Lines */}
+              <div className="absolute left-1/3 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-400/50 via-purple-400 to-purple-400/50"></div>
+              <div className="absolute right-1/3 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-400/50 via-purple-400 to-purple-400/50"></div>
+              <div className="absolute top-1/3 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-400/50 via-purple-400 to-purple-400/50"></div>
+              <div className="absolute bottom-1/3 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-400/50 via-purple-400 to-purple-400/50"></div>
+              
+              {/* X's and O's */}
+              <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
+                {Array(9).fill(null).map((_, i) => (
+                  <div key={i} className="flex items-center justify-center text-purple-400/30 text-6xl font-bold">
+                    {i % 2 === 0 ? 'X' : 'O'}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Game Content */}
@@ -758,7 +774,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
 
             {/* Version with Pixel Style */}
             <div className="mt-6 font-mono text-purple-400/40 text-xs tracking-wider">
-              v1.3
+              v1.4
             </div>
           </div>
         </div>
