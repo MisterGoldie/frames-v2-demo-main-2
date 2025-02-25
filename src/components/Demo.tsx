@@ -694,7 +694,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
 
 
           {/* Game Content */}
-          <div className="relative flex flex-col items-center mt-24 mb-16">
+          <div className="relative flex flex-col items-center mt-24">
 
             {/* Player Avatar */}
             {pfpUrl && (
@@ -753,11 +753,11 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                 </span>
               </div>
             )}
+          </div>
 
-            {/* Version with Pixel Style */}
-            <div className="mt-6 font-mono text-purple-400/40 text-xs tracking-wider">
-              v1.4
-            </div>
+          {/* Version with Pixel Style */}
+          <div className="absolute bottom-6 font-mono text-purple-400/40 text-xs tracking-wider">
+            v1.4
           </div>
         </div>
       )}
