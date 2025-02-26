@@ -50,9 +50,12 @@ export default function HomePage({ tokenBalance, frameContext, onPlayClick, play
             height={24}
             className="animate-pulse"
           />
-          <span className="text-purple-100 text-sm font-medium">
+          <button
+            onClick={() => window.open('https://warpcast.com/~/channel/thepod', '_blank')}
+            className="text-purple-100 text-sm font-medium hover:text-purple-200 transition-colors"
+          >
             {tokenBalance.toFixed(2)} /thepod fan tokens owned
-          </span>
+          </button>
         </div>
       )}
       
