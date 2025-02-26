@@ -12,7 +12,7 @@ export async function GET() {
       name: "POD Play v2",
       iconUrl: "https://podplayv2.vercel.app/icon.png",
       splashImageUrl: "https://podplayv2.vercel.app/splash.png",
-      splashBackgroundColor: "#7e22ce",
+      splashBackgroundColor: "#1A0B2E",
       homeUrl: "https://podplayv2.vercel.app",
       webhookUrl: "https://podplayv2.vercel.app/api/webhook",
     },
