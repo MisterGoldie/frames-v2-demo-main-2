@@ -53,7 +53,7 @@ export default function GameMenu({ menuStep, onSelectPiece, onSelectDifficulty, 
         <>
           <Button 
             onClick={() => onSelectDifficulty('easy')}
-            className="w-full mb-2 shadow-lg hover:shadow-xl transition-shadow"
+            className="w-full mb-2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
           >
             Easy
           </Button>
