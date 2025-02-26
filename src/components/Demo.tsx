@@ -13,6 +13,7 @@ import HomePage from './game/HomePage';
 import GameMenu from './game/GameMenu';
 import GameBoard from './game/GameBoard';
 import AudioController from './game/AudioController';
+import { NotificationManager } from './game/NotificationManager';
 
 type PlayerPiece = 'scarygary' | 'chili' | 'podplaylogo';
 type Square = 'X' | PlayerPiece | null;
@@ -616,72 +617,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   };
 
   const sendGameNotification = async (type: 'win' | 'loss' | 'draw') => {
-    if (!frameContext?.user?.fid) {
-      console.log('No FID available, cannot send notification');
-      return;
-    }
-
-    const winMessages = [
-      "Congratulations! You've defeated Maxi!",
-      "Victory! You're unstoppable! 🏆",
-      "Game Over - You Win! 🕹️",
-      "Maxi's been POD played! 😎",
-      "Good win against Maxi! 🌟",
-      "You're the POD Play Master! 👑"
-    ];
-
-    const lossMessages = [
-      "Maxi beat you. Try again?",
-      "Almost had it! One more try?",
-      "Maxi got lucky. Rematch? 👀",
-      "Don't give up! Play again?"
-    ];
-
-    const drawMessages = [
-      "It's a draw! Good game! 👏",
-      "Neck and neck! What a match!",
-      "Perfect balance! Try again?",
-      "Neither wins - both legends!"
-    ];
-
-    const messages = {
-      win: winMessages[Math.floor(Math.random() * winMessages.length)],
-      loss: lossMessages[Math.floor(Math.random() * lossMessages.length)],
-      draw: drawMessages[Math.floor(Math.random() * drawMessages.length)]
-    };
-
-    console.log('Attempting to send notification:', {
-      type,
-      fid: frameContext.user.fid,
-      message: messages[type]
-    });
-
-    try {
-      const response = await fetch('/api/send-notification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fid: frameContext.user.fid.toString(),
-          title: 'POD Play Game Result',
-          body: messages[type],
-          targetUrl: process.env.NEXT_PUBLIC_URL
-        })
-      });
-
-      const data = await response.json();
-      
-      // Add rate limit handling
-      if (data.error === "Rate limited") {
-        console.log('Notification rate limited - user is playing too frequently');
-        // Optionally show a message to the user
-        return;
-      }
-
-      console.log('Notification API response:', data);
-    } catch (error) {
-      console.error('Failed to send notification:', error);
+    if (frameContext?.user?.fid) {
+      await NotificationManager.sendGameNotification(type, frameContext.user.fid.toString());
     }
   };
 
@@ -714,25 +651,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     if (!frameContext?.user?.fid || hasSentThanksNotification) {
       return;
     }
-
-    try {
-      await fetch('/api/send-notification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fid: frameContext.user.fid.toString(),
-          title: 'POD Play Game Result',
-          body: 'Thanks for playing POD Play! 🎮',
-          targetUrl: process.env.NEXT_PUBLIC_URL
-        })
-      });
-      
-      setHasSentThanksNotification(true);
-    } catch (error) {
-      console.error('Failed to send thanks notification:', error);
-    }
+    await NotificationManager.sendThanksNotification(frameContext.user.fid.toString());
+    setHasSentThanksNotification(true);
   };
 
   if (isLoading) {
