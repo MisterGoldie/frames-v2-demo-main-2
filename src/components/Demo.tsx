@@ -297,8 +297,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     setIsXNext(true);
     setTimerStarted(false);
     stopCountdownSound();
+    stopGameJingle(); // Stop current jingle
+    playGameJingle(); // Start fresh jingle
     setGameSession(prev => prev + 1);
-  }, [stopCountdownSound]);
+  }, [stopCountdownSound, stopGameJingle, playGameJingle]);
 
 
 
