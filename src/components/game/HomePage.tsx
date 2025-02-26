@@ -25,14 +25,14 @@ export default function HomePage({ tokenBalance, frameContext, onPlayClick, play
           SELECT GAME
         </h1>
       
-      <div className="relative transform hover:scale-[1.02] transition-all duration-300">
+      <div className="relative transform hover:scale-[1.02] transition-all duration-300 w-[300px]">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-purple-800 rounded-xl blur-md -rotate-1"></div>
         <Button
           onClick={() => {
             playClick();
             onPlayClick();
           }}
-          className="relative w-full py-4 text-2xl font-black bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 rounded-xl border-2 border-purple-400/30 shadow-[0_0_15px_rgba(168,85,247,0.5)]"
+          className="relative w-full py-6 text-3xl font-black bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 rounded-xl border-2 border-purple-400/30 shadow-[0_0_15px_rgba(168,85,247,0.5)]"
         >
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-purple-100">
             Tic-Tac-Maxi

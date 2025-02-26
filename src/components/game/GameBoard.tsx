@@ -34,81 +34,86 @@ export default function GameBoard({
   handleGameBoardShare
 }: GameBoardProps) {
   return (
-    <>
-      <div className="text-center mb-4 text-white text-xl text-shadow">
+    <div className="relative h-[695px] w-[424px]">
+      <div className="absolute top-8 left-0 right-0 text-center text-white text-xl text-shadow">
         {getGameStatus()}
       </div>
       
-      <div 
-        ref={boardRef}
-        className="grid grid-cols-3 relative w-[300px] h-[300px] before:content-[''] before:absolute before:left-[33%] before:top-0 before:w-[2px] before:h-full before:bg-white before:shadow-glow after:content-[''] after:absolute after:left-[66%] after:top-0 after:w-[2px] after:h-full after:bg-white after:shadow-glow mb-4"
-        style={{ transition: 'transform 0.1s linear' }}
-      >
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%] w-[300px] h-[300px]">
+        {/* Fixed position grid lines */}
+        <div className="absolute left-[33%] top-0 w-[2px] h-full bg-white shadow-glow" />
+        <div className="absolute left-[66%] top-0 w-[2px] h-full bg-white shadow-glow" />
         <div className="absolute left-0 top-[33%] w-full h-[2px] bg-white shadow-glow" />
         <div className="absolute left-0 top-[66%] w-full h-[2px] bg-white shadow-glow" />
         
-        {board.map((square, index) => (
-          <button
-            key={index}
-            className="h-[100px] flex items-center justify-center text-2xl font-bold bg-transparent"
-            onClick={() => handleMove(index)}
-          >
-            {square === 'X' ? (
-              <Image 
-                src="/maxi.png" 
-                alt="Maxi" 
-                width={64}
-                height={64}
-                className="object-contain"
-              />
-            ) : square ? (
-              <Image 
-                src={`/${square}.png`} 
-                alt={square} 
-                width={64}
-                height={64}
-                className="object-contain"
-              />
-            ) : null}
-          </button>
-        ))}
+        {/* Game grid */}
+        <div 
+          ref={boardRef}
+          className="grid grid-cols-3 w-full h-full"
+          style={{ transition: 'transform 0.1s linear' }}
+        >
+          {board.map((square, index) => (
+            <button
+              key={index}
+              className="h-[100px] flex items-center justify-center text-2xl font-bold bg-transparent"
+              onClick={() => handleMove(index)}
+            >
+              {square === 'X' ? (
+                <Image 
+                  src="/maxi.png" 
+                  alt="Maxi" 
+                  width={64}
+                  height={64}
+                  className="object-contain"
+                />
+              ) : square ? (
+                <Image 
+                  src={`/${square}.png`} 
+                  alt={square} 
+                  width={64}
+                  height={64}
+                  className="object-contain"
+                />
+              ) : null}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="flex flex-col w-full gap-4">
-        <div className="flex justify-between w-full gap-4">
-          <Button
-            onClick={handlePlayAgain}
-            className="w-1/2 py-4 text-xl bg-green-600 shadow-lg hover:shadow-xl transition-all hover:bg-green-500"
-          >
-            Play Again
-          </Button>
-          <Button
-            onClick={resetGame}
-            className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600"
-          >
-            Back to Menu
-          </Button>
-        </div>
-        
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-[320px]">
         {(winner || isDraw || endedByTimer) && (
-          <div className="flex flex-col w-full gap-4 mt-4 mb-8">
-            <div className="flex justify-between w-full gap-4">
+          <div className="flex flex-col gap-3 animate-fade-in">
+            <div className="flex gap-3">
+              <Button
+                onClick={handlePlayAgain}
+                className="flex-1 h-[42px] text-lg bg-green-600 shadow-lg hover:shadow-xl transition-all hover:bg-green-500 rounded-lg"
+              >
+                Play Again
+              </Button>
+              <Button
+                onClick={resetGame}
+                className="flex-1 h-[42px] text-lg bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 rounded-lg"
+              >
+                Menu
+              </Button>
+            </div>
+            <div className="flex gap-3">
               <Button
                 onClick={handleViewLeaderboard}
-                className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600"
+                className="flex-1 h-[42px] text-lg bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 rounded-lg"
               >
                 Leaderboard
               </Button>
               <Button
                 onClick={handleGameBoardShare}
-                className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600"
+                className="flex-1 h-[42px] text-lg bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 rounded-lg"
               >
-                Share Game
+                Share
               </Button>
             </div>
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
