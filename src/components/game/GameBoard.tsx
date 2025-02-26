@@ -34,24 +34,22 @@ export default function GameBoard({
   handleGameBoardShare
 }: GameBoardProps) {
   return (
-    <div className="relative h-[695px] w-[424px]">
-      <div className="absolute top-8 left-0 right-0 text-center text-white text-xl text-shadow">
+    <>
+      <div className="text-center mb-4 text-white text-xl text-shadow">
         {getGameStatus()}
       </div>
       
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%] w-[300px] h-[300px]">
-        {/* Fixed position grid lines */}
+      <div 
+        ref={boardRef}
+        className="grid grid-cols-3 relative w-[300px] h-[300px]"
+        style={{ transition: 'transform 0.1s linear' }}
+      >
+        {/* Grid lines */}
         <div className="absolute left-[33%] top-0 w-[2px] h-full bg-white shadow-glow" />
         <div className="absolute left-[66%] top-0 w-[2px] h-full bg-white shadow-glow" />
         <div className="absolute left-0 top-[33%] w-full h-[2px] bg-white shadow-glow" />
         <div className="absolute left-0 top-[66%] w-full h-[2px] bg-white shadow-glow" />
-        
-        {/* Game grid */}
-        <div 
-          ref={boardRef}
-          className="grid grid-cols-3 w-full h-full"
-          style={{ transition: 'transform 0.1s linear' }}
-        >
+
           {board.map((square, index) => (
             <button
               key={index}
@@ -77,43 +75,38 @@ export default function GameBoard({
               ) : null}
             </button>
           ))}
-        </div>
       </div>
 
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-[320px]">
+      <div className="mt-8 w-full px-4">
         {(winner || isDraw || endedByTimer) && (
-          <div className="flex flex-col gap-3 animate-fade-in">
-            <div className="flex gap-3">
-              <Button
-                onClick={handlePlayAgain}
-                className="flex-1 h-[42px] text-lg bg-green-600 shadow-lg hover:shadow-xl transition-all hover:bg-green-500 rounded-lg"
-              >
-                Play Again
-              </Button>
-              <Button
-                onClick={resetGame}
-                className="flex-1 h-[42px] text-lg bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 rounded-lg"
-              >
-                Menu
-              </Button>
-            </div>
-            <div className="flex gap-3">
-              <Button
-                onClick={handleViewLeaderboard}
-                className="flex-1 h-[42px] text-lg bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 rounded-lg"
-              >
-                Leaderboard
-              </Button>
-              <Button
-                onClick={handleGameBoardShare}
-                className="flex-1 h-[42px] text-lg bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 rounded-lg"
-              >
-                Share
-              </Button>
-            </div>
+          <div className="grid grid-cols-2 gap-2 animate-fade-in">
+            <Button
+              onClick={handlePlayAgain}
+              className="h-[42px] text-lg bg-green-600 shadow-lg hover:shadow-xl transition-all hover:bg-green-500"
+            >
+              Play Again
+            </Button>
+            <Button
+              onClick={resetGame}
+              className="h-[42px] text-lg bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600"
+            >
+              Back to Menu
+            </Button>
+            <Button
+              onClick={handleViewLeaderboard}
+              className="h-[42px] text-lg bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600"
+            >
+              Leaderboard
+            </Button>
+            <Button
+              onClick={handleGameBoardShare}
+              className="h-[42px] text-lg bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600"
+            >
+              Share Game
+            </Button>
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 }
