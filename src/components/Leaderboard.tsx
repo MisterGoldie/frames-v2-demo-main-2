@@ -77,50 +77,48 @@ export default function Leaderboard({ isMuted, playGameJingle, currentUserFid, p
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       {view === 'top' ? (
-        <div className="flex flex-col gap-4">
-          <div className="bg-gradient-to-b from-purple-900/90 to-purple-800/90 p-6 rounded-xl shadow-2xl w-full max-h-[400px] overflow-y-auto border border-purple-500/20">
-            <h2 className="text-3xl font-bold text-white mb-6 text-center text-shadow-glow bg-clip-text text-transparent bg-gradient-to-r from-purple-300 to-purple-100">
+        <div className="flex flex-col gap-3">
+          <div className="bg-gradient-to-b from-purple-900/90 to-purple-800/90 p-4 rounded-xl shadow-2xl w-full max-h-[500px] overflow-y-auto border border-purple-500/20">
+            <h2 className="text-2xl font-bold text-white mb-4 text-center text-shadow-glow bg-clip-text text-transparent bg-gradient-to-r from-purple-300 to-purple-100">
               Leaderboard
             </h2>
             <div className="space-y-3">
               {leaderboard.map((entry, index) => (
                 <div 
                   key={entry.fid}
-                  className="flex justify-between items-center bg-purple-800/40 p-4 rounded-lg hover:bg-purple-700/50 transition-all transform hover:scale-[1.02] border border-purple-500/10 backdrop-blur-sm"
+                  className="flex justify-between items-center bg-purple-800/40 p-3 rounded-lg hover:bg-purple-700/50 transition-all border border-purple-500/10 backdrop-blur-sm"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center justify-center w-8 h-8 bg-purple-600/30 rounded-full border border-purple-400/20">
-                      <span className="text-purple-200 text-lg font-bold">#{index + 1}</span>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center w-6 h-6 bg-purple-600/30 rounded-full border border-purple-400/20">
+                      <span className="text-purple-200 text-sm font-bold">#{index + 1}</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-white font-semibold text-lg tracking-wide">{entry.username}</span>
-                      <span className="text-xs text-purple-300/80 font-mono">fid:{entry.fid}</span>
+                      <span className="text-white font-semibold text-base">{entry.username}</span>
+                      <span className="text-[10px] text-purple-300/80 font-mono">fid:{entry.fid}</span>
                     </div>
                   </div>
-                  <div className="text-right bg-purple-900/30 px-4 py-2 rounded-lg border border-purple-500/10">
-                    <div className="flex items-center justify-end gap-3 mb-1">
-                      <span className="text-green-400 font-bold text-lg">{entry.wins}W</span>
-                      <span className="text-yellow-400 font-bold">({entry.podScore?.toFixed(1)}PS)</span>
+                  <div className="text-right bg-purple-900/30 px-3 py-1 rounded-lg border border-purple-500/10">
+                    <div className="flex items-center justify-end gap-2">
+                      <span className="text-green-400 font-bold text-base">{entry.wins}W</span>
+                      <span className="text-yellow-400 font-bold text-sm">({entry.podScore?.toFixed(1)}PS)</span>
                     </div>
-                    <div className="text-xs text-purple-300/80 font-medium flex flex-col gap-1">
-                      <div>Easy: {entry.easyWins || 0}</div>
-                      <div>Medium: {entry.mediumWins || 0}</div>
-                      <div>Hard: {entry.hardWins || 0}</div>
+                    <div className="text-[10px] text-purple-300/80 font-medium">
+                      E:{entry.easyWins || 0} M:{entry.mediumWins || 0} H:{entry.hardWins || 0}
                     </div>
                   </div>
                 </div>
               ))}
               
-              <div className="flex justify-center mt-4">
+              <div className="flex justify-center mt-3">
                 <button
                   onClick={() => {
                     const shareText = 'Have you played POD Play v2? 🕹️';
                     const shareUrl = 'podplayv2.vercel.app';
                     sdk.actions.openUrl(`https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`);
                   }}
-                  className="w-[85%] py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 rounded-lg"
+                  className="w-[85%] py-2 text-lg bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 rounded-lg"
                 >
                   Share Game
                 </button>
@@ -130,14 +128,14 @@ export default function Leaderboard({ isMuted, playGameJingle, currentUserFid, p
 
           <button
             onClick={() => handleViewChange('personal')}
-            className="w-3/4 py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto rounded-lg"
+            className="w-[85%] py-2 text-lg bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto rounded-lg"
           >
             View My Stats
           </button>
         </div>
       ) : (
-        <div className="bg-purple-900/90 p-6 rounded-xl shadow-2xl w-full max-h-[400px] overflow-y-auto">
-          <h2 className="text-3xl font-bold text-white mb-6 text-center text-shadow">
+        <div className="bg-purple-900/90 p-4 rounded-xl shadow-2xl w-full max-h-[500px] overflow-y-auto">
+          <h2 className="text-2xl font-bold text-white mb-4 text-center text-shadow">
             My Stats
           </h2>
           {currentUserData ? (
@@ -147,11 +145,11 @@ export default function Leaderboard({ isMuted, playGameJingle, currentUserFid, p
                   <img 
                     src={pfpUrl} 
                     alt="Profile" 
-                    className="w-16 h-16 rounded-full border-2 border-purple-500"
+                    className="w-12 h-12 rounded-full border-2 border-purple-500"
                   />
                   <div className="flex flex-col">
-                    <span className="text-2xl text-white">{currentUserData.username}</span>
-                    <span className="text-lg text-purple-300">
+                    <span className="text-xl text-white">{currentUserData.username}</span>
+                    <span className="text-base text-purple-300">
                       Win Rank #{leaderboard.findIndex(e => e.fid === currentUserFid) === -1 
                         ? leaderboard.length + 1 
                         : leaderboard.findIndex(e => e.fid === currentUserFid) + 1}
@@ -223,14 +221,14 @@ export default function Leaderboard({ isMuted, playGameJingle, currentUserFid, p
                     const shareUrl = 'podplayv2.vercel.app';
                     sdk.actions.openUrl(`https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`);
                   }}
-                  className="w-[85%] py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto rounded-lg"
+                  className="w-[85%] py-2 text-lg bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto rounded-lg"
                 >
                   Share Game
                 </button>
                 
                 <button
                   onClick={() => handleViewChange('top')}
-                  className="w-[85%] py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto rounded-lg"
+                  className="w-[85%] py-2 text-lg bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto rounded-lg"
                 >
                   Back to Leaderboard
                 </button>
