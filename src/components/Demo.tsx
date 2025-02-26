@@ -777,9 +777,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           onMuteToggle={toggleMute} 
         />
         {gameState === 'game' && !showLeaderboard && (
-          <div className={`absolute top-4 right-4 text-white text-sm ${
-            timeLeft === 0 ? 'bg-red-600' : 'bg-purple-800'
-          } px-3 py-1 rounded-full box-shadow`}>
+          <div className="absolute top-4 right-4 text-white text-sm">
             {timeLeft}s
           </div>
         )}
