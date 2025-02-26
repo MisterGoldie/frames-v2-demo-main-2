@@ -80,24 +80,26 @@ export default function Leaderboard({ isMuted, playGameJingle, currentUserFid, p
     <div className="flex flex-col gap-4">
       {view === 'top' ? (
         <div className="flex flex-col gap-4">
-          <div className="bg-purple-900/90 p-6 rounded-xl shadow-2xl w-full max-h-[400px] overflow-y-auto">
-            <h2 className="text-3xl font-bold text-white mb-6 text-center text-shadow">
+          <div className="bg-gradient-to-b from-purple-900/90 to-purple-800/90 p-6 rounded-xl shadow-2xl w-full max-h-[400px] overflow-y-auto border border-purple-500/20">
+            <h2 className="text-3xl font-bold text-white mb-6 text-center text-shadow-glow bg-clip-text text-transparent bg-gradient-to-r from-purple-300 to-purple-100">
               Leaderboard
             </h2>
             <div className="space-y-3">
               {leaderboard.map((entry, index) => (
                 <div 
                   key={entry.fid}
-                  className="flex justify-between items-center bg-purple-800/70 p-3 rounded-lg hover:bg-purple-800/90 transition-colors"
+                  className="flex justify-between items-center bg-purple-800/40 p-4 rounded-lg hover:bg-purple-700/50 transition-all transform hover:scale-[1.02] border border-purple-500/10 backdrop-blur-sm"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="text-purple-300 text-xl font-bold w-8">#{index + 1}</span>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center justify-center w-8 h-8 bg-purple-600/30 rounded-full border border-purple-400/20">
+                      <span className="text-purple-200 text-lg font-bold">#{index + 1}</span>
+                    </div>
                     <div className="flex flex-col">
-                      <span className="text-white font-semibold text-lg">{entry.username}</span>
-                      <span className="text-xs text-purple-300/80">fid:{entry.fid}</span>
+                      <span className="text-white font-semibold text-lg tracking-wide">{entry.username}</span>
+                      <span className="text-xs text-purple-300/80 font-mono">fid:{entry.fid}</span>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right bg-purple-900/30 px-4 py-2 rounded-lg border border-purple-500/10">
                     <div className="flex items-center justify-end gap-3 mb-1">
                       <span className="text-green-400 font-bold text-lg">{entry.wins}W</span>
                       <span className="text-yellow-400 font-bold">({entry.podScore?.toFixed(1)}PS)</span>

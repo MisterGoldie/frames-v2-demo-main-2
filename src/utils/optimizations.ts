@@ -25,8 +25,12 @@ export const preloadAssets = async () => {
   ];
   
   const loadPromises = assets.map(asset => {
-    // Skip audio preloading on mobile
+    // Preload both images and audio
     if (asset.endsWith('.mp3')) {
+      if (!soundCache.has(asset)) {
+        const audio = new Audio(asset);
+        soundCache.set(asset, audio);
+      }
       return Promise.resolve();
     }
 

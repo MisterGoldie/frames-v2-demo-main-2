@@ -24,7 +24,7 @@ export default function GameMenu({ menuStep, onSelectPiece, onSelectDifficulty, 
               playClick();
               onSelectPiece('scarygary');
             }}
-            className="w-full mb-2 shadow-lg hover:shadow-xl transition-shadow"
+            className="w-full mb-2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
           >
             Scary Gary
           </Button>
@@ -33,7 +33,7 @@ export default function GameMenu({ menuStep, onSelectPiece, onSelectDifficulty, 
               playClick();
               onSelectPiece('chili');
             }}
-            className="w-full mb-2"
+            className="w-full mb-2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
           >
             Chili
           </Button>
@@ -42,7 +42,7 @@ export default function GameMenu({ menuStep, onSelectPiece, onSelectDifficulty, 
               playClick();
               onSelectPiece('podplaylogo');
             }}
-            className="w-full mb-2"
+            className="w-full mb-2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
           >
             Pod Logo
           </Button>
@@ -59,13 +59,13 @@ export default function GameMenu({ menuStep, onSelectPiece, onSelectDifficulty, 
           </Button>
           <Button 
             onClick={() => onSelectDifficulty('medium')}
-            className="w-full mb-2"
+            className="w-full mb-2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
           >
             Medium
           </Button>
           <Button 
             onClick={() => onSelectDifficulty('hard')}
-            className="w-full mb-2"
+            className="w-full mb-2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
           >
             Hard
           </Button>
@@ -78,7 +78,7 @@ export default function GameMenu({ menuStep, onSelectPiece, onSelectDifficulty, 
             playClick();
             onBack();
           }}
-          className="w-3/4"
+          className="w-3/4 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
         >
           Back
         </Button>

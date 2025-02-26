@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useState, useRef } from "react";
+import { useEffect, useCallback, useState, useRef, useMemo } from "react";
 import sdk, { FrameContext } from "@farcaster/frame-sdk";
 import { Button } from "~/components/ui/Button";
 import useSound from 'use-sound';
@@ -28,6 +28,45 @@ type DemoProps = {
 };
 
 export default function Demo({ tokenBalance, frameContext }: DemoProps) {
+  // Helper functions
+  const calculateWinner = (squares: Square[]): Square => {
+    const lines = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+    
+    for (const [a, b, c] of lines) {
+      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+        return squares[a];
+      }
+    }
+    return null;
+  };
+
+  const updateGameResult = async (fid: string, action: 'win' | 'loss' | 'tie', difficulty?: 'easy' | 'medium' | 'hard') => {
+    try {
+      const response = await fetch('/api/firebase', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ fid, action, difficulty }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update game result');
+      }
+    } catch (error) {
+      console.error('Error updating game result:', error);
+    }
+  };
+
   const [gameSession, setGameSession] = useState(0);
   const boardRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
@@ -36,34 +75,86 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [menuStep, setMenuStep] = useState<MenuStep>('game');
   const [board, setBoard] = useState<Board>(Array(9).fill(null));
   const [isXNext, setIsXNext] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const [selectedPiece, setSelectedPiece] = useState<PlayerPiece>('chili');
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
-  const [playClick] = useSound('/sounds/click.mp3', { volume: 0.5, soundEnabled: !isMuted });
+  const [playClick] = useSound('/sounds/click.mp3', { volume: 1.0, soundEnabled: !isMuted });
   const [playGameJingle, { stop: stopGameJingle }] = useSound('/sounds/jingle.mp3', { 
-    volume: 0.3, 
-    loop: true, 
-    soundEnabled: !isMuted 
+    volume: 0.3,
+    soundEnabled: !isMuted,
+    loop: true
   });
   const [playWinning] = useSound('/sounds/winning.mp3', { volume: 0.5, soundEnabled: !isMuted });
   const [playLosing] = useSound('/sounds/losing.mp3', { volume: 0.5, soundEnabled: !isMuted });
   const [playDrawing] = useSound('/sounds/drawing.mp3', { volume: 0.5, soundEnabled: !isMuted });
-  const [playHalloweenMusic, { stop: stopHalloweenMusic }] = useSound('/sounds/halloween.mp3', { 
-    volume: 0.3, 
-    loop: true, 
-    soundEnabled: !isMuted 
+  const [playOpeningTheme, { stop: stopOpeningTheme }] = useSound('/sounds/openingtheme.mp3', { 
+    volume: 0.3,
+    soundEnabled: !isMuted,
+    loop: true
   });
-  const [timeLeft, setTimeLeft] = useState(15);
-  const [timerStarted, setTimerStarted] = useState(false);
+
   const [playCountdownSound, { stop: stopCountdownSound }] = useSound('/sounds/countdown.mp3', { 
-    volume: 0, 
-    soundEnabled: false,
+    soundEnabled: !isMuted,
+    volume: 0.5,
     interrupt: true,
     playbackRate: 1.0,
     sprite: {
       countdown: [0, 5000]
     }
   });
+
+  // Handle sound state changes
+  useEffect(() => {
+    // Only play sounds if there has been user interaction
+    const hasInteracted = document.documentElement.classList.contains('user-interacted');
+    
+    if (!hasInteracted) {
+      return;
+    }
+
+    if (isMuted) {
+      stopGameJingle?.();
+      stopOpeningTheme?.();
+      stopCountdownSound?.();
+      isJinglePlaying.current = false;
+    } else if (gameState === 'menu') {
+      stopGameJingle?.();
+      stopCountdownSound?.();
+      playOpeningTheme?.();
+      isJinglePlaying.current = false;
+    } else {
+      stopOpeningTheme?.();
+      stopCountdownSound?.();
+      playGameJingle?.();
+      isJinglePlaying.current = true;
+    }
+
+    return () => {
+      if (isMuted || gameState === 'menu') {
+        stopGameJingle?.();
+        isJinglePlaying.current = false;
+      }
+    };
+  }, [isMuted, gameState, stopGameJingle, stopOpeningTheme, stopCountdownSound, playOpeningTheme, playGameJingle]);
+
+  // Add user interaction flag
+  useEffect(() => {
+    const handleInteraction = () => {
+      document.documentElement.classList.add('user-interacted');
+    };
+
+    window.addEventListener('click', handleInteraction);
+    window.addEventListener('keydown', handleInteraction);
+    window.addEventListener('touchstart', handleInteraction);
+
+    return () => {
+      window.removeEventListener('click', handleInteraction);
+      window.removeEventListener('keydown', handleInteraction);
+      window.removeEventListener('touchstart', handleInteraction);
+    };
+  }, []);
+  const [timeLeft, setTimeLeft] = useState(15);
+  const [timerStarted, setTimerStarted] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [isPlayingCountdown, setIsPlayingCountdown] = useState(false);
   const isJinglePlaying = useRef(false);
@@ -123,11 +214,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const handleStartGame = useCallback((diff: Difficulty, piece: PlayerPiece) => {
     // Reset all game states
     playClick();
-    stopHalloweenMusic();
-    if (!isMuted && !isJinglePlaying.current) {
-      isJinglePlaying.current = true;
-      playGameJingle();
-    }
+    stopOpeningTheme();
+    // Remove jingle logic from here - it's handled in the gameState effect
     
     // Clear previous game results
     setBoard(Array(9).fill(null));
@@ -152,7 +240,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
-  }, [playClick, stopHalloweenMusic, playGameJingle, isMuted]);
+  }, [playClick, stopOpeningTheme, playGameJingle, isMuted]);
 
   const getComputerMove = useCallback((currentBoard: Board): number => {
     const availableSpots = currentBoard
@@ -274,7 +362,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       stopGameJingle();
       stopCountdownSound();
       setTimerStarted(false);
-      setWinner(true);
+      setWinner(true); // Set winner state
+      setTimeLeft(0); // Stop the timer
       playWinning();
       if (frameContext?.user?.fid) {
         await updateGameResult(frameContext.user.fid.toString(), 'win', difficulty);
@@ -301,6 +390,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           stopGameJingle();
           stopCountdownSound();
           playLosing();
+          setWinner(true); // Set winner state
           if (frameContext?.user?.fid) {
             await updateGameResult(frameContext.user.fid.toString(), 'loss', difficulty);
             await sendGameNotification('loss');
@@ -308,7 +398,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
         } else if (nextBoard.every(square => square !== null)) {
           stopGameJingle();
           stopCountdownSound();
-          setIsDraw(true);
+          setIsDraw(true); // Already setting draw state
           playDrawing();
           if (frameContext?.user?.fid) {
             await updateGameResult(frameContext.user.fid.toString(), 'tie');
@@ -349,8 +439,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     setStartTime(null);
     stopCountdownSound();
     stopGameJingle();
-    playHalloweenMusic();
-  }, [stopCountdownSound, stopGameJingle, playHalloweenMusic]);
+    playOpeningTheme();
+  }, [stopCountdownSound, stopGameJingle, playOpeningTheme]);
 
   const handlePlayAgain = useCallback(() => {
     setShowLeaderboard(false);
@@ -373,40 +463,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     setGameSession(prev => prev + 1);
   }, [stopCountdownSound, playGameJingle]);
 
-  useEffect(() => {
-    if (isMuted) {
-      stopGameJingle();
-      stopHalloweenMusic();
-      isJinglePlaying.current = false;
-      return;
-    }
 
-    if (gameState === 'menu') {
-      stopGameJingle();
-      isJinglePlaying.current = false;
-      playHalloweenMusic();
-    } else if (gameState === 'game' && !calculateWinner(board) && timeLeft > 0 && !isJinglePlaying.current) {
-      stopHalloweenMusic();
-      isJinglePlaying.current = true;
-      playGameJingle();
-    }
-
-    return () => {
-      if (gameState !== 'game') {
-        isJinglePlaying.current = false;
-      }
-    };
-  }, [
-    isMuted,
-    gameState,
-    calculateWinner,
-    board,
-    timeLeft,
-    stopGameJingle,
-    stopHalloweenMusic,
-    playGameJingle,
-    playHalloweenMusic
-  ]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -422,6 +479,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
             stopGameJingle();
             if (!isMuted) {
               playLosing();
+            }
+            if (frameContext?.user?.fid) {
+              updateGameResult(frameContext.user.fid.toString(), 'loss', difficulty);
+              sendGameNotification('loss');
             }
             return 0;
           }
@@ -499,7 +560,40 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     return () => resizeObserver.disconnect();
   }, []);
 
-  const toggleMute = () => setIsMuted(prev => !prev);
+  const toggleMute = useCallback(() => {
+    console.log('PARENT: Toggle mute called');
+    setIsMuted(prev => {
+      console.log('PARENT: Previous mute state:', prev);
+      const newMuted = !prev;
+      console.log('PARENT: New mute state will be:', newMuted);
+      
+      // Always stop all sounds when muting
+      if (newMuted) {
+        console.log('PARENT: Stopping all sounds...');
+        stopGameJingle();
+        stopOpeningTheme();
+        stopCountdownSound();
+        isJinglePlaying.current = false;
+      } else {
+        console.log('PARENT: Unmuting, game state is:', gameState);
+        // When unmuting, play appropriate sound based on game state
+        if (gameState === 'menu') {
+          console.log('PARENT: In menu, playing opening theme');
+          stopGameJingle(); // Ensure game jingle is stopped
+          playOpeningTheme();
+        } else if (gameState === 'game') {
+          console.log('PARENT: In game, checking if should play jingle');
+          stopOpeningTheme(); // Ensure opening theme is stopped
+          if (!calculateWinner(board) && timeLeft > 0) {
+            console.log('PARENT: Playing game jingle');
+            playGameJingle();
+            isJinglePlaying.current = true;
+          }
+        }
+      }
+      return newMuted;
+    });
+  }, [gameState, board, timeLeft, stopGameJingle, stopOpeningTheme, stopCountdownSound, playOpeningTheme, playGameJingle, calculateWinner]);
   // Get pfpUrl directly from frameContext
   const pfpUrl = frameContext?.user?.pfpUrl;
 
@@ -650,126 +744,125 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     );
   }
 
+
+
   return (
-    <div className="w-[300px] h-[600px] mx-auto flex items-start justify-center relative pt-48">
-      <AudioController isMuted={isMuted} onMuteToggle={setIsMuted} />
-
-      {gameState === 'menu' && (
-        <div className="absolute top-16 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
-          {pfpUrl && (
-            <div className="relative">
-              <img 
-                src={pfpUrl} 
-                alt="Profile" 
-                className="w-24 h-24 rounded-full object-cover"
-              />
-            </div>
-          )}
-        </div>
-      )}
-
-      {gameState === 'menu' ? (
-        menuStep === 'game' ? (
-          <HomePage
-            tokenBalance={tokenBalance}
-            frameContext={frameContext}
-            onPlayClick={() => setMenuStep('piece')}
-            playClick={playClick}
-          />
-        ) : (
-          <GameMenu
-            menuStep={menuStep}
-            onSelectPiece={(piece) => {
-              setSelectedPiece(piece);
-              setMenuStep('difficulty');
-            }}
-            onSelectDifficulty={(diff) => handleStartGame(diff, selectedPiece)}
-            onBack={() => setMenuStep(menuStep === 'difficulty' ? 'piece' : 'game')}
-            playClick={playClick}
-          />
-        )
-      ) : (
-        <div className="flex flex-col items-center -mt-20">
-          {showLeaderboard ? (
-            <div className="flex flex-col items-center w-full gap-4 mt-8">
-              <Leaderboard 
-                isMuted={isMuted}
-                playGameJingle={playGameJingle}
-                currentUserFid={frameContext?.user?.fid?.toString()}
-                pfpUrl={frameContext?.user?.pfpUrl}
-              />
-              <div className="flex flex-col w-full gap-2">
-                <Button
-                  onClick={handleBackFromLeaderboard}
-                  className="w-3/4 py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto"
-                >
-                  Back to Menu
-                </Button>
+    <div className="bg-[#1A0B2E] w-full min-h-screen flex items-center justify-center">
+      {/* Main container - fixed dimensions for Frame */}
+      <div className="w-[424px] h-[695px] mx-auto relative bg-[#1A0B2E] overflow-hidden">
+        {/* Game Board Background with X's and O's */}
+        {gameState !== 'game' && (
+          <div className="absolute inset-0 opacity-20 flex items-center justify-center">
+            <div className="w-[400px] h-[400px] relative">
+              {/* Grid Lines */}
+              <div className="absolute left-1/3 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-400/50 via-purple-400 to-purple-400/50"></div>
+              <div className="absolute right-1/3 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-400/50 via-purple-400 to-purple-400/50"></div>
+              <div className="absolute top-1/3 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-400/50 via-purple-400 to-purple-400/50"></div>
+              <div className="absolute bottom-1/3 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-400/50 via-purple-400 to-purple-400/50"></div>
+              
+              {/* Background X's and O's */}
+              <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
+                {Array(9).fill(null).map((_, i) => (
+                  <div key={i} className="flex items-center justify-center text-purple-400/30 text-6xl font-bold">
+                    {i % 2 === 0 ? 'X' : 'O'}
+                  </div>
+                ))}
               </div>
             </div>
-          ) : (
-            <GameBoard
-              timeLeft={timeLeft}
-              getGameStatus={getGameStatus}
-              boardRef={boardRef}
-              board={board}
-              handleMove={handleMove}
-              handlePlayAgain={handlePlayAgain}
-              resetGame={resetGame}
-              winner={winner}
-              isDraw={isDraw}
-              endedByTimer={endedByTimer}
-              handleViewLeaderboard={handleViewLeaderboard}
-              handleGameBoardShare={handleGameBoardShare}
-            />
-          )}
+          </div>
+        )}
+
+        <AudioController 
+          isMuted={isMuted} 
+          onMuteToggle={toggleMute} 
+        />
+        {gameState === 'game' && !showLeaderboard && (
+          <div className={`absolute top-4 right-4 text-white text-sm ${
+            timeLeft === 0 ? 'bg-red-600' : 'bg-purple-800'
+          } px-3 py-1 rounded-full box-shadow`}>
+            {timeLeft}s
+          </div>
+        )}
+
+        {/* Content Container */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="flex flex-col items-center w-full max-w-[400px] h-full px-4 pt-16">
+            {gameState === 'menu' && profileImage && (
+              <div className="relative mb-12">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-purple-800 rounded-full blur-md"></div>
+                <img 
+                  src={profileImage} 
+                  alt="Profile" 
+                  className="relative w-24 h-24 rounded-full object-cover border-2 border-purple-400/30 shadow-[0_0_15px_rgba(168,85,247,0.5)]"
+                />
+              </div>
+            )}
+
+            {gameState === 'menu' ? (
+              menuStep === 'game' ? (
+                <HomePage
+                  tokenBalance={tokenBalance}
+                  frameContext={frameContext}
+                  onPlayClick={() => setMenuStep('piece')}
+                  playClick={playClick}
+                />
+              ) : (
+                <GameMenu
+                  menuStep={menuStep}
+                  onSelectPiece={(piece) => {
+                    setSelectedPiece(piece);
+                    setMenuStep('difficulty');
+                  }}
+                  onSelectDifficulty={(diff) => handleStartGame(diff, selectedPiece)}
+                  onBack={() => setMenuStep(menuStep === 'difficulty' ? 'piece' : 'game')}
+                  playClick={playClick}
+                />
+              )
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-[400px] h-[400px] relative flex flex-col items-center justify-center">
+                  {showLeaderboard ? (
+                    <div className="flex flex-col items-center w-full gap-4">
+                      <Leaderboard 
+                        isMuted={isMuted}
+                        playGameJingle={playGameJingle}
+                        currentUserFid={frameContext?.user?.fid?.toString()}
+                        pfpUrl={frameContext?.user?.pfpUrl}
+                      />
+                      <div className="flex flex-col w-full gap-2">
+                        <Button
+                          onClick={handleBackFromLeaderboard}
+                          className="w-3/4 py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto"
+                        >
+                          Back to Menu
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-8">
+                      <GameBoard
+                        timeLeft={timeLeft}
+                        getGameStatus={getGameStatus}
+                        boardRef={boardRef}
+                        board={board}
+                        handleMove={handleMove}
+                        handlePlayAgain={handlePlayAgain}
+                        resetGame={resetGame}
+                        winner={winner}
+                        isDraw={isDraw}
+                        endedByTimer={endedByTimer}
+                        handleViewLeaderboard={handleViewLeaderboard}
+                        handleGameBoardShare={handleGameBoardShare}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
-function calculateWinner(squares: Square[]): Square {
-  const lines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
-  
-  for (const [a, b, c] of lines) {
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
-    }
-  }
-  return null;
-}
-
-async function updateGameResult(fid: string, action: 'win' | 'loss' | 'tie', difficulty?: 'easy' | 'medium' | 'hard') {
-  try {
-    const response = await fetch('/api/firebase', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ fid, action, difficulty }),
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to update game result');
-    }
-  } catch (error) {
-    console.error('Error updating game result:', error);
-  }
-}
-
-function playGameOver() {
-  throw new Error("Function not implemented.");
-}
-function checkFanTokenOwnership(arg0: string) {
-  throw new Error("Function not implemented.");
-}

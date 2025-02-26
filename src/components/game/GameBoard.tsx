@@ -35,12 +35,6 @@ export default function GameBoard({
 }: GameBoardProps) {
   return (
     <>
-      <div className={`absolute top-16 right-4 text-white text-sm ${
-        timeLeft === 0 ? 'bg-red-600' : 'bg-purple-800'
-      } px-3 py-1 rounded-full box-shadow`}>
-        {timeLeft}s
-      </div>
-      
       <div className="text-center mb-4 text-white text-xl text-shadow">
         {getGameStatus()}
       </div>
@@ -84,13 +78,13 @@ export default function GameBoard({
         <div className="flex justify-between w-full gap-4">
           <Button
             onClick={handlePlayAgain}
-            className="w-1/2 py-4 text-xl bg-green-600 shadow-lg hover:shadow-xl transition-shadow"
+            className="w-1/2 py-4 text-xl bg-green-600 shadow-lg hover:shadow-xl transition-all hover:bg-green-500"
           >
             Play Again
           </Button>
           <Button
             onClick={resetGame}
-            className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
+            className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600"
           >
             Back to Menu
           </Button>
@@ -101,13 +95,13 @@ export default function GameBoard({
             <div className="flex justify-between w-full gap-4">
               <Button
                 onClick={handleViewLeaderboard}
-                className="w-1/2 py-4 text-xl bg-purple-700"
+                className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600"
               >
                 Leaderboard
               </Button>
               <Button
                 onClick={handleGameBoardShare}
-                className="w-1/2 py-4 text-xl bg-purple-700 hover:bg-purple-600 transition-colors"
+                className="w-1/2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600"
               >
                 Share Game
               </Button>
