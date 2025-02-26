@@ -14,11 +14,21 @@
   }
 }
 
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  min-height: 100vh;
+  overscroll-behavior: none;
+}
+
 body {
   background: linear-gradient(135deg, #0d316f 0%, #9c2d8b 50%, #c92424 100%);
   color: var(--foreground);
   font-family: 'Inter', Helvetica, Arial, sans-serif;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 * {
