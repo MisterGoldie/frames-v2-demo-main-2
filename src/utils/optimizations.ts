@@ -4,19 +4,22 @@ const assetCache = new Map();
 
 // Prioritize critical assets first
 const CRITICAL_ASSETS = [
+  // Game pieces (highest priority)
+  '/scarygary.png',
+  '/chili.png',
+  '/maxi.png',
+  // Core UI
   '/podplaylogo.png',
   '/game-board.png',
+  // Critical sounds
   '/sounds/openingtheme.mp3',
   '/sounds/jingle.mp3'
 ];
 
 // Secondary assets loaded after critical ones
 const SECONDARY_ASSETS = [
-  '/scarygary.png',
-  '/chili.png',
   '/fantokenlogo.png',
   '/splash.png',
-  '/maxi.png',
   '/sounds/click.mp3',
   '/sounds/winning.mp3',
   '/sounds/losing.mp3',
