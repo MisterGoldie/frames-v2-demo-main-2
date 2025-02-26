@@ -43,28 +43,31 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
   useEffect(() => {
     const hasInteracted = document.documentElement.classList.contains('user-interacted');
     
-    if (!hasInteracted) {
-      return;
-    }
-
-    if (isMuted) {
-      stopGameJingle?.();
-      stopOpeningTheme?.();
-      stopCountdownSound?.();
-      isJinglePlaying.current = false;
-    } else if (gameState === 'menu') {
-      stopGameJingle?.();
-      stopCountdownSound?.();
-      playOpeningTheme?.();
-      isJinglePlaying.current = false;
-    } else {
-      stopOpeningTheme?.();
-      stopCountdownSound?.();
-      playGameJingle?.();
-      isJinglePlaying.current = true;
-    }
+    // Add delay for initial autoplay
+    const timer = setTimeout(() => {
+      // Allow initial autoplay without interaction in menu state
+      if ((!hasInteracted && gameState === 'menu') || hasInteracted) {
+        if (gameState === 'menu' && !isMuted) {
+          stopGameJingle?.();
+          stopCountdownSound?.();
+          playOpeningTheme?.();
+          isJinglePlaying.current = false;
+        } else if (gameState === 'game' && !isMuted) {
+          stopOpeningTheme?.();
+          stopCountdownSound?.();
+          playGameJingle?.();
+          isJinglePlaying.current = true;
+        } else {
+          stopGameJingle?.();
+          stopOpeningTheme?.();
+          stopCountdownSound?.();
+          isJinglePlaying.current = false;
+        }
+      }
+    }, 500); // Small delay for initial load
 
     return () => {
+      clearTimeout(timer);
       if (isMuted || gameState === 'menu') {
         stopGameJingle?.();
         isJinglePlaying.current = false;
@@ -82,6 +85,7 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
     stopCountdownSound,
     stopGameJingle,
     stopOpeningTheme,
-    playGameJingle
+    playGameJingle,
+    playOpeningTheme
   };
 }

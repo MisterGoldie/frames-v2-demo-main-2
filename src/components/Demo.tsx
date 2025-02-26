@@ -51,7 +51,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     stopCountdownSound,
     stopGameJingle,
     stopOpeningTheme,
-    playGameJingle
+    playGameJingle,
+    playOpeningTheme
   } = SoundManager({ 
     isMuted, 
     gameState,
