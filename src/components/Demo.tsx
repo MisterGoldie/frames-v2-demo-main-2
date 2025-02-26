@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useCallback, useState, useRef, useMemo } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import sdk, { FrameContext } from "@farcaster/frame-sdk";
 import { Button } from "~/components/ui/Button";
-import useSound from 'use-sound';
 import Image from 'next/image';
 import Leaderboard from './Leaderboard';
 import { shouldSendNotification } from "~/utils/notificationUtils";
@@ -14,13 +13,12 @@ import GameMenu from './game/GameMenu';
 import GameBoard from './game/GameBoard';
 import AudioController from './game/AudioController';
 import { NotificationManager } from './game/NotificationManager';
-
-type PlayerPiece = 'scarygary' | 'chili' | 'podplaylogo';
-type Square = 'X' | PlayerPiece | null;
-type Board = Square[];
-type GameState = 'menu' | 'game';
-type MenuStep = 'game' | 'piece' | 'difficulty';
-type Difficulty = 'easy' | 'medium' | 'hard';
+import { GameLogic } from './game/GameLogic';
+import { GameTimer } from './game/GameTimer';
+import { SoundManager } from './game/SoundManager';
+import { updateGameResult } from '~/services/api';
+import { PlayerPiece, Square, Board, GameState, MenuStep, Difficulty } from '~/types/game';
+import useSound from 'use-sound';
 
 
 type DemoProps = {
@@ -29,44 +27,9 @@ type DemoProps = {
 };
 
 export default function Demo({ tokenBalance, frameContext }: DemoProps) {
-  // Helper functions
-  const calculateWinner = (squares: Square[]): Square => {
-    const lines = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6],
-    ];
-    
-    for (const [a, b, c] of lines) {
-      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-        return squares[a];
-      }
-    }
-    return null;
-  };
-
-  const updateGameResult = async (fid: string, action: 'win' | 'loss' | 'tie', difficulty?: 'easy' | 'medium' | 'hard') => {
-    try {
-      const response = await fetch('/api/firebase', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ fid, action, difficulty }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to update game result');
-      }
-    } catch (error) {
-      console.error('Error updating game result:', error);
-    }
-  };
+  const calculateWinner = useCallback((squares: Square[]): Square => {
+    return GameLogic.calculateWinner(squares);
+  }, []);
 
   const [gameSession, setGameSession] = useState(0);
   const boardRef = useRef<HTMLDivElement>(null);
@@ -79,64 +42,23 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [isMuted, setIsMuted] = useState(false);
   const [selectedPiece, setSelectedPiece] = useState<PlayerPiece>('chili');
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
-  const [playClick] = useSound('/sounds/click.mp3', { volume: 1.0, soundEnabled: !isMuted });
-  const [playGameJingle, { stop: stopGameJingle }] = useSound('/sounds/jingle.mp3', { 
-    volume: 0.3,
-    soundEnabled: !isMuted,
-    loop: true
-  });
-  const [playWinning] = useSound('/sounds/winning.mp3', { volume: 0.5, soundEnabled: !isMuted });
-  const [playLosing] = useSound('/sounds/losing.mp3', { volume: 0.5, soundEnabled: !isMuted });
-  const [playDrawing] = useSound('/sounds/drawing.mp3', { volume: 0.5, soundEnabled: !isMuted });
-  const [playOpeningTheme, { stop: stopOpeningTheme }] = useSound('/sounds/openingtheme.mp3', { 
-    volume: 0.3,
-    soundEnabled: !isMuted,
-    loop: true
-  });
-
-  const [playCountdownSound, { stop: stopCountdownSound }] = useSound('/sounds/countdown.mp3', { 
-    soundEnabled: !isMuted,
-    volume: 0.5,
-    interrupt: true,
-    playbackRate: 1.0,
-    sprite: {
-      countdown: [0, 5000]
+  const { 
+    playClick,
+    playWinning,
+    playLosing,
+    playDrawing,
+    playCountdownSound,
+    stopCountdownSound,
+    stopGameJingle,
+    stopOpeningTheme,
+    playGameJingle
+  } = SoundManager({ 
+    isMuted, 
+    gameState,
+    onSoundStateChange: () => {
+      isJinglePlaying.current = !isMuted && gameState === 'game';
     }
   });
-
-  // Handle sound state changes
-  useEffect(() => {
-    // Only play sounds if there has been user interaction
-    const hasInteracted = document.documentElement.classList.contains('user-interacted');
-    
-    if (!hasInteracted) {
-      return;
-    }
-
-    if (isMuted) {
-      stopGameJingle?.();
-      stopOpeningTheme?.();
-      stopCountdownSound?.();
-      isJinglePlaying.current = false;
-    } else if (gameState === 'menu') {
-      stopGameJingle?.();
-      stopCountdownSound?.();
-      playOpeningTheme?.();
-      isJinglePlaying.current = false;
-    } else {
-      stopOpeningTheme?.();
-      stopCountdownSound?.();
-      playGameJingle?.();
-      isJinglePlaying.current = true;
-    }
-
-    return () => {
-      if (isMuted || gameState === 'menu') {
-        stopGameJingle?.();
-        isJinglePlaying.current = false;
-      }
-    };
-  }, [isMuted, gameState, stopGameJingle, stopOpeningTheme, stopCountdownSound, playOpeningTheme, playGameJingle]);
 
   // Add user interaction flag
   useEffect(() => {
@@ -154,7 +76,6 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       window.removeEventListener('touchstart', handleInteraction);
     };
   }, []);
-  const [timeLeft, setTimeLeft] = useState(15);
   const [timerStarted, setTimerStarted] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [isPlayingCountdown, setIsPlayingCountdown] = useState(false);
@@ -165,9 +86,28 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasShownSessionNotification, setHasShownSessionNotification] = useState(false);
   const [hasSentThanksNotification, setHasSentThanksNotification] = useState(false);
-  const [playGameOver] = useSound('/sounds/gameover.mp3', { volume: 0.5, soundEnabled: !isMuted });
   const [winner, setWinner] = useState(false);
   const [isDraw, setIsDraw] = useState(false);
+
+  // Initialize timer state
+  const { timeLeft, setTimeLeft } = GameTimer({
+    isActive: timerStarted && !calculateWinner(board) && !board.every(square => square !== null),
+    isMuted,
+    onPlayCountdown: playCountdownSound,
+    onStopCountdown: stopCountdownSound,
+    onTimeUp: async () => {
+      setEndedByTimer(true);
+      stopCountdownSound();
+      stopGameJingle();
+      if (!isMuted) {
+        playLosing();
+      }
+      if (frameContext?.user?.fid) {
+        await updateGameResult(frameContext.user.fid.toString(), 'loss', difficulty);
+        await sendGameNotification('loss');
+      }
+    }
+  });
 
   // SDK initialization
   useEffect(() => {
@@ -216,12 +156,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     // Reset all game states
     playClick();
     stopOpeningTheme();
-    // Remove jingle logic from here - it's handled in the gameState effect
     
     // Clear previous game results
     setBoard(Array(9).fill(null));
     setIsXNext(true);
-    setTimeLeft(15);
     setTimerStarted(false);
     setEndedByTimer(false);
     setShowLeaderboard(false);
@@ -241,111 +179,14 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
-  }, [playClick, stopOpeningTheme, playGameJingle, isMuted]);
+  }, [playClick, stopOpeningTheme]);
 
   const getComputerMove = useCallback((currentBoard: Board): number => {
-    const availableSpots = currentBoard
-      .map((spot, index) => spot === null ? index : null)
-      .filter((spot): spot is number => spot !== null);
-
-    if (difficulty === 'easy') {
-      // Easy Mode - 30% strategic, 70% random
-      if (Math.random() < 0.3) {
-        // Try to win
-        for (const spot of availableSpots) {
-          const boardCopy = [...currentBoard];
-          boardCopy[spot] = 'X';
-          if (calculateWinner(boardCopy) === 'X') {
-            return spot;
-          }
-        }
-        
-        // Block obvious wins
-        for (const spot of availableSpots) {
-          const boardCopy = [...currentBoard];
-          boardCopy[spot] = selectedPiece;
-          if (calculateWinner(boardCopy) === selectedPiece) {
-            return spot;
-          }
-        }
-      }
-
-      // Take center if available (30% chance)
-      if (availableSpots.includes(4) && Math.random() < 0.3) return 4;
-      
-      // Otherwise random move
-      return availableSpots[Math.floor(Math.random() * availableSpots.length)];
-    }
-
-    if (difficulty === 'medium') {
-      // Medium Mode - 70% strategic, 30% random
-      if (Math.random() < 0.7) {
-        // Try to win first
-        for (const spot of availableSpots) {
-          const boardCopy = [...currentBoard];
-          boardCopy[spot] = 'X';
-          if (calculateWinner(boardCopy) === 'X') {
-            return spot;
-          }
-        }
-
-        // Block player from winning
-        for (const spot of availableSpots) {
-          const boardCopy = [...currentBoard];
-          boardCopy[spot] = selectedPiece;
-          if (calculateWinner(boardCopy) === selectedPiece) {
-            return spot;
-          }
-        }
-        
-        // Take center if available
-        if (availableSpots.includes(4)) return 4;
-        
-        // Take corners if available
-        const corners = [0, 2, 6, 8].filter(corner => availableSpots.includes(corner));
-        if (corners.length > 0) {
-          return corners[Math.floor(Math.random() * corners.length)];
-        }
-      }
-      
-      // Random move for remaining cases
-      return availableSpots[Math.floor(Math.random() * availableSpots.length)];
-    }
-
-    // Hard Mode (unchanged)
-    // Try to win first
-    for (const spot of availableSpots) {
-      const boardCopy = [...currentBoard];
-      boardCopy[spot] = 'X';
-      if (calculateWinner(boardCopy) === 'X') {
-        return spot;
-      }
-    }
-
-    // Block player from winning
-    for (const spot of availableSpots) {
-      const boardCopy = [...currentBoard];
-      boardCopy[spot] = selectedPiece;
-      if (calculateWinner(boardCopy) === selectedPiece) {
-        return spot;
-      }
-    }
-
-    // Take center if available
-    if (availableSpots.includes(4)) return 4;
-    
-    // Take corners if available
-    const corners = [0, 2, 6, 8].filter(corner => availableSpots.includes(corner));
-    if (corners.length > 0) {
-      return corners[Math.floor(Math.random() * corners.length)];
-    }
-    
-    // Random move as last resort
-    return availableSpots[Math.floor(Math.random() * availableSpots.length)];
+    return GameLogic.getComputerMove(currentBoard, difficulty, selectedPiece);
   }, [difficulty, selectedPiece]);
 
   const handleMove = useCallback(async (index: number) => {
-    if (board[index] || calculateWinner(board) || !isXNext || timeLeft === 0) return;
+    if (board[index] || calculateWinner(board) || !isXNext || (typeof timeLeft === 'number' && timeLeft <= 0)) return;
 
     const newBoard = [...board];
     newBoard[index] = selectedPiece;
@@ -378,7 +219,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
 
     // Computer's turn in a separate effect to avoid timer interference
     setTimeout(async () => {
-      if (timeLeft === 0 || calculateWinner(newBoard)) return;
+      if ((typeof timeLeft === 'number' && timeLeft <= 0) || calculateWinner(newBoard)) return;
       
       const computerMove = getComputerMove(newBoard);
       if (computerMove !== -1) {
@@ -435,13 +276,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     setMenuStep('game');
     setBoard(Array(9).fill(null));
     setIsXNext(true);
-    setTimeLeft(15);
     setTimerStarted(false);
-    setStartTime(null);
     stopCountdownSound();
     stopGameJingle();
-    playOpeningTheme();
-  }, [stopCountdownSound, stopGameJingle, playOpeningTheme]);
+  }, [stopCountdownSound, stopGameJingle]);
 
   const handlePlayAgain = useCallback(() => {
     setShowLeaderboard(false);
@@ -456,46 +294,14 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     }
     setBoard(Array(9).fill(null));
     setIsXNext(true);
-    setTimeLeft(15);
     setTimerStarted(false);
-    setStartTime(null);
     stopCountdownSound();
-    playGameJingle();
     setGameSession(prev => prev + 1);
-  }, [stopCountdownSound, playGameJingle]);
+  }, [stopCountdownSound]);
 
 
 
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    const currentWinner = calculateWinner(board);
-    const currentIsDraw = !currentWinner && board.every((square) => square !== null);
-    
-    if (timerStarted && timeLeft > 0 && !currentWinner && !currentIsDraw) {
-      timer = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            setEndedByTimer(true);
-            stopCountdownSound();
-            stopGameJingle();
-            if (!isMuted) {
-              playLosing();
-            }
-            if (frameContext?.user?.fid) {
-              updateGameResult(frameContext.user.fid.toString(), 'loss', difficulty);
-              sendGameNotification('loss');
-            }
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [timerStarted, timeLeft, stopCountdownSound, playLosing, stopGameJingle, isMuted, board, calculateWinner]);
+  // Timer state is initialized at the top of the component
 
   const isPlayerTurn = isXNext;
 
@@ -562,39 +368,17 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   }, []);
 
   const toggleMute = useCallback(() => {
-    console.log('PARENT: Toggle mute called');
     setIsMuted(prev => {
-      console.log('PARENT: Previous mute state:', prev);
       const newMuted = !prev;
-      console.log('PARENT: New mute state will be:', newMuted);
-      
-      // Always stop all sounds when muting
       if (newMuted) {
-        console.log('PARENT: Stopping all sounds...');
         stopGameJingle();
         stopOpeningTheme();
         stopCountdownSound();
         isJinglePlaying.current = false;
-      } else {
-        console.log('PARENT: Unmuting, game state is:', gameState);
-        // When unmuting, play appropriate sound based on game state
-        if (gameState === 'menu') {
-          console.log('PARENT: In menu, playing opening theme');
-          stopGameJingle(); // Ensure game jingle is stopped
-          playOpeningTheme();
-        } else if (gameState === 'game') {
-          console.log('PARENT: In game, checking if should play jingle');
-          stopOpeningTheme(); // Ensure opening theme is stopped
-          if (!calculateWinner(board) && timeLeft > 0) {
-            console.log('PARENT: Playing game jingle');
-            playGameJingle();
-            isJinglePlaying.current = true;
-          }
-        }
       }
       return newMuted;
     });
-  }, [gameState, board, timeLeft, stopGameJingle, stopOpeningTheme, stopCountdownSound, playOpeningTheme, playGameJingle, calculateWinner]);
+  }, [stopGameJingle, stopOpeningTheme, stopCountdownSound]);
   // Get pfpUrl directly from frameContext
   const pfpUrl = frameContext?.user?.pfpUrl;
 
@@ -604,7 +388,6 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     if (!isMuted) {
       stopGameJingle();
       isJinglePlaying.current = false;
-      playGameJingle();
     }
   };
 
