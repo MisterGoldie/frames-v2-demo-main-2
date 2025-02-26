@@ -34,14 +34,14 @@ export default function GameBoard({
   handleGameBoardShare
 }: GameBoardProps) {
   return (
-    <>
+    <div className="flex flex-col items-center justify-start h-[400px]">
       <div className="text-center mb-4 text-white text-xl text-shadow">
         {getGameStatus()}
       </div>
       
       <div 
         ref={boardRef}
-        className="grid grid-cols-3 relative w-[300px] h-[300px]"
+        className="grid grid-cols-3 relative w-[300px] h-[300px] mb-8"
         style={{ transition: 'transform 0.1s linear' }}
       >
         {/* Grid lines */}
@@ -77,7 +77,7 @@ export default function GameBoard({
           ))}
       </div>
 
-      <div className="mt-8 w-full px-4">
+      <div className="w-full px-4 absolute" style={{ bottom: '-80px' }}>
         {(winner || isDraw || endedByTimer) && (
           <div className="grid grid-cols-2 gap-2 animate-fade-in">
             <Button
@@ -107,6 +107,6 @@ export default function GameBoard({
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
