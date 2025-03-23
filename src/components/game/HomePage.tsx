@@ -97,7 +97,7 @@ export default function HomePage({ tokenBalance, frameContext, onPlayClick, play
         animate={{ opacity: 1 }}
         transition={{ delay: 0.7, duration: 0.5 }}
       >
-        version 1.4
+        version 1.5
       </motion.div>
     </motion.div>
   );

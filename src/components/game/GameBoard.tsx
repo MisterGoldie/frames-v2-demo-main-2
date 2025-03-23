@@ -53,10 +53,10 @@ export default function GameBoard({
       <motion.div 
         ref={boardRef}
         className="grid grid-cols-3 relative w-[300px] h-[300px] mb-8"
-        style={{ transition: 'transform 0.1s linear' }}
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.5, ease: "easeOut" }}
+        style={{ transition: '' }} /* Remove transition to prevent conflict with manual rotation */
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
       >
         {/* Grid lines */}
         <motion.div 
