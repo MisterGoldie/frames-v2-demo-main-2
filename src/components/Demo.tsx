@@ -18,7 +18,7 @@ import { GameTimer } from './game/GameTimer';
 import { SoundManager } from './game/SoundManager';
 import { updateGameResult } from '~/services/api';
 import { PlayerPiece, Square, Board, GameState, MenuStep, Difficulty } from '~/types/game';
-import useSound from 'use-sound';
+// EMERGENCY FIX: removed direct useSound import to prevent app crashes
 
 
 type DemoProps = {
@@ -42,6 +42,28 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const [isMuted, setIsMuted] = useState(false);
   const [selectedPiece, setSelectedPiece] = useState<PlayerPiece>('chili');
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+  // Safely wrap sound functions to prevent errors
+  const soundFunctions = SoundManager({ 
+    isMuted, 
+    gameState,
+    onSoundStateChange: () => {
+      isJinglePlaying.current = !isMuted && gameState === 'game';
+    }
+  });
+  
+  // Safe wrappers for sound functions to prevent "Cannot read property '0'" errors
+  const safeSoundHandler = (fn: Function | undefined) => {
+    return (...args: any[]) => {
+      try {
+        if (typeof fn === 'function') {
+          fn(...args);
+        }
+      } catch (error) {
+        console.error('Error in sound handler:', error);
+      }
+    };
+  };
+  
   const { 
     playClick,
     playWinning,
@@ -53,13 +75,18 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     stopOpeningTheme,
     playGameJingle,
     playOpeningTheme
-  } = SoundManager({ 
-    isMuted, 
-    gameState,
-    onSoundStateChange: () => {
-      isJinglePlaying.current = !isMuted && gameState === 'game';
-    }
-  });
+  } = {
+    playClick: safeSoundHandler(soundFunctions.playClick),
+    playWinning: safeSoundHandler(soundFunctions.playWinning),
+    playLosing: safeSoundHandler(soundFunctions.playLosing),
+    playDrawing: safeSoundHandler(soundFunctions.playDrawing),
+    playCountdownSound: safeSoundHandler(soundFunctions.playCountdownSound),
+    stopCountdownSound: safeSoundHandler(soundFunctions.stopCountdownSound),
+    stopGameJingle: safeSoundHandler(soundFunctions.stopGameJingle),
+    stopOpeningTheme: safeSoundHandler(soundFunctions.stopOpeningTheme),
+    playGameJingle: safeSoundHandler(soundFunctions.playGameJingle),
+    playOpeningTheme: safeSoundHandler(soundFunctions.playOpeningTheme)
+  };
 
   // Add user interaction flag - only once per session
   useEffect(() => {
@@ -194,8 +221,12 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
 
   const handleStartGame = useCallback((diff: Difficulty, piece: PlayerPiece) => {
     // Reset all game states
-    playClick();
-    stopOpeningTheme();
+    try {
+      playClick();
+      stopOpeningTheme();
+    } catch (audioError) {
+      console.error('Error handling audio in start game:', audioError);
+    }
     
     // Clear previous game results
     setBoard(Array(9).fill(null));
@@ -232,7 +263,13 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     newBoard[index] = selectedPiece;
     setBoard(newBoard);
     setIsXNext(false);
-    playClick();
+    
+    // Safely play click sound
+    try {
+      playClick();
+    } catch (audioError) {
+      console.error('Error playing click sound in handleMove:', audioError);
+    }
 
     // Start timer on first move
     if (!timerStarted) {
@@ -241,12 +278,16 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     }
 
     if (calculateWinner(newBoard)) {
-      stopGameJingle();
-      stopCountdownSound();
-      setTimerStarted(false);
-      setWinner(true); // Set winner state
-      setTimeLeft(0); // Stop the timer
-      playWinning();
+      try {
+        stopGameJingle();
+        stopCountdownSound();
+        setTimerStarted(false);
+        setWinner(true); // Set winner state
+        setTimeLeft(0); // Stop the timer
+        playWinning();
+      } catch (audioError) {
+        console.error('Error handling audio for winner:', audioError);
+      }
       try {
         if (frameContext?.user?.fid) {
           await updateGameResult(frameContext.user.fid.toString(), 'win', difficulty).catch(err => {
@@ -285,10 +326,14 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
         setIsXNext(true);
 
         if (calculateWinner(nextBoard)) {
-          stopGameJingle();
-          stopCountdownSound();
-          playLosing();
-          setWinner(true); // Set winner state
+          try {
+            stopGameJingle();
+            stopCountdownSound();
+            playLosing();
+            setWinner(true); // Set winner state
+          } catch (audioError) {
+            console.error('Error handling audio for computer win:', audioError);
+          }
           try {
             if (frameContext?.user?.fid) {
               await updateGameResult(frameContext.user.fid.toString(), 'loss', difficulty)
@@ -301,10 +346,14 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
             console.error('Error in loss handling:', error);
           }
         } else if (nextBoard.every(square => square !== null)) {
-          stopGameJingle();
-          stopCountdownSound();
-          setIsDraw(true); // Already setting draw state
-          playDrawing();
+          try {
+            stopGameJingle();
+            stopCountdownSound();
+            setIsDraw(true); // Already setting draw state
+            playDrawing();
+          } catch (audioError) {
+            console.error('Error handling audio for draw:', audioError);
+          }
           try {
             if (frameContext?.user?.fid) {
               await updateGameResult(frameContext.user.fid.toString(), 'tie')
@@ -347,8 +396,14 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     setBoard(Array(9).fill(null));
     setIsXNext(true);
     setTimerStarted(false);
-    stopCountdownSound();
-    stopGameJingle();
+    
+    // Safely stop sounds
+    try {
+      stopCountdownSound();
+      stopGameJingle();
+    } catch (audioError) {
+      console.error('Error stopping sounds in resetGame:', audioError);
+    }
   }, [stopCountdownSound, stopGameJingle]);
 
   const handlePlayAgain = useCallback(() => {
@@ -365,9 +420,23 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     setBoard(Array(9).fill(null));
     setIsXNext(true);
     setTimerStarted(false);
-    stopCountdownSound();
-    stopGameJingle(); // Stop current jingle
-    playGameJingle(); // Start fresh jingle
+    
+    // Safely manage audio with error handling
+    try {
+      stopCountdownSound();
+      stopGameJingle(); // Stop current jingle
+      
+      // Start a new game jingle with a small delay to ensure proper cleanup
+      setTimeout(() => {
+        try {
+          playGameJingle(); // Start fresh jingle
+        } catch (delayedAudioError) {
+          console.error('Error playing game jingle after delay:', delayedAudioError);
+        }
+      }, 50);
+    } catch (audioError) {
+      console.error('Error handling audio in playAgain:', audioError);
+    }
     setGameSession(prev => prev + 1);
   }, [stopCountdownSound, stopGameJingle, playGameJingle]);
 
