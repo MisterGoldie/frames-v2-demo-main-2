@@ -33,12 +33,29 @@ export default function App() {
     
     const loadContext = async () => {
       try {
-        const context = await sdk.context;
-        if (isMounted) {
-          setFrameContext(context);
+        // Initialize SDK
+        sdk.actions.ready();
+        
+        try {
+          // Attempt to get the real context
+          const context = await sdk.context;
+          
+          if (isMounted) {
+            console.log('Frame context loaded successfully:', context);
+            setFrameContext(context);
+          }
+        } catch (contextError) {
+          console.warn('Error loading frame context, using fallback:', contextError);
+          
+          // If we can't get the real context, use a fallback
+          if (isMounted) {
+            // We're not setting frameContext here to avoid type errors
+            // The app will handle undefined frameContext gracefully
+            console.log('Using null frame context');
+          }
         }
       } catch (error) {
-        console.error('Error loading frame context:', error);
+        console.error('Fatal error loading frame context:', error);
       }
     };
     
@@ -54,24 +71,48 @@ export default function App() {
     let isMounted = true;
     
     const fetchTokenBalance = async () => {
-      if (!frameContext?.user?.fid) return;
-      
-      const cacheKey = `token_balance_${frameContext.user.fid}`;
-      const cached = sessionStorage.getItem(cacheKey);
-      
-      if (cached && isMounted) {
-        setTokenBalance(JSON.parse(cached));
-        return;
-      }
-      
       try {
-        const { balance } = await checkFanTokenOwnership(frameContext.user.fid.toString());
-        if (isMounted) {
-          setTokenBalance(balance);
-          sessionStorage.setItem(cacheKey, JSON.stringify(balance));
+        // Skip if no valid FID
+        if (!frameContext?.user?.fid) {
+          console.log('No FID available, skipping token balance fetch');
+          return;
+        }
+        
+        // Try to get from cache first
+        try {
+          const cacheKey = `token_balance_${frameContext.user.fid}`;
+          const cached = sessionStorage.getItem(cacheKey);
+          
+          if (cached && isMounted) {
+            const parsedBalance = JSON.parse(cached);
+            setTokenBalance(parsedBalance);
+            console.log('Using cached token balance:', parsedBalance);
+            return;
+          }
+        } catch (cacheError) {
+          console.warn('Error reading from cache:', cacheError);
+          // Continue to fetch fresh data
+        }
+        
+        // Fetch fresh data
+        try {
+          const { balance } = await checkFanTokenOwnership(frameContext.user.fid.toString());
+          if (isMounted) {
+            console.log('Fetched token balance:', balance);
+            setTokenBalance(balance);
+            
+            try {
+              sessionStorage.setItem(`token_balance_${frameContext.user.fid}`, JSON.stringify(balance));
+            } catch (storageError) {
+              console.warn('Error saving to cache:', storageError);
+            }
+          }
+        } catch (fetchError) {
+          console.error('Error fetching token balance:', fetchError);
+          // Continue with default token balance of 0
         }
       } catch (error) {
-        console.error('Error fetching token balance:', error);
+        console.error('Unexpected error in token balance logic:', error);
       }
     };
     

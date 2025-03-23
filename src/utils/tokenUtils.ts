@@ -32,26 +32,32 @@ interface AirstackResponse {
 }
 
 export async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | null> {
-  const graphQLClient = new GraphQLClient(MOXIE_API_URL!);
+  // Check if API URL is available
+  if (!MOXIE_API_URL) {
+    console.warn('NEXT_PUBLIC_MOXIE_API_URL is not defined');
+    return null;
+  }
   
-  const query = gql`
-    query MyQuery($userAddresses: [ID!]) {
-      users(where: { id_in: $userAddresses }) {
-        portfolio {
-          balance
-          buyVolume
-          sellVolume
-          subjectToken {
-            name
-            symbol
-            currentPriceInMoxie
+  try {
+    const graphQLClient = new GraphQLClient(MOXIE_API_URL);
+    
+    const query = gql`
+      query MyQuery($userAddresses: [ID!]) {
+        users(where: { id_in: $userAddresses }) {
+          portfolio {
+            balance
+            buyVolume
+            sellVolume
+            subjectToken {
+              name
+              symbol
+              currentPriceInMoxie
+            }
           }
         }
       }
-    }
-  `;
+    `;
 
-  try {
     const data = await graphQLClient.request<MoxieResponse>(query, {
       userAddresses: addresses.map(address => address.toLowerCase())
     });
@@ -65,31 +71,36 @@ export async function getOwnedFanTokens(addresses: string[]): Promise<TokenHoldi
 
 export async function getFarcasterAddressesFromFID(fid: string): Promise<string[]> {
   const AIRSTACK_API_URL = "https://api.airstack.xyz/gql";
-  const AIRSTACK_API_KEY = process.env.NEXT_PUBLIC_AIRSTACK_API_KEY;
-
-  const graphQLClient = new GraphQLClient(AIRSTACK_API_URL, {
-    headers: {
-      authorization: AIRSTACK_API_KEY!
-    }
-  });
-
-  const query = gql`
-    query GetFarcasterAddresses($fid: String!) {
-      Socials(
-        input: {
-          filter: { dappName: { _eq: farcaster }, userId: { _eq: $fid } }
-          blockchain: ethereum
-        }
-      ) {
-        Social {
-          userAddress
-          userAssociatedAddresses
-        }
-      }
-    }
-  `;
+  
+  // Check if API key is available
+  if (!AIRSTACK_API_KEY) {
+    console.warn('NEXT_PUBLIC_AIRSTACK_API_KEY is not defined');
+    return [];
+  }
 
   try {
+    const graphQLClient = new GraphQLClient(AIRSTACK_API_URL, {
+      headers: {
+        authorization: AIRSTACK_API_KEY
+      }
+    });
+
+    const query = gql`
+      query GetFarcasterAddresses($fid: String!) {
+        Socials(
+          input: {
+            filter: { dappName: { _eq: farcaster }, userId: { _eq: $fid } }
+            blockchain: ethereum
+          }
+        ) {
+          Social {
+            userAddress
+            userAssociatedAddresses
+          }
+        }
+      }
+    `;
+
     const response = await graphQLClient.request<AirstackResponse>(query, { fid });
     const addresses = response?.Socials?.Social?.[0]?.userAssociatedAddresses || [];
     console.log(`Found Farcaster addresses for FID ${fid}:`, addresses);
@@ -102,6 +113,12 @@ export async function getFarcasterAddressesFromFID(fid: string): Promise<string[
 
 export async function checkFanTokenOwnership(fid: string): Promise<{ ownsToken: boolean; balance: number }> {
   try {
+    // Validate input
+    if (!fid) {
+      console.log('No FID provided');
+      return { ownsToken: false, balance: 0 };
+    }
+    
     console.log(`Checking token ownership for FID: ${fid}`);
     const addresses = await getFarcasterAddressesFromFID(fid);
     console.log(`Found addresses:`, addresses);
@@ -119,8 +136,9 @@ export async function checkFanTokenOwnership(fid: string): Promise<{ ownsToken: 
       return { ownsToken: false, balance: 0 };
     }
 
+    // Safely find the token
     const thepodToken = fanTokenData.find((token: TokenHolding) => 
-      token.subjectToken.symbol.toLowerCase() === "cid:thepod"
+      token?.subjectToken?.symbol?.toLowerCase() === "cid:thepod"
     );
     console.log(`Found pod token:`, thepodToken);
 

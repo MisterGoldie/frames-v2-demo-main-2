@@ -103,9 +103,16 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       if (!isMuted) {
         playLosing();
       }
-      if (frameContext?.user?.fid) {
-        await updateGameResult(frameContext.user.fid.toString(), 'loss', difficulty);
-        await sendGameNotification('loss');
+      try {
+        if (frameContext?.user?.fid) {
+          await updateGameResult(frameContext.user.fid.toString(), 'loss', difficulty)
+            .catch(err => console.error('Error updating timeout loss result:', err));
+          
+          await NotificationManager.sendGameNotification('loss', frameContext.user.fid.toString())
+            .catch(err => console.error('Error sending timeout loss notification:', err));
+        }
+      } catch (error) {
+        console.error('Error in timeout loss handling:', error);
       }
     }
   });
@@ -114,11 +121,17 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   useEffect(() => {
     const loadFrameSDK = async () => {
       try {
-        const context = await sdk.context;
-        console.log("Frame context:", context); // Debug log
+        // Initialize SDK
         sdk.actions.ready();
+        
+        try {
+          const context = await sdk.context;
+          console.log("Frame context loaded in Demo:", context); // Debug log
+        } catch (contextError) {
+          console.warn("Frame context unavailable in Demo, continuing without it:", contextError);
+        }
       } catch (error) {
-        console.error("Error loading Frame SDK:", error);
+        console.error("Fatal error loading Frame SDK:", error);
       }
     };
 
@@ -131,8 +144,15 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   // Fetch profile image when context changes
   useEffect(() => {
     const getProfileImage = async () => {
-      if (frameContext?.user?.pfpUrl) {
-        setProfileImage(frameContext.user.pfpUrl);
+      try {
+        if (frameContext?.user?.pfpUrl) {
+          setProfileImage(frameContext.user.pfpUrl);
+        } else {
+          // Set a default profile image if none is available
+          console.log('No profile image available');
+        }
+      } catch (error) {
+        console.error('Error setting profile image:', error);
       }
     };
     getProfileImage();
@@ -208,12 +228,28 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       setWinner(true); // Set winner state
       setTimeLeft(0); // Stop the timer
       playWinning();
-      if (frameContext?.user?.fid) {
-        await updateGameResult(frameContext.user.fid.toString(), 'win', difficulty);
-        await Promise.all([
-          shouldSendNotification('win') && sendGameNotification('win'),
-          sendThanksNotification()
-        ]);
+      try {
+        if (frameContext?.user?.fid) {
+          await updateGameResult(frameContext.user.fid.toString(), 'win', difficulty).catch(err => {
+            console.error('Error updating game result:', err);
+          });
+          
+          try {
+            const shouldSend = await shouldSendNotification('win');
+            if (shouldSend) {
+              await NotificationManager.sendGameNotification('win', frameContext.user.fid.toString())
+                .catch(err => console.error('Error sending win notification:', err));
+            }
+            
+            await sendThanksNotification().catch(err => {
+              console.error('Error sending thanks notification:', err);
+            });
+          } catch (notifError) {
+            console.error('Error in notification flow:', notifError);
+          }
+        }
+      } catch (error) {
+        console.error('Error in win handling:', error);
       }
       return;
     }
@@ -234,18 +270,32 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           stopCountdownSound();
           playLosing();
           setWinner(true); // Set winner state
-          if (frameContext?.user?.fid) {
-            await updateGameResult(frameContext.user.fid.toString(), 'loss', difficulty);
-            await sendGameNotification('loss');
+          try {
+            if (frameContext?.user?.fid) {
+              await updateGameResult(frameContext.user.fid.toString(), 'loss', difficulty)
+                .catch(err => console.error('Error updating loss result:', err));
+              
+              await NotificationManager.sendGameNotification('loss', frameContext.user.fid.toString())
+                .catch(err => console.error('Error sending loss notification:', err));
+            }
+          } catch (error) {
+            console.error('Error in loss handling:', error);
           }
         } else if (nextBoard.every(square => square !== null)) {
           stopGameJingle();
           stopCountdownSound();
           setIsDraw(true); // Already setting draw state
           playDrawing();
-          if (frameContext?.user?.fid) {
-            await updateGameResult(frameContext.user.fid.toString(), 'tie');
-            await sendGameNotification('draw');
+          try {
+            if (frameContext?.user?.fid) {
+              await updateGameResult(frameContext.user.fid.toString(), 'tie')
+                .catch(err => console.error('Error updating tie result:', err));
+              
+              await NotificationManager.sendGameNotification('draw', frameContext.user.fid.toString())
+                .catch(err => console.error('Error sending draw notification:', err));
+            }
+          } catch (error) {
+            console.error('Error in draw handling:', error);
           }
         }
       }

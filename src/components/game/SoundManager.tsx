@@ -3,6 +3,9 @@
 import { useEffect, useRef } from 'react';
 import useSound from 'use-sound';
 
+// Create a global flag to track if audio has been initialized
+let audioInitialized = false;
+
 interface SoundManagerProps {
   isMuted: boolean;
   gameState: 'menu' | 'game';
@@ -45,6 +48,31 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
     
     // Add delay for initial autoplay
     const timer = setTimeout(() => {
+      // Check if audio has already been initialized to prevent double playback
+      if (audioInitialized) {
+        // Only handle state changes after initial load
+        if (gameState === 'menu' && !isMuted) {
+          stopGameJingle?.();
+          stopCountdownSound?.();
+          playOpeningTheme?.();
+          isJinglePlaying.current = false;
+        } else if (gameState === 'game' && !isMuted) {
+          stopOpeningTheme?.();
+          stopCountdownSound?.();
+          playGameJingle?.();
+          isJinglePlaying.current = true;
+        } else {
+          stopGameJingle?.();
+          stopOpeningTheme?.();
+          stopCountdownSound?.();
+          isJinglePlaying.current = false;
+        }
+        return;
+      }
+      
+      // First-time initialization
+      audioInitialized = true;
+      
       // Allow initial autoplay without interaction in menu state
       if ((!hasInteracted && gameState === 'menu') || hasInteracted) {
         if (gameState === 'menu' && !isMuted) {
