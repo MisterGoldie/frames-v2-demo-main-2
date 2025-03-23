@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Leaderboard from './Leaderboard';
 import { shouldSendNotification } from "~/utils/notificationUtils";
 import { preloadAssets } from "~/utils/optimizations";
+import { motion, AnimatePresence } from "framer-motion";
 
 import HomePage from './game/HomePage';
 import GameMenu from './game/GameMenu';
@@ -228,28 +229,31 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       console.error('Error handling audio in start game:', audioError);
     }
     
-    // Clear previous game results
-    setBoard(Array(9).fill(null));
-    setIsXNext(true);
-    setTimerStarted(false);
-    setEndedByTimer(false);
-    setShowLeaderboard(false);
-    setWinner(false);
-    setIsDraw(false);
-    setGameSession(prev => prev + 1);
-    
-    // Set new game settings
-    setGameState('game');
-    setSelectedPiece(piece);
-    setDifficulty(diff);
-    
-    // Reset board rotation if any
-    if (boardRef.current) {
-      boardRef.current.style.transform = 'rotate(0deg)';
-    }
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-    }
+    // Use a small timeout to allow for smooth animation transition
+    setTimeout(() => {
+      // Clear previous game results
+      setBoard(Array(9).fill(null));
+      setIsXNext(true);
+      setTimerStarted(false);
+      setEndedByTimer(false);
+      setShowLeaderboard(false);
+      setWinner(false);
+      setIsDraw(false);
+      setGameSession(prev => prev + 1);
+      
+      // Set new game settings
+      setGameState('game');
+      setSelectedPiece(piece);
+      setDifficulty(diff);
+      
+      // Reset board rotation if any
+      if (boardRef.current) {
+        boardRef.current.style.transform = 'rotate(0deg)';
+      }
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    }, 300); // Small delay to allow for exit animations
   }, [playClick, stopOpeningTheme]);
 
   const getComputerMove = useCallback((currentBoard: Board): number => {
@@ -387,44 +391,81 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   ]);
 
   const resetGame = useCallback(() => {
+    // Play click sound first for immediate feedback
+    try {
+      playClick();
+    } catch (audioError) {
+      console.error('Error playing click in resetGame:', audioError);
+    }
+    
+    // Safely stop sounds immediately
+    try {
+      stopCountdownSound();
+      stopGameJingle();
+      playOpeningTheme(); // Start opening theme for menu
+    } catch (audioError) {
+      console.error('Error handling audio in resetGame:', audioError);
+    }
+
+    // First update visual states that don't affect layout
     setShowLeaderboard(false);
     if (boardRef.current) {
       boardRef.current.style.transform = 'rotate(0deg)';  // Reset rotation
     }
-    setGameState('menu');
-    setMenuStep('game');
-    setBoard(Array(9).fill(null));
-    setIsXNext(true);
-    setTimerStarted(false);
     
-    // Safely stop sounds
-    try {
-      stopCountdownSound();
-      stopGameJingle();
-    } catch (audioError) {
-      console.error('Error stopping sounds in resetGame:', audioError);
-    }
-  }, [stopCountdownSound, stopGameJingle]);
+    // Delay the state changes that trigger component transitions
+    // This allows exit animations to complete
+    setTimeout(() => {
+      setGameState('menu');
+      setMenuStep('game');
+      setBoard(Array(9).fill(null));
+      setIsXNext(true);
+      setTimerStarted(false);
+      setWinner(false);
+      setIsDraw(false);
+      setEndedByTimer(false);
+      setGameSession(prev => prev + 1);
+      
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    }, 300); // Small delay to allow for exit animations
+  }, [stopCountdownSound, stopGameJingle, playClick, playOpeningTheme]);
 
   const handlePlayAgain = useCallback(() => {
-    setShowLeaderboard(false);
-    setEndedByTimer(false);  // Reset timer end state
-    setWinner(false);
-    setIsDraw(false);
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
+    // Play click sound first for immediate feedback
+    try {
+      playClick();
+    } catch (audioError) {
+      console.error('Error playing click in handlePlayAgain:', audioError);
     }
-    if (boardRef.current) {
-      boardRef.current.style.transform = 'rotate(0deg)';
-    }
-    setBoard(Array(9).fill(null));
-    setIsXNext(true);
-    setTimerStarted(false);
     
-    // Safely manage audio with error handling
+    // Safely manage audio with error handling - do this immediately
     try {
       stopCountdownSound();
       stopGameJingle(); // Stop current jingle
+    } catch (audioError) {
+      console.error('Error stopping sounds in handlePlayAgain:', audioError);
+    }
+    
+    // First update visual states that don't affect layout
+    setShowLeaderboard(false);
+    
+    // Use a small delay to allow for smooth exit animations
+    setTimeout(() => {
+      setEndedByTimer(false);  // Reset timer end state
+      setWinner(false);
+      setIsDraw(false);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+      if (boardRef.current) {
+        boardRef.current.style.transform = 'rotate(0deg)';
+      }
+      setBoard(Array(9).fill(null));
+      setIsXNext(true);
+      setTimerStarted(false);
+      setGameSession(prev => prev + 1); // Increment game session
       
       // Start a new game jingle with a small delay to ensure proper cleanup
       setTimeout(() => {
@@ -434,11 +475,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           console.error('Error playing game jingle after delay:', delayedAudioError);
         }
       }, 50);
-    } catch (audioError) {
-      console.error('Error handling audio in playAgain:', audioError);
-    }
-    setGameSession(prev => prev + 1);
-  }, [stopCountdownSound, stopGameJingle, playGameJingle]);
+    }, 300); // Small delay for exit animations
+  }, [stopCountdownSound, stopGameJingle, playGameJingle, playClick]);
 
 
 
@@ -640,67 +678,118 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
               </div>
             )}
 
-            {gameState === 'menu' ? (
-              menuStep === 'game' ? (
-                <HomePage
-                  tokenBalance={tokenBalance}
-                  frameContext={frameContext}
-                  onPlayClick={() => setMenuStep('piece')}
-                  playClick={playClick}
-                />
+            <AnimatePresence mode="wait">
+              {gameState === 'menu' ? (
+                menuStep === 'game' ? (
+                  <motion.div
+                    key="homepage"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <HomePage
+                      tokenBalance={tokenBalance}
+                      frameContext={frameContext}
+                      onPlayClick={() => setMenuStep('piece')}
+                      playClick={playClick}
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key={`menu-${menuStep}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <GameMenu
+                      menuStep={menuStep}
+                      onSelectPiece={(piece) => {
+                        setSelectedPiece(piece);
+                        setMenuStep('difficulty');
+                      }}
+                      onSelectDifficulty={(diff) => handleStartGame(diff, selectedPiece)}
+                      onBack={() => setMenuStep(menuStep === 'difficulty' ? 'piece' : 'game')}
+                      playClick={playClick}
+                    />
+                  </motion.div>
+                )
               ) : (
-                <GameMenu
-                  menuStep={menuStep}
-                  onSelectPiece={(piece) => {
-                    setSelectedPiece(piece);
-                    setMenuStep('difficulty');
-                  }}
-                  onSelectDifficulty={(diff) => handleStartGame(diff, selectedPiece)}
-                  onBack={() => setMenuStep(menuStep === 'difficulty' ? 'piece' : 'game')}
-                  playClick={playClick}
-                />
-              )
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-[400px] h-[400px] relative flex flex-col items-center justify-center">
-                  {showLeaderboard ? (
-                    <div className="flex flex-col items-center w-full gap-4">
-                      <Leaderboard 
-                        isMuted={isMuted}
-                        playGameJingle={playGameJingle}
-                        currentUserFid={frameContext?.user?.fid?.toString()}
-                        pfpUrl={frameContext?.user?.pfpUrl}
-                      />
-                      <div className="flex flex-col w-full gap-2">
-                        <Button
-                          onClick={handleBackFromLeaderboard}
-                          className="w-3/4 py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto"
+                <motion.div 
+                  className="absolute inset-0 flex items-center justify-center"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.4 }}
+                  key="game-container"
+                >
+                  <motion.div 
+                    className="w-[400px] h-[400px] relative flex flex-col items-center justify-center"
+                    initial={{ scale: 0.95 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <AnimatePresence mode="wait">
+                      {showLeaderboard ? (
+                        <motion.div 
+                          key="leaderboard"
+                          className="flex flex-col items-center w-full gap-4"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ duration: 0.3 }}
                         >
-                          Back to Menu
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center gap-8">
-                      <GameBoard
-                        timeLeft={timeLeft}
-                        getGameStatus={getGameStatus}
-                        boardRef={boardRef}
-                        board={board}
-                        handleMove={handleMove}
-                        handlePlayAgain={handlePlayAgain}
-                        resetGame={resetGame}
-                        winner={winner}
-                        isDraw={isDraw}
-                        endedByTimer={endedByTimer}
-                        handleViewLeaderboard={handleViewLeaderboard}
-                        handleGameBoardShare={handleGameBoardShare}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+                          <Leaderboard 
+                            isMuted={isMuted}
+                            playGameJingle={playGameJingle}
+                            currentUserFid={frameContext?.user?.fid?.toString()}
+                            pfpUrl={frameContext?.user?.pfpUrl}
+                          />
+                          <motion.div 
+                            className="flex flex-col w-full gap-2"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2, duration: 0.3 }}
+                          >
+                            <Button
+                              onClick={handleBackFromLeaderboard}
+                              className="w-3/4 py-3 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-all hover:bg-purple-600 mx-auto"
+                            >
+                              Back to Menu
+                            </Button>
+                          </motion.div>
+                        </motion.div>
+                      ) : (
+                        <motion.div 
+                          key="gameboard"
+                          className="flex flex-col items-center justify-center gap-8"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <GameBoard
+                            timeLeft={timeLeft}
+                            getGameStatus={getGameStatus}
+                            boardRef={boardRef}
+                            board={board}
+                            handleMove={handleMove}
+                            handlePlayAgain={handlePlayAgain}
+                            resetGame={resetGame}
+                            winner={winner}
+                            isDraw={isDraw}
+                            endedByTimer={endedByTimer}
+                            handleViewLeaderboard={handleViewLeaderboard}
+                            handleGameBoardShare={handleGameBoardShare}
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>

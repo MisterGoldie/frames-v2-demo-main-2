@@ -105,6 +105,11 @@ export default function App() {
         
         // Fetch fresh data
         try {
+          console.log('No FID available, skipping token balance fetch');
+          // Skip token balance fetch - API is no longer available
+          // Just use default token balance of 0
+          
+          /* Original implementation - commented out due to API issues
           const { balance } = await checkFanTokenOwnership(frameContext.user.fid.toString());
           if (isMounted) {
             console.log('Fetched token balance:', balance);
@@ -116,8 +121,9 @@ export default function App() {
               console.warn('Error saving to cache:', storageError);
             }
           }
+          */
         } catch (fetchError) {
-          console.error('Error fetching token balance:', fetchError);
+          console.warn('Skipping token balance fetch:', fetchError);
           // Continue with default token balance of 0
         }
       } catch (error) {

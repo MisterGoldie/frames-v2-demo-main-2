@@ -39,6 +39,12 @@ export async function getOwnedFanTokens(addresses: string[]): Promise<TokenHoldi
   }
   
   try {
+    // Return null immediately without making the API call
+    // The API endpoint is no longer available
+    console.log('Skipping fan token fetch - API endpoint unavailable');
+    return null;
+    
+    /* Original implementation - commented out due to API issues
     const graphQLClient = new GraphQLClient(MOXIE_API_URL);
     
     const query = gql`
@@ -63,8 +69,10 @@ export async function getOwnedFanTokens(addresses: string[]): Promise<TokenHoldi
     });
     
     return data.users?.[0]?.portfolio || null;
+    */
   } catch (error) {
-    console.error('Error fetching fan tokens:', error);
+    // Convert error to warning and return null
+    console.warn('Skipping fan token fetch:', error);
     return null;
   }
 }
