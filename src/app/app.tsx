@@ -22,8 +22,17 @@ export default function App() {
   const [tokenBalance, setTokenBalance] = useState<number>(0);
   const [frameContext, setFrameContext] = useState<FrameContext>();
 
-  // Preload assets on mount
+  // Preload assets on mount - with flag to prevent duplicate loading
   useEffect(() => {
+    // Check if assets are already being loaded
+    if (window.assetsPreloaded) {
+      console.log('Assets already being preloaded, skipping');
+      return;
+    }
+    
+    // Set flag to prevent duplicate preloading
+    window.assetsPreloaded = true;
+    console.log('Preloading assets from App component');
     preloadAssets();
   }, []);
 

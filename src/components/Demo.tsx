@@ -61,8 +61,18 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     }
   });
 
-  // Add user interaction flag
+  // Add user interaction flag - only once per session
   useEffect(() => {
+    // Skip if already set up
+    if (document.documentElement.hasAttribute('data-interaction-listeners')) {
+      console.log('Interaction listeners already set up, skipping');
+      return;
+    }
+    
+    // Mark that we've set up the listeners
+    document.documentElement.setAttribute('data-interaction-listeners', 'true');
+    console.log('Setting up interaction listeners');
+    
     const handleInteraction = () => {
       document.documentElement.classList.add('user-interacted');
     };
@@ -72,9 +82,14 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     window.addEventListener('touchstart', handleInteraction);
 
     return () => {
-      window.removeEventListener('click', handleInteraction);
-      window.removeEventListener('keydown', handleInteraction);
-      window.removeEventListener('touchstart', handleInteraction);
+      // Only remove if this component is being fully unmounted
+      // This prevents audio issues when components are re-rendered
+      if (document.documentElement.hasAttribute('data-interaction-listeners')) {
+        window.removeEventListener('click', handleInteraction);
+        window.removeEventListener('keydown', handleInteraction);
+        window.removeEventListener('touchstart', handleInteraction);
+        document.documentElement.removeAttribute('data-interaction-listeners');
+      }
     };
   }, []);
   const [timerStarted, setTimerStarted] = useState(false);
@@ -117,10 +132,16 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     }
   });
 
-  // SDK initialization
+  // SDK initialization - only once
   useEffect(() => {
+    // Skip if already loaded to prevent duplicate initialization
+    if (isSDKLoaded) {
+      return;
+    }
+    
     const loadFrameSDK = async () => {
       try {
+        console.log('Initializing Frame SDK in Demo component');
         // Initialize SDK
         sdk.actions.ready();
         
@@ -135,10 +156,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       }
     };
 
-    if (!isSDKLoaded) {
-      setIsSDKLoaded(true);
-      loadFrameSDK();
-    }
+    setIsSDKLoaded(true);
+    loadFrameSDK();
   }, [isSDKLoaded]);
 
   // Fetch profile image when context changes

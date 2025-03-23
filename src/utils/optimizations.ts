@@ -2,6 +2,9 @@
 const soundCache = new Map();
 const assetCache = new Map();
 
+// Flag to track if preloading has started
+let preloadingStarted = false;
+
 // Prioritize critical assets first
 const CRITICAL_ASSETS = [
   // Game pieces (highest priority)
@@ -30,29 +33,63 @@ const SECONDARY_ASSETS = [
 ];
 
 export const preloadAssets = async () => {
-  // Load critical assets first
-  await Promise.all(
-    CRITICAL_ASSETS.map(loadAsset)
-  );
+  // Prevent duplicate preloading
+  if (preloadingStarted) {
+    console.log('Asset preloading already in progress, skipping');
+    return;
+  }
+  
+  // Set flag to prevent duplicate preloading
+  preloadingStarted = true;
+  console.log('Starting asset preloading');
+  
+  try {
+    // Load critical assets first
+    await Promise.all(
+      CRITICAL_ASSETS.map(loadAsset)
+    );
+    console.log('Critical assets loaded');
 
-  // Then load secondary assets
-  Promise.all(
-    SECONDARY_ASSETS.map(loadAsset)
-  ).catch(console.warn); // Don't block on secondary assets
+    // Then load secondary assets
+    Promise.all(
+      SECONDARY_ASSETS.map(loadAsset)
+    )
+    .then(() => console.log('All assets loaded successfully'))
+    .catch(error => console.warn('Error loading secondary assets:', error));
+  } catch (error) {
+    console.error('Error loading critical assets:', error);
+    // Reset flag on critical error to allow retry
+    preloadingStarted = false;
+  }
 };
 
 const loadAsset = async (asset: string) => {
   try {
+    // Handle audio files
     if (asset.endsWith('.mp3')) {
-      if (!soundCache.has(asset)) {
-        const audio = new Audio(asset);
-        soundCache.set(asset, audio);
-        // Start loading but don't play
-        audio.load();
+      // Skip if already cached
+      if (soundCache.has(asset)) {
+        return;
       }
+      
+      const audio = new Audio();
+      
+      // Prevent autoplay
+      audio.autoplay = false;
+      audio.preload = 'metadata'; // Only load metadata initially
+      audio.volume = 0; // Start with volume at 0 to prevent any sound leakage
+      
+      // Cache the audio element before loading
+      soundCache.set(asset, audio);
+      
+      // Set source and load without playing
+      audio.src = asset;
+      audio.load();
+      
       return;
     }
-
+    
+    // Handle image files
     if (!assetCache.has(asset)) {
       const img = new Image();
       await new Promise((resolve, reject) => {
