@@ -91,14 +91,7 @@ export default function HomePage({ tokenBalance, frameContext, onPlayClick, play
         </motion.div>
       )}
       
-      <motion.div 
-        className="mt-auto text-white/50 text-sm pb-4"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.7, duration: 0.5 }}
-      >
-        version 1.5
-      </motion.div>
+      {/* Version text moved to Demo component */}
     </motion.div>
   );
 }
