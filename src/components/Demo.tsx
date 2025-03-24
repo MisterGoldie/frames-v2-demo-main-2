@@ -792,12 +792,14 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
             </AnimatePresence>
           </div>
           
-          {/* Version text at bottom */}
-          <div className="absolute bottom-10 w-full flex justify-center">
-            <div className="text-xs text-white/50 text-shadow">
-              version 1.5
+          {/* Version text at bottom - only shown on homepage */}
+          {gameState === 'menu' && menuStep === 'game' && (
+            <div className="absolute bottom-10 w-full flex justify-center">
+              <div className="text-xs text-white/50 text-shadow">
+                version 1.5
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
