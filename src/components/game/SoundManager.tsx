@@ -171,10 +171,25 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
     volume: 0.5
   });
 
-  const [playClick] = useSimpleSound('/sounds/click.mp3', { 
+  // Enhanced click sound with better animation sync
+  const [playClickRaw] = useSimpleSound('/sounds/click.mp3', { 
     volume: 1.0, 
     soundEnabled: !isMuted
   });
+  
+  // Create a debounced version of playClick that syncs better with animations
+  const lastClickTime = useRef(0);
+  const playClick = useCallback(() => {
+    const now = Date.now();
+    // Prevent multiple clicks within 100ms to avoid sound issues
+    if (now - lastClickTime.current > 100) {
+      lastClickTime.current = now;
+      // Small delay to match framer-motion animation timing
+      setTimeout(() => {
+        playClickRaw();
+      }, 10);
+    }
+  }, [playClickRaw]);
   
   const [playWinning] = useSimpleSound('/sounds/winning.mp3', { 
     volume: 0.5, 

@@ -47,7 +47,10 @@ export default function GameMenu({ menuStep, onSelectPiece, onSelectDifficulty, 
               <Button 
                 onClick={() => {
                   playClick();
-                  onSelectPiece('scarygary');
+                  // Small delay before action to sync with animation
+                  setTimeout(() => {
+                    onSelectPiece('scarygary');
+                  }, 50);
                 }}
                 className="w-full mb-2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
               >
@@ -63,7 +66,10 @@ export default function GameMenu({ menuStep, onSelectPiece, onSelectDifficulty, 
               <Button 
                 onClick={() => {
                   playClick();
-                  onSelectPiece('chili');
+                  // Small delay before action to sync with animation
+                  setTimeout(() => {
+                    onSelectPiece('chili');
+                  }, 50);
                 }}
                 className="w-full mb-2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
               >
@@ -79,7 +85,10 @@ export default function GameMenu({ menuStep, onSelectPiece, onSelectDifficulty, 
               <Button 
                 onClick={() => {
                   playClick();
-                  onSelectPiece('podplaylogo');
+                  // Small delay before action to sync with animation
+                  setTimeout(() => {
+                    onSelectPiece('podplaylogo');
+                  }, 50);
                 }}
                 className="w-full mb-2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
               >
@@ -106,7 +115,10 @@ export default function GameMenu({ menuStep, onSelectPiece, onSelectDifficulty, 
               <Button 
                 onClick={() => {
                   playClick();
-                  onSelectDifficulty('easy');
+                  // Small delay before action to sync with animation
+                  setTimeout(() => {
+                    onSelectDifficulty('easy');
+                  }, 50);
                 }}
                 className="w-full mb-2 py-4 text-xl bg-green-600 shadow-lg hover:shadow-xl transition-shadow"
               >
@@ -122,7 +134,10 @@ export default function GameMenu({ menuStep, onSelectPiece, onSelectDifficulty, 
               <Button 
                 onClick={() => {
                   playClick();
-                  onSelectDifficulty('medium');
+                  // Small delay before action to sync with animation
+                  setTimeout(() => {
+                    onSelectDifficulty('medium');
+                  }, 50);
                 }}
                 className="w-full mb-2 py-4 text-xl bg-yellow-600 shadow-lg hover:shadow-xl transition-shadow"
               >
@@ -138,7 +153,10 @@ export default function GameMenu({ menuStep, onSelectPiece, onSelectDifficulty, 
               <Button 
                 onClick={() => {
                   playClick();
-                  onSelectDifficulty('hard');
+                  // Small delay before action to sync with animation
+                  setTimeout(() => {
+                    onSelectDifficulty('hard');
+                  }, 50);
                 }}
                 className="w-full mb-2 py-4 text-xl bg-red-600 shadow-lg hover:shadow-xl transition-shadow"
               >
@@ -158,7 +176,10 @@ export default function GameMenu({ menuStep, onSelectPiece, onSelectDifficulty, 
         <Button 
           onClick={() => {
             playClick();
-            onBack();
+            // Small delay before action to sync with animation
+            setTimeout(() => {
+              onBack();
+            }, 50);
           }}
           className="w-3/4 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
         >

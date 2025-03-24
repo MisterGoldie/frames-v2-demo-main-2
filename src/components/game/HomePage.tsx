@@ -56,8 +56,12 @@ export default function HomePage({ tokenBalance, frameContext, onPlayClick, play
         ></motion.div>
         <Button
           onClick={() => {
+            // Play click sound first, our enhanced implementation will sync it properly
             playClick();
-            onPlayClick();
+            // Small delay before navigation to allow animation and sound to sync
+            setTimeout(() => {
+              onPlayClick();
+            }, 50);
           }}
           className="relative w-full py-6 text-3xl font-black bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 rounded-xl border-2 border-purple-400/30 shadow-[0_0_15px_rgba(168,85,247,0.5)]"
         >
