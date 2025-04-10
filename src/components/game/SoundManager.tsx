@@ -23,25 +23,46 @@ const useSimpleSound = (url: string, options: {
 }): [PlayFunction, SoundControls] => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const lastPlayAttemptRef = useRef<number>(0);
   
   // Create or get cached audio element
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
-    // Use cached audio element if available
+    // Function to create a fresh audio element
+    const createAudio = () => {
+      const audio = new Audio(url);
+      audio.volume = options.volume || 0.5;
+      audio.loop = options.loop || false;
+      
+      // Preload audio for faster playback
+      audio.preload = 'auto';
+      
+      // Add event listeners for better error tracking
+      audio.addEventListener('error', (e) => {
+        console.error(`Audio error for ${url}:`, e);
+        // Remove from cache if there's an error
+        delete audioCache[url];
+      });
+      
+      return audio;
+    };
+    
+    // Use cached audio element if available and not in error state
     if (audioCache[url]) {
+      const cachedAudio = audioCache[url];
+      // Check if the cached audio is in a valid state
+      if (cachedAudio.error) {
+        console.warn(`Cached audio for ${url} has error, creating new instance`);
+        audioCache[url] = createAudio();
+      }
       audioRef.current = audioCache[url];
       return;
     }
     
     // Create new audio element
-    const audio = new Audio(url);
-    audio.volume = options.volume || 0.5;
-    audio.loop = options.loop || false;
-    
-    // Add to cache
-    audioCache[url] = audio;
-    audioRef.current = audio;
+    audioCache[url] = createAudio();
+    audioRef.current = audioCache[url];
     
     // Clean up
     return () => {
@@ -66,13 +87,39 @@ const useSimpleSound = (url: string, options: {
     }
   }, [options.volume, options.loop, options.soundEnabled, isPlaying]);
   
-  // Play function
+  // Play function with enhanced reliability
   const play: PlayFunction = useCallback(() => {
     if (!audioRef.current || options.soundEnabled === false) return;
     
+    // Get current timestamp for throttling
+    const now = Date.now();
+    lastPlayAttemptRef.current = now;
+    
     try {
+      // For non-looping sounds, create a new audio element for each play
+      // This helps avoid issues with rapid successive plays
+      if (!options.loop && url.includes('click.mp3')) {
+        // For click sounds specifically, use a new Audio element each time
+        // This avoids the issue where rapid clicks don't all play
+        const clickAudio = new Audio(url);
+        clickAudio.volume = options.volume || 0.5;
+        clickAudio.play()
+          .then(() => {
+            // Auto-cleanup after playing
+            clickAudio.addEventListener('ended', () => {
+              // Remove references to allow garbage collection
+              clickAudio.src = '';
+            });
+          })
+          .catch(error => {
+            console.warn('Click audio play error:', error);
+          });
+        return;
+      }
+      
+      // For other sounds, use the standard approach
       // Reset audio to beginning if it's already played
-      if (audioRef.current.currentTime > 0) {
+      if (audioRef.current.currentTime > 0 && !options.loop) {
         audioRef.current.currentTime = 0;
       }
       
@@ -82,18 +129,23 @@ const useSimpleSound = (url: string, options: {
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            setIsPlaying(true);
+            // Only update state if this was the last play attempt
+            if (lastPlayAttemptRef.current === now) {
+              setIsPlaying(true);
+            }
           })
           .catch(error => {
             console.warn('Audio play error:', error);
             // Auto-retry once on user interaction
             const handleInteraction = () => {
-              audioRef.current?.play()
-                .then(() => {
-                  setIsPlaying(true);
-                  document.removeEventListener('click', handleInteraction);
-                })
-                .catch(err => console.warn('Retry audio play error:', err));
+              if (audioRef.current) {
+                audioRef.current.play()
+                  .then(() => {
+                    setIsPlaying(true);
+                    document.removeEventListener('click', handleInteraction);
+                  })
+                  .catch(err => console.warn('Retry audio play error:', err));
+              }
             };
             document.addEventListener('click', handleInteraction, { once: true });
           });
@@ -101,7 +153,7 @@ const useSimpleSound = (url: string, options: {
     } catch (error) {
       console.warn('Error playing audio:', error);
     }
-  }, [options.soundEnabled]);
+  }, [options.soundEnabled, options.loop, options.volume, url]);
   
   // Stop function
   const stop = useCallback(() => {
@@ -171,25 +223,78 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
     volume: 0.5
   });
 
-  // Enhanced click sound with better animation sync
+  // Enhanced click sound with better reliability
   const [playClickRaw] = useSimpleSound('/sounds/click.mp3', { 
     volume: 1.0, 
     soundEnabled: !isMuted
   });
   
-  // Create a debounced version of playClick that syncs better with animations
+  // Create a more reliable version of playClick that works with rapid clicks
   const lastClickTime = useRef(0);
-  const playClick = useCallback(() => {
-    const now = Date.now();
-    // Prevent multiple clicks within 100ms to avoid sound issues
-    if (now - lastClickTime.current > 100) {
-      lastClickTime.current = now;
-      // Small delay to match framer-motion animation timing
-      setTimeout(() => {
-        playClickRaw();
-      }, 10);
+  const clickAudioPool = useRef<HTMLAudioElement[]>([]);
+  
+  // Initialize click audio pool
+  useEffect(() => {
+    // Create a pool of audio elements for click sounds
+    // This allows multiple overlapping click sounds
+    if (clickAudioPool.current.length === 0) {
+      for (let i = 0; i < 5; i++) {
+        const audio = new Audio('/sounds/click.mp3');
+        audio.volume = 1.0;
+        clickAudioPool.current.push(audio);
+      }
     }
-  }, [playClickRaw]);
+    
+    return () => {
+      // Clean up pool on unmount
+      clickAudioPool.current.forEach(audio => {
+        audio.pause();
+        audio.src = '';
+      });
+      clickAudioPool.current = [];
+    };
+  }, []);
+  
+  const playClick = useCallback(() => {
+    if (isMuted) return;
+    
+    const now = Date.now();
+    // Reduced debounce time to 50ms to make more clicks audible
+    // while still preventing audio distortion
+    if (now - lastClickTime.current > 50) {
+      lastClickTime.current = now;
+      
+      try {
+        // Try to use audio pool first (most reliable method)
+        if (clickAudioPool.current.length > 0) {
+          // Find an audio element that's not playing
+          const availableAudio = clickAudioPool.current.find(audio => 
+            audio.paused || audio.ended || audio.currentTime === 0
+          );
+          
+          if (availableAudio) {
+            // Reset and play
+            availableAudio.currentTime = 0;
+            availableAudio.play().catch(err => {
+              console.warn('Click pool audio error:', err);
+              // Fallback to regular method
+              setTimeout(() => playClickRaw(), 0);
+            });
+            return;
+          }
+        }
+        
+        // Fallback to regular method with minimal delay
+        setTimeout(() => playClickRaw(), 0);
+      } catch (error) {
+        console.warn('Error in playClick:', error);
+        // Last resort fallback
+        const audio = new Audio('/sounds/click.mp3');
+        audio.volume = 1.0;
+        audio.play().catch(e => console.warn('Last resort click failed:', e));
+      }
+    }
+  }, [isMuted, playClickRaw]);
   
   const [playWinning] = useSimpleSound('/sounds/winning.mp3', { 
     volume: 0.5, 
@@ -206,19 +311,46 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
     soundEnabled: !isMuted
   });
   
-  const [playGameOver] = useSimpleSound('/sounds/gameover.mp3', { 
-    volume: 0.5, 
-    soundEnabled: !isMuted
-  });
+  // Removed reference to non-existent gameover.mp3 file
+  // If you want to add this sound, place the file in the public/sounds directory
+  const playGameOver = () => {
+    console.log('Game over sound would play here if the file existed');
+  };
 
   const isJinglePlaying = useRef(false);
 
+  // Track user interaction state for audio playback permission
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  
+  // Listen for user interaction to enable audio
   useEffect(() => {
-    const hasInteracted = document.documentElement.classList.contains('user-interacted');
+    const checkInteraction = () => {
+      const hasInteracted = document.documentElement.classList.contains('user-interacted');
+      if (hasInteracted && !hasUserInteracted) {
+        console.log('User interaction detected, enabling audio');
+        setHasUserInteracted(true);
+      }
+    };
+    
+    // Check immediately and set up interval to keep checking
+    checkInteraction();
+    const intervalId = setInterval(checkInteraction, 1000);
+    
+    return () => clearInterval(intervalId);
+  }, [hasUserInteracted]);
+  
+  useEffect(() => {
+    const hasInteracted = hasUserInteracted || document.documentElement.classList.contains('user-interacted');
     
     // Function to safely manage audio state transitions
     const manageAudioState = () => {
       try {
+        // If no user interaction yet, don't try to play audio
+        if (!hasInteracted) {
+          console.log('Waiting for user interaction before playing audio');
+          return;
+        }
+        
         // Menu state audio management
         if (gameState === 'menu' && !isMuted) {
           // Only play opening theme if it's not already playing
@@ -303,10 +435,7 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
         audioInitialized = true;
       }
       
-      // Only play audio if user has interacted or we're in menu state (which allows autoplay)
-      if (hasInteracted || gameState === 'menu') {
-        manageAudioState();
-      }
+      manageAudioState();
     }, 500); // Small delay for initial load
 
     return () => {
