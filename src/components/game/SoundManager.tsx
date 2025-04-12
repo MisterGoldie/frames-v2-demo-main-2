@@ -87,7 +87,7 @@ const useSimpleSound = (url: string, options: {
     }
   }, [options.volume, options.loop, options.soundEnabled, isPlaying]);
   
-  // Play function with enhanced reliability
+  // Play function with enhanced reliability and forced autoplay
   const play: PlayFunction = useCallback(() => {
     if (!audioRef.current || options.soundEnabled === false) return;
     
@@ -114,6 +114,56 @@ const useSimpleSound = (url: string, options: {
           .catch(error => {
             console.warn('Click audio play error:', error);
           });
+        return;
+      }
+      
+      // Special handling for background music (jingle and opening theme)
+      if (options.loop && (url.includes('jingle.mp3') || url.includes('openingtheme.mp3'))) {
+        console.log(`Attempting to play background music: ${url}`);
+        
+        // Create a fresh audio element for background music
+        const bgMusic = new Audio(url);
+        bgMusic.loop = true;
+        bgMusic.volume = options.volume || 0.5;
+        
+        // Try to play with multiple approaches
+        try {
+          // Method 1: Direct play
+          bgMusic.play()
+            .then(() => {
+              console.log(`Background music playing: ${url}`);
+              // Replace the cached audio element with this one
+              if (audioRef.current) {
+                audioRef.current.pause();
+              }
+              audioRef.current = bgMusic;
+              setIsPlaying(true);
+            })
+            .catch(e => {
+              console.warn(`Background music direct play failed: ${url}`, e);
+              
+              // Method 2: Try with user interaction simulation
+              const simulateInteraction = () => {
+                bgMusic.play()
+                  .then(() => {
+                    console.log(`Background music playing after interaction: ${url}`);
+                    if (audioRef.current) {
+                      audioRef.current.pause();
+                    }
+                    audioRef.current = bgMusic;
+                    setIsPlaying(true);
+                  })
+                  .catch(err => console.warn(`Background music still failed: ${url}`, err));
+              };
+              
+              // Try to play on next user interaction
+              document.addEventListener('click', simulateInteraction, { once: true });
+              document.addEventListener('touchstart', simulateInteraction, { once: true });
+            });
+        } catch (bgError) {
+          console.error(`Fatal error playing background music: ${url}`, bgError);
+        }
+        
         return;
       }
       
@@ -148,6 +198,7 @@ const useSimpleSound = (url: string, options: {
               }
             };
             document.addEventListener('click', handleInteraction, { once: true });
+            document.addEventListener('touchstart', handleInteraction, { once: true });
           });
       }
     } catch (error) {
@@ -320,36 +371,69 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
   const isJinglePlaying = useRef(false);
 
   // Track user interaction state for audio playback permission
-  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [hasUserInteracted, setHasUserInteracted] = useState(true); // Force to true by default
   
-  // Listen for user interaction to enable audio
+  // Force user interaction flag to true and set up event listeners
   useEffect(() => {
-    const checkInteraction = () => {
-      const hasInteracted = document.documentElement.classList.contains('user-interacted');
-      if (hasInteracted && !hasUserInteracted) {
-        console.log('User interaction detected, enabling audio');
-        setHasUserInteracted(true);
+    console.log('Setting up forced audio interaction');
+    
+    // Force the user-interacted class to be added immediately
+    document.documentElement.classList.add('user-interacted');
+    
+    // Create a silent audio context and try to resume it
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      if (audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+          console.log('AudioContext resumed successfully');
+        }).catch(err => {
+          console.warn('Could not resume AudioContext:', err);
+        });
       }
+    } catch (e) {
+      console.warn('AudioContext not supported:', e);
+    }
+    
+    // Create and play a silent sound to unlock audio
+    const unlockAudio = () => {
+      const silentSound = new Audio();
+      silentSound.play().then(() => {
+        console.log('Silent sound played successfully');
+      }).catch(e => {
+        console.warn('Silent sound failed:', e);
+      });
     };
     
-    // Check immediately and set up interval to keep checking
-    checkInteraction();
-    const intervalId = setInterval(checkInteraction, 1000);
+    // Try to unlock audio immediately
+    unlockAudio();
     
-    return () => clearInterval(intervalId);
-  }, [hasUserInteracted]);
+    // Set up event listeners for user interaction
+    const handleInteraction = () => {
+      document.documentElement.classList.add('user-interacted');
+      setHasUserInteracted(true);
+      unlockAudio();
+    };
+    
+    window.addEventListener('click', handleInteraction, { once: true });
+    window.addEventListener('touchstart', handleInteraction, { once: true });
+    window.addEventListener('keydown', handleInteraction, { once: true });
+    
+    return () => {
+      window.removeEventListener('click', handleInteraction);
+      window.removeEventListener('touchstart', handleInteraction);
+      window.removeEventListener('keydown', handleInteraction);
+    };
+  }, []);
   
   useEffect(() => {
-    const hasInteracted = hasUserInteracted || document.documentElement.classList.contains('user-interacted');
+    // Always consider the user as having interacted
+    const hasInteracted = true;
     
     // Function to safely manage audio state transitions
     const manageAudioState = () => {
       try {
-        // If no user interaction yet, don't try to play audio
-        if (!hasInteracted) {
-          console.log('Waiting for user interaction before playing audio');
-          return;
-        }
+        // Force audio to play regardless of interaction state
+        // We'll handle browser blocking in the play functions
         
         // Menu state audio management
         if (gameState === 'menu' && !isMuted) {
@@ -427,19 +511,38 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
       }
     };
     
-    // Add delay for initial autoplay
-    const timer = setTimeout(() => {
-      // Mark as initialized on first run
+    // Attempt immediate playback with multiple retries
+    console.log('Attempting immediate audio playback');
+    manageAudioState();
+    
+    // Add multiple retry attempts for initial autoplay
+    const timers: NodeJS.Timeout[] = [];
+    
+    // Try again after 500ms
+    timers.push(setTimeout(() => {
+      console.log('First retry for audio playback');
       if (!audioInitialized) {
         console.log('Initializing audio system');
         audioInitialized = true;
       }
-      
       manageAudioState();
-    }, 500); // Small delay for initial load
+    }, 500));
+    
+    // Try again after 1.5s
+    timers.push(setTimeout(() => {
+      console.log('Second retry for audio playback');
+      manageAudioState();
+    }, 1500));
+    
+    // Final attempt after 3s
+    timers.push(setTimeout(() => {
+      console.log('Final retry for audio playback');
+      manageAudioState();
+    }, 3000));
 
     return () => {
-      clearTimeout(timer);
+      // Clear all retry timers
+      timers.forEach(t => clearTimeout(t));
       
       // Don't stop audio on unmount unless we're changing state or muting
       // This prevents audio restart when components remount

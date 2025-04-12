@@ -144,7 +144,22 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       stopCountdownSound();
       stopGameJingle();
       if (!isMuted) {
-        playLosing();
+        // Play timeout sound with direct Audio API for better mobile compatibility
+        try {
+          // First try direct Audio approach for most reliable playback on mobile
+          const timeoutAudio = new Audio('/sounds/losing.mp3');
+          timeoutAudio.volume = 0.5;
+          console.log('Playing timeout sound directly');
+          timeoutAudio.play().catch(e => {
+            console.warn('Direct timeout audio failed, falling back:', e);
+            // Fallback to regular method
+            playLosing();
+          });
+        } catch (directAudioError) {
+          console.error('Error with direct timeout audio:', directAudioError);
+          // Fallback to regular method
+          playLosing();
+        }
       }
       try {
         if (frameContext?.user?.fid) {
@@ -294,12 +309,29 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
 
     if (calculateWinner(newBoard)) {
       try {
+        // Stop background sounds first
         stopGameJingle();
         stopCountdownSound();
         setTimerStarted(false);
         setWinner(true); // Set winner state
         setTimeLeft(0); // Stop the timer
-        playWinning();
+        
+        // Play winning sound with direct Audio API for better mobile compatibility
+        try {
+          // First try direct Audio approach for most reliable playback on mobile
+          const winAudio = new Audio('/sounds/winning.mp3');
+          winAudio.volume = 0.5;
+          console.log('Playing winning sound directly');
+          winAudio.play().catch(e => {
+            console.warn('Direct winning audio failed, falling back:', e);
+            // Fallback to regular method
+            playWinning();
+          });
+        } catch (directAudioError) {
+          console.error('Error with direct winning audio:', directAudioError);
+          // Fallback to regular method
+          playWinning();
+        }
       } catch (audioError) {
         console.error('Error handling audio for winner:', audioError);
       }
@@ -342,10 +374,27 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
 
         if (calculateWinner(nextBoard)) {
           try {
+            // Stop background sounds first
             stopGameJingle();
             stopCountdownSound();
-            playLosing();
             setWinner(true); // Set winner state
+            
+            // Play losing sound with direct Audio API for better mobile compatibility
+            try {
+              // First try direct Audio approach for most reliable playback on mobile
+              const loseAudio = new Audio('/sounds/losing.mp3');
+              loseAudio.volume = 0.5;
+              console.log('Playing losing sound directly');
+              loseAudio.play().catch(e => {
+                console.warn('Direct losing audio failed, falling back:', e);
+                // Fallback to regular method
+                playLosing();
+              });
+            } catch (directAudioError) {
+              console.error('Error with direct losing audio:', directAudioError);
+              // Fallback to regular method
+              playLosing();
+            }
           } catch (audioError) {
             console.error('Error handling audio for computer win:', audioError);
           }
@@ -362,10 +411,27 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           }
         } else if (nextBoard.every(square => square !== null)) {
           try {
+            // Stop background sounds first
             stopGameJingle();
             stopCountdownSound();
             setIsDraw(true); // Already setting draw state
-            playDrawing();
+            
+            // Play draw sound with direct Audio API for better mobile compatibility
+            try {
+              // First try direct Audio approach for most reliable playback on mobile
+              const drawAudio = new Audio('/sounds/drawing.mp3');
+              drawAudio.volume = 0.5;
+              console.log('Playing draw sound directly');
+              drawAudio.play().catch(e => {
+                console.warn('Direct draw audio failed, falling back:', e);
+                // Fallback to regular method
+                playDrawing();
+              });
+            } catch (directAudioError) {
+              console.error('Error with direct draw audio:', directAudioError);
+              // Fallback to regular method
+              playDrawing();
+            }
           } catch (audioError) {
             console.error('Error handling audio for draw:', audioError);
           }
@@ -807,7 +873,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           {gameState === 'menu' && menuStep === 'game' && (
             <div className="absolute bottom-10 w-full flex justify-center">
               <div className="text-xs text-white/50 text-shadow">
-                version 1.5
+                version 1.6
               </div>
             </div>
           )}
