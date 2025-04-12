@@ -263,17 +263,28 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const handleMove = useCallback(async (index: number) => {
     if (board[index] || calculateWinner(board) || !isXNext || (typeof timeLeft === 'number' && timeLeft <= 0)) return;
 
+    // Play click sound FIRST before any state updates for immediate feedback
+    // Create a new Audio element directly for the most reliable playback
+    try {
+      // Direct audio approach for most immediate feedback
+      const clickAudio = new Audio('/sounds/click.mp3');
+      clickAudio.volume = 1.0;
+      clickAudio.play().catch(e => {
+        console.warn('Direct click audio failed, falling back:', e);
+        // Fallback to regular click method
+        playClick();
+      });
+    } catch (audioError) {
+      console.error('Error playing click sound in handleMove:', audioError);
+      // Last resort fallback
+      playClick();
+    }
+    
+    // Update game state AFTER playing sound
     const newBoard = [...board];
     newBoard[index] = selectedPiece;
     setBoard(newBoard);
     setIsXNext(false);
-    
-    // Safely play click sound
-    try {
-      playClick();
-    } catch (audioError) {
-      console.error('Error playing click sound in handleMove:', audioError);
-    }
 
     // Start timer on first move
     if (!timerStarted) {
