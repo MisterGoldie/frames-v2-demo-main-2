@@ -19,7 +19,6 @@ import { GameTimer } from './game/GameTimer';
 import { SoundManager } from './game/SoundManager';
 import { updateGameResult } from '~/services/api';
 import { PlayerPiece, Square, Board, GameState, MenuStep, Difficulty } from '~/types/game';
-// EMERGENCY FIX: removed direct useSound import to prevent app crashes
 
 
 type DemoProps = {
