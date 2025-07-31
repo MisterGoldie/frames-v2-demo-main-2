@@ -10,7 +10,7 @@ const CRITICAL_ASSETS = [
   // Game pieces (highest priority)
   '/scarygary.png',
   '/chili.png',
-  '/maxi.png',
+  '/mainlogo.png',
   // Core UI
   '/podplaylogo.png',
   '/game-board.png',
@@ -129,4 +129,4 @@ export const playSound = (soundUrl: string) => {
     audio.currentTime = 0;
     audio.play();
   }
-}; 
+};

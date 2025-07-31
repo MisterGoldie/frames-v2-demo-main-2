@@ -20,7 +20,7 @@ export default function RootLayout({
         {/* Preload game pieces first */}
         <link rel="preload" href="/scarygary.png" as="image" />
         <link rel="preload" href="/chili.png" as="image" />
-        <link rel="preload" href="/maxi.png" as="image" />
+        <link rel="preload" href="/mainlogo.png" as="image" />
         {/* Preload other critical assets */}
         <link rel="preload" href="/podplaylogo.png" as="image" />
         <link rel="preload" href="/game-board.png" as="image" />

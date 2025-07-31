@@ -102,7 +102,7 @@ export default function GameBoard({
                     transition={{ type: "spring", stiffness: 260, damping: 20 }}
                   >
                     <Image 
-                      src="/maxi.png" 
+                      src="/mainlogo.png" 
                       alt="Maxi" 
                       width={64}
                       height={64}
