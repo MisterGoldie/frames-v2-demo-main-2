@@ -88,7 +88,20 @@ export default function GameBoard({
             <motion.button
               key={index}
               className="h-[100px] flex items-center justify-center text-2xl font-bold bg-transparent"
-              onClick={() => handleMove(index)}
+              onClick={() => {
+                // Play click sound IMMEDIATELY with direct audio
+                try {
+                  const audio = new Audio('/sounds/click.mp3');
+                  audio.volume = 1.0;
+                  audio.currentTime = 0; // Reset to start
+                  audio.play().catch(e => console.warn('Click audio failed:', e));
+                } catch (e) {
+                  console.warn('Audio creation failed:', e);
+                }
+                
+                // Then handle the move
+                handleMove(index);
+              }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
