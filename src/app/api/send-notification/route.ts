@@ -1,7 +1,7 @@
 import {
   SendNotificationRequest,
   sendNotificationResponseSchema,
-} from "@farcaster/frame-sdk";
+} from "@farcaster/miniapp-sdk";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getNotificationDetails } from '~/utils/notificationStore';

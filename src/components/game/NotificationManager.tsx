@@ -1,6 +1,6 @@
 "use client";
 
-import { FrameContext } from "@farcaster/frame-sdk";
+import { Context } from "@farcaster/miniapp-sdk";
 
 interface NotificationManagerProps {
   fid?: number;
