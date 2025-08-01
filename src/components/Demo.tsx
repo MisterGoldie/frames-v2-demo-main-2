@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useCallback, useState, useRef } from "react";
-import sdk, { FrameContext } from "@farcaster/frame-sdk";
+import { sdk, Context } from "@farcaster/miniapp-sdk";
 import { Button } from "~/components/ui/Button";
 import Image from 'next/image';
 import Leaderboard from './Leaderboard';
@@ -23,7 +23,7 @@ import { PlayerPiece, Square, Board, GameState, MenuStep, Difficulty } from '~/t
 
 type DemoProps = {
   tokenBalance: number;
-  frameContext?: FrameContext;
+  frameContext?: Context.MiniAppContext;
 };
 
 export default function Demo({ tokenBalance, frameContext }: DemoProps) {
@@ -486,7 +486,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     // First update visual states that don't affect layout
     setShowLeaderboard(false);
     if (boardRef.current) {
-      boardRef.current.style.transform = 'rotate(0deg)';  // Reset rotation
+      boardRef.current.style.transform = 'rotate(0deg)';
     }
     
     // Delay the state changes that trigger component transitions
@@ -758,17 +758,16 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
               {gameState === 'menu' ? (
                 menuStep === 'game' ? (
                   <motion.div
-                    key="homepage"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    key="home"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
                   >
                     <HomePage
                       tokenBalance={tokenBalance}
                       frameContext={frameContext}
                       onPlayClick={() => setMenuStep('piece')}
-                      playClick={playClick}
                     />
                   </motion.div>
                 ) : (
@@ -872,7 +871,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
           {gameState === 'menu' && menuStep === 'game' && (
             <div className="absolute bottom-10 w-full flex justify-center">
               <div className="text-xs text-white/50 text-shadow">
-                version 1.6
+                version 1.7
               </div>
             </div>
           )}

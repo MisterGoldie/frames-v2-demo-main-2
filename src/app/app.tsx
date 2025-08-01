@@ -3,8 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { checkFanTokenOwnership } from "~/utils/tokenUtils";
-import { FrameContext } from "@farcaster/frame-sdk";
-import sdk from "@farcaster/frame-sdk";
+import { Context, sdk } from "@farcaster/miniapp-sdk";
 import { ErrorBoundary } from "~/components/ErrorBoundary";
 import { preloadAssets } from "~/utils/optimizations";
 
@@ -19,61 +18,45 @@ const Demo = dynamic(() => import("../components/Demo"), {
 });
 
 export default function App() {
-  const [tokenBalance, setTokenBalance] = useState<number>(0);
-  const [frameContext, setFrameContext] = useState<FrameContext>();
+  const [tokenBalance, setTokenBalance] = useState(0);
+  const [frameContext, setFrameContext] = useState<Context.MiniAppContext | undefined>(undefined);
+  const [isMounted, setIsMounted] = useState(false);
 
-  // Preload assets on mount - with flag to prevent duplicate loading
   useEffect(() => {
-    // Check if assets are already being loaded
-    if (window.assetsPreloaded) {
-      console.log('Assets already being preloaded, skipping');
-      return;
-    }
-    
-    // Set flag to prevent duplicate preloading
-    window.assetsPreloaded = true;
-    console.log('Preloading assets from App component');
+    setIsMounted(true);
     preloadAssets();
   }, []);
 
-  // Load frame context
   useEffect(() => {
-    let isMounted = true;
-    
+    if (!isMounted) return;
+
     const loadContext = async () => {
       try {
         // Initialize SDK
-        sdk.actions.ready();
+        await sdk.actions.ready();
         
         try {
           // Attempt to get the real context
           const context = await sdk.context;
           
           if (isMounted) {
-            console.log('Frame context loaded successfully:', context);
+            console.log('MiniApp context loaded successfully:', context);
             setFrameContext(context);
           }
         } catch (contextError) {
-          console.warn('Error loading frame context, using fallback:', contextError);
+          console.warn('Error loading miniapp context, using fallback:', contextError);
           
-          // If we can't get the real context, use a fallback
           if (isMounted) {
-            // We're not setting frameContext here to avoid type errors
-            // The app will handle undefined frameContext gracefully
-            console.log('Using null frame context');
+            console.log('Using null miniapp context');
           }
         }
       } catch (error) {
-        console.error('Fatal error loading frame context:', error);
+        console.error('Fatal error loading miniapp context:', error);
       }
     };
-    
+
     loadContext();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  }, [isMounted]);
 
   // Fetch token balance with caching
   useEffect(() => {

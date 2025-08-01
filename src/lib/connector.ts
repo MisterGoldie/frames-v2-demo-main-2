@@ -1,4 +1,4 @@
-import sdk from "@farcaster/frame-sdk";
+import { sdk } from "@farcaster/miniapp-sdk";
 import { SwitchChainError, fromHex, getAddress, numberToHex } from "viem";
 import { ChainNotConfiguredError, Connector, createConnector } from "wagmi";
 
@@ -91,8 +91,12 @@ export function frameConnector() {
         return false;
       }
 
-      const accounts = await this.getAccounts();
-      return !!accounts.length;
+      try {
+        const accounts = await this.getAccounts();
+        return !!accounts.length;
+      } catch {
+        return false;
+      }
     },
     async switchChain({ chainId }) {
       const provider = await this.getProvider();
@@ -128,7 +132,22 @@ export function frameConnector() {
       connected = false;
     },
     async getProvider() {
-      return sdk.wallet.ethProvider;
+      try {
+        // Check if SDK is ready and provider is available
+        if (!sdk?.wallet?.ethProvider) {
+          throw new Error("Farcaster SDK wallet provider not available");
+        }
+        
+        // Additional check to ensure the provider has the required methods
+        if (typeof sdk.wallet.ethProvider.request !== 'function') {
+          throw new Error("Farcaster SDK wallet provider is not properly initialized");
+        }
+        
+        return sdk.wallet.ethProvider;
+      } catch (error) {
+        console.error("Failed to get Farcaster wallet provider:", error);
+        throw new Error("Farcaster wallet provider not available");
+      }
     },
   }));
 }

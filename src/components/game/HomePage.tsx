@@ -1,18 +1,15 @@
-"use client";
-
 import { Button } from "~/components/ui/Button";
 import Image from 'next/image';
-import { FrameContext } from "@farcaster/frame-sdk";
+import { Context } from "@farcaster/miniapp-sdk";
 import { motion } from 'framer-motion';
 
 interface HomePageProps {
   tokenBalance: number;
-  frameContext?: FrameContext;
+  frameContext?: Context.MiniAppContext;
   onPlayClick: () => void;
-  playClick: () => void;
 }
 
-export default function HomePage({ tokenBalance, frameContext, onPlayClick, playClick }: HomePageProps) {
+export default function HomePage({ tokenBalance, frameContext, onPlayClick }: HomePageProps) {
   return (
     <motion.div 
       className="w-full h-full flex flex-col items-center pt-24"
@@ -57,7 +54,7 @@ export default function HomePage({ tokenBalance, frameContext, onPlayClick, play
         <Button
           onClick={() => {
             // Play click sound first, our enhanced implementation will sync it properly
-            playClick();
+            onPlayClick();
             // Small delay before navigation to allow animation and sound to sync
             setTimeout(() => {
               onPlayClick();

@@ -1,18 +1,11 @@
-/** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Remove typescript.ignoreBuildErrors if you want faster builds
-  // Or keep it if you have type errors you can't fix immediately
   typescript: {
-    ignoreBuildErrors: true
+    ignoreBuildErrors: true,
   },
   eslint: {
-    ignoreDuringBuilds: true
+    ignoreDuringBuilds: true,
   },
-  // Add these for better performance
-  swcMinify: true,
-  experimental: {
-    optimizePackageImports: ['@farcaster/frame-sdk', 'framer-motion']
-  }
-}
+  // Remove swcMinify - it's deprecated in Next.js 15
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

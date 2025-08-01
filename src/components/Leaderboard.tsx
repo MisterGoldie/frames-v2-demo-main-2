@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
-import sdk from '@farcaster/frame-sdk';
+import { sdk } from '@farcaster/miniapp-sdk';
 
 type LeaderboardEntry = {
   fid: string;
