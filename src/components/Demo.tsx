@@ -26,20 +26,16 @@ type DemoProps = {
   frameContext?: Context.MiniAppContext;
 };
 
-import { SoundManagerProvider, useSoundManager } from './game/SoundManager';
+// Remove this line:
+// import { SoundManagerProvider, useSoundManager } from './game/SoundManager';
 
-// Wrap your Demo component content with the provider
+// The SoundManager is already imported correctly on line 19:
+// import { SoundManager } from './game/SoundManager';
+
+// Update the component signature to include frameContext:
 export default function Demo({ tokenBalance, frameContext }: DemoProps) {
-  return (
-    <SoundManagerProvider>
-      <DemoContent tokenBalance={tokenBalance} frameContext={frameContext} />
-    </SoundManagerProvider>
-  );
-}
-
-// Your existing Demo logic goes in this component
-function DemoContent({ tokenBalance, frameContext }: DemoProps) {
-  const soundManager = useSoundManager();
+  // SoundManager is already initialized below with the soundFunctions variable
+  // Remove this line since we're using the soundFunctions object directly
   
   // Now use soundManager.playClick(), soundManager.playWinning(), etc.
   const calculateWinner = useCallback((squares: Square[]): Square => {
