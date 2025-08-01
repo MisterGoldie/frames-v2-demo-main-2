@@ -10,18 +10,16 @@ interface NotificationManagerProps {
 
 export class NotificationManager {
   private static winMessages = [
-    "Congratulations! You've defeated Maxi!",
+    "Congratulations! You've won!",
     "Victory! You're unstoppable! 🏆",
     "Game Over - You Win! 🕹️",
-    "Maxi's been POD played! 😎",
-    "Good win against Maxi! 🌟",
+    "Good win! 🌟",
     "You're the POD Play Master! 👑"
   ];
 
   private static lossMessages = [
-    "Maxi beat you. Try again?",
     "Almost had it! One more try?",
-    "Maxi got lucky. Rematch? 👀",
+    "The CPU got lucky. Rematch? 👀",
     "Don't give up! Play again?"
   ];
 
