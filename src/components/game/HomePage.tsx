@@ -63,7 +63,7 @@ export default function HomePage({ tokenBalance, frameContext, onPlayClick }: Ho
           className="relative w-full py-6 text-3xl font-black bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 rounded-xl border-2 border-purple-400/30 shadow-[0_0_15px_rgba(168,85,247,0.5)]"
         >
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-purple-100">
-            Tic-Tac-Maxi
+            Tic Tac Toe
           </span>
         </Button>
       </motion.div>

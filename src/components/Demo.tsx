@@ -565,7 +565,7 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
     const currentIsDraw = !currentWinner && board.every(square => square !== null);
 
     if (currentWinner) {
-      return currentWinner === selectedPiece ? "You Won!" : "Maxi Won";
+      return currentWinner === selectedPiece ? "You Won!" : "CPU Won";
     }
     if (currentIsDraw) {
       return "It's a Draw!";
@@ -767,7 +767,10 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
                     <HomePage
                       tokenBalance={tokenBalance}
                       frameContext={frameContext}
-                      onPlayClick={() => setMenuStep('piece')}
+                      onPlayClick={() => {
+                        playClick(); // Add this line to play the click sound
+                        setMenuStep('piece');
+                      }}
                     />
                   </motion.div>
                 ) : (
