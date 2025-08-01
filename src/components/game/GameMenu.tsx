@@ -1,7 +1,10 @@
 "use client";
 
+// @ts-ignore-next-line
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
 import { Button } from "~/components/ui/Button";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 
 interface GameMenuProps {
   menuStep: 'piece' | 'difficulty';
@@ -12,19 +15,58 @@ interface GameMenuProps {
 }
 
 export default function GameMenu({ menuStep, onSelectPiece, onSelectDifficulty, onBack, playClick }: GameMenuProps) {
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants: Variants = {
+    hidden: { 
+      opacity: 0, 
+      x: -30, 
+      rotateY: -15,
+      scale: 0.8
+    },
+    visible: { 
+      opacity: 1, 
+      x: 0, 
+      rotateY: 0,
+      scale: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 150,
+        damping: 12
+      }
+    }
+  };
+
   return (
     <motion.div 
       className="w-full flex flex-col items-center"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ 
+        type: "spring" as const, 
+        stiffness: 120, 
+        damping: 15 
+      }}
     >
       <motion.h1 
         className="text-3xl font-bold text-center text-white mb-12 text-shadow"
-        key={menuStep} // This ensures animation triggers when menuStep changes
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4 }}
+        key={menuStep}
+        initial={{ y: -30, opacity: 0, scale: 0.8 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        transition={{ 
+          type: "spring", 
+          stiffness: 200, 
+          damping: 15 
+        }}
       >
         {menuStep === 'piece' ? 'Select Piece' : 'Choose Difficulty'}
       </motion.h1>
@@ -33,150 +75,111 @@ export default function GameMenu({ menuStep, onSelectPiece, onSelectDifficulty, 
         {menuStep === 'piece' && (
           <motion.div
             key="piece-selection"
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 50 }}
-            transition={{ duration: 0.4 }}
             className="w-full"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit={{ 
+              opacity: 0, 
+              x: -50, 
+              rotateY: -20,
+              transition: { duration: 0.3 }
+            }}
           >
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.3 }}
-            >
-              <Button 
-                onClick={() => {
-                  playClick();
-                  // Small delay before action to sync with animation
-                  setTimeout(() => {
-                    onSelectPiece('scarygary');
-                  }, 50);
+            {['scarygary', 'chili', 'podplaylogo'].map((piece, index) => (
+              <motion.div
+                key={piece}
+                variants={itemVariants}
+                whileHover={{ 
+                  scale: 1.05, 
+                  rotateZ: index % 2 === 0 ? 1 : -1,
+                  transition: { type: "spring", stiffness: 400, damping: 10 }
                 }}
-                className="w-full mb-2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
-              >
-                Scary Gary
-              </Button>
-            </motion.div>
-            
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.3 }}
-            >
-              <Button 
-                onClick={() => {
-                  playClick();
-                  // Small delay before action to sync with animation
-                  setTimeout(() => {
-                    onSelectPiece('chili');
-                  }, 50);
+                whileTap={{ 
+                  scale: 0.95,
+                  rotateZ: index % 2 === 0 ? -2 : 2,
+                  transition: { duration: 0.1 }
                 }}
-                className="w-full mb-2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
               >
-                Chili
-              </Button>
-            </motion.div>
-            
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.3 }}
-            >
-              <Button 
-                onClick={() => {
-                  playClick();
-                  // Small delay before action to sync with animation
-                  setTimeout(() => {
-                    onSelectPiece('podplaylogo');
-                  }, 50);
-                }}
-                className="w-full mb-2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
-              >
-                Pod Logo
-              </Button>
-            </motion.div>
+                <Button 
+                  onClick={() => {
+                    playClick();
+                    setTimeout(() => {
+                      onSelectPiece(piece as any);
+                    }, 50);
+                  }}
+                  className="w-full mb-2 py-4 text-xl bg-purple-700 shadow-lg hover:shadow-xl transition-shadow"
+                >
+                  {piece === 'scarygary' ? 'Scary Gary' : 
+                   piece === 'chili' ? 'Chili' : 'Pod Logo'}
+                </Button>
+              </motion.div>
+            ))}
           </motion.div>
         )}
 
         {menuStep === 'difficulty' && (
           <motion.div
             key="difficulty-selection"
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 50 }}
-            transition={{ duration: 0.4 }}
             className="w-full"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit={{ 
+              opacity: 0, 
+              x: 50, 
+              rotateY: 20,
+              transition: { duration: 0.3 }
+            }}
           >
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.3 }}
-            >
-              <Button 
-                onClick={() => {
-                  playClick();
-                  // Small delay before action to sync with animation
-                  setTimeout(() => {
-                    onSelectDifficulty('easy');
-                  }, 50);
+            {[{name: 'easy', color: 'green'}, {name: 'medium', color: 'yellow'}, {name: 'hard', color: 'red'}].map((diff, index) => (
+              <motion.div
+                key={diff.name}
+                variants={itemVariants}
+                whileHover={{ 
+                  scale: 1.05, 
+                  rotateZ: index % 2 === 0 ? -1 : 1,
+                  transition: { type: "spring", stiffness: 400, damping: 10 }
                 }}
-                className="w-full mb-2 py-4 text-xl bg-green-600 shadow-lg hover:shadow-xl transition-shadow"
-              >
-                Easy
-              </Button>
-            </motion.div>
-            
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.3 }}
-            >
-              <Button 
-                onClick={() => {
-                  playClick();
-                  // Small delay before action to sync with animation
-                  setTimeout(() => {
-                    onSelectDifficulty('medium');
-                  }, 50);
+                whileTap={{ 
+                  scale: 0.95,
+                  rotateZ: index % 2 === 0 ? 2 : -2,
+                  transition: { duration: 0.1 }
                 }}
-                className="w-full mb-2 py-4 text-xl bg-yellow-600 shadow-lg hover:shadow-xl transition-shadow"
               >
-                Medium
-              </Button>
-            </motion.div>
-            
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.3 }}
-            >
-              <Button 
-                onClick={() => {
-                  playClick();
-                  // Small delay before action to sync with animation
-                  setTimeout(() => {
-                    onSelectDifficulty('hard');
-                  }, 50);
-                }}
-                className="w-full mb-2 py-4 text-xl bg-red-600 shadow-lg hover:shadow-xl transition-shadow"
-              >
-                Hard
-              </Button>
-            </motion.div>
+                <Button 
+                  onClick={() => {
+                    playClick();
+                    setTimeout(() => {
+                      onSelectDifficulty(diff.name as any);
+                    }, 50);
+                  }}
+                  className={`w-full mb-2 py-4 text-xl bg-${diff.color}-600 shadow-lg hover:shadow-xl transition-shadow`}
+                >
+                  {diff.name.charAt(0).toUpperCase() + diff.name.slice(1)}
+                </Button>
+              </motion.div>
+            ))}
           </motion.div>
         )}
       </AnimatePresence>
 
       <motion.div 
         className="flex justify-center w-full mt-4"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.3 }}
+        initial={{ opacity: 0, y: 20, scale: 0.8 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ 
+          delay: 0.6, 
+          type: "spring", 
+          stiffness: 150, 
+          damping: 12 
+        }}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
       >
         <Button 
           onClick={() => {
             playClick();
-            // Small delay before action to sync with animation
             setTimeout(() => {
               onBack();
             }, 50);
