@@ -26,7 +26,22 @@ type DemoProps = {
   frameContext?: Context.MiniAppContext;
 };
 
+import { SoundManagerProvider, useSoundManager } from './game/SoundManager';
+
+// Wrap your Demo component content with the provider
 export default function Demo({ tokenBalance, frameContext }: DemoProps) {
+  return (
+    <SoundManagerProvider>
+      <DemoContent tokenBalance={tokenBalance} frameContext={frameContext} />
+    </SoundManagerProvider>
+  );
+}
+
+// Your existing Demo logic goes in this component
+function DemoContent({ tokenBalance, frameContext }: DemoProps) {
+  const soundManager = useSoundManager();
+  
+  // Now use soundManager.playClick(), soundManager.playWinning(), etc.
   const calculateWinner = useCallback((squares: Square[]): Square => {
     return GameLogic.calculateWinner(squares);
   }, []);
@@ -277,21 +292,11 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
   const handleMove = useCallback(async (index: number) => {
     if (board[index] || calculateWinner(board) || !isXNext || (typeof timeLeft === 'number' && timeLeft <= 0)) return;
 
-    // Play click sound FIRST before any state updates for immediate feedback
-    // Create a new Audio element directly for the most reliable playback
+    // Use only the SoundManager's playClick function - remove direct Audio creation
     try {
-      // Direct audio approach for most immediate feedback
-      const clickAudio = new Audio('/sounds/click.mp3');
-      clickAudio.volume = 1.0;
-      clickAudio.play().catch(e => {
-        console.warn('Direct click audio failed, falling back:', e);
-        // Fallback to regular click method
-        playClick();
-      });
+      playClick();
     } catch (audioError) {
       console.error('Error playing click sound in handleMove:', audioError);
-      // Last resort fallback
-      playClick();
     }
     
     // Update game state AFTER playing sound

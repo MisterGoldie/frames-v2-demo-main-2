@@ -17,16 +17,24 @@ const Demo = dynamic(() => import("../components/Demo"), {
   ),
 });
 
+// Ensure Demo is only rendered once
 export default function App() {
+  const [isLoaded, setIsLoaded] = useState(false);
   const [tokenBalance, setTokenBalance] = useState(0);
   const [frameContext, setFrameContext] = useState<Context.MiniAppContext | undefined>(undefined);
   const [isMounted, setIsMounted] = useState(false);
-
+  
+  useEffect(() => {
+    if (!isLoaded) {
+      setIsLoaded(true);
+    }
+  }, [isLoaded]);
+  
   useEffect(() => {
     setIsMounted(true);
     preloadAssets();
   }, []);
-
+  
   useEffect(() => {
     if (!isMounted) return;
 
@@ -57,7 +65,7 @@ export default function App() {
 
     loadContext();
   }, [isMounted]);
-
+  
   // Fetch token balance with caching
   useEffect(() => {
     let isMounted = true;
@@ -120,20 +128,15 @@ export default function App() {
       isMounted = false;
     };
   }, [frameContext?.user?.fid]);
-
+  
+  if (!isLoaded) {
+    return <div>Loading...</div>;
+  }
+  
   return (
     <ErrorBoundary>
-      <Suspense
-        fallback={
-          <div className="flex items-center justify-center min-h-screen bg-purple-900">
-            <div className="w-16 h-16 border-4 border-purple-500 border-t-white rounded-full animate-spin" />
-          </div>
-        }
-      >
-        <Demo 
-          tokenBalance={tokenBalance} 
-          frameContext={frameContext}
-        />
+      <Suspense fallback={<div>Loading POD Play...</div>}>
+        <Demo tokenBalance={tokenBalance} frameContext={frameContext} />
       </Suspense>
     </ErrorBoundary>
   );

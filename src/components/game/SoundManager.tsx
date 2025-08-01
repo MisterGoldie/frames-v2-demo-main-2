@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-
-// Simple audio player using native Web Audio API instead of Howler.js
+import { useEffect, useRef, useState, useCallback, createContext, useContext } from 'react';
 
 type PlayFunction = (options?: { id?: string }) => void;
 
@@ -12,237 +10,92 @@ interface SoundControls {
   isPlaying: () => boolean;
 }
 
-// Cache for audio elements to prevent reloading
+// Audio cache to prevent multiple loads of the same file
 const audioCache: Record<string, HTMLAudioElement> = {};
 
-// Simple hook to play sounds using native Audio API
+// Custom hook for simple sound management
 const useSimpleSound = (url: string, options: {
   volume?: number;
   loop?: boolean;
   soundEnabled?: boolean;
 }): [PlayFunction, SoundControls] => {
-  const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const lastPlayAttemptRef = useRef<number>(0);
+  const isPlayingRef = useRef(false);
   
-  // Create or get cached audio element
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    // Function to create a fresh audio element
-    const createAudio = () => {
-      const audio = new Audio(url);
-      audio.volume = options.volume || 0.5;
-      audio.loop = options.loop || false;
-      
-      // Preload audio for faster playback
-      audio.preload = 'auto';
-      
-      // Add event listeners for better error tracking
-      audio.addEventListener('error', (e) => {
-        console.error(`Audio error for ${url}:`, e);
-        // Remove from cache if there's an error
-        delete audioCache[url];
-      });
-      
-      return audio;
-    };
-    
-    // Use cached audio element if available and not in error state
-    if (audioCache[url]) {
-      const cachedAudio = audioCache[url];
-      // Check if the cached audio is in a valid state
-      if (cachedAudio.error) {
-        console.warn(`Cached audio for ${url} has error, creating new instance`);
-        audioCache[url] = createAudio();
-      }
-      audioRef.current = audioCache[url];
-      return;
+    if (!audioCache[url]) {
+      audioCache[url] = new Audio(url);
+      audioCache[url].preload = 'auto';
     }
-    
-    // Create new audio element
-    audioCache[url] = createAudio();
     audioRef.current = audioCache[url];
     
-    // Clean up
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-    };
+    const audio = audioRef.current;
+    if (audio) {
+      audio.volume = options.volume ?? 0.5;
+      audio.loop = options.loop ?? false;
+      
+      const handleEnded = () => {
+        isPlayingRef.current = false;
+      };
+      
+      audio.addEventListener('ended', handleEnded);
+      
+      return () => {
+        audio.removeEventListener('ended', handleEnded);
+      };
+    }
   }, [url, options.volume, options.loop]);
   
-  // Update audio properties when options change
-  useEffect(() => {
-    if (!audioRef.current) return;
+  const play: PlayFunction = useCallback((playOptions) => {
+    if (!options.soundEnabled) return;
     
-    audioRef.current.volume = options.volume || 0.5;
-    audioRef.current.loop = options.loop || false;
-    
-    // Mute/unmute based on soundEnabled
-    if (options.soundEnabled === false && isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    }
-  }, [options.volume, options.loop, options.soundEnabled, isPlaying]);
-  
-  // Play function with enhanced reliability and forced autoplay
-  const play: PlayFunction = useCallback(() => {
-    if (!audioRef.current || options.soundEnabled === false) return;
-    
-    // Get current timestamp for throttling
-    const now = Date.now();
-    lastPlayAttemptRef.current = now;
-    
-    try {
-      // For non-looping sounds, create a new audio element for each play
-      // This helps avoid issues with rapid successive plays
-      if (!options.loop && url.includes('click.mp3')) {
-        // For click sounds specifically, use a new Audio element each time
-        // This avoids the issue where rapid clicks don't all play
-        const clickAudio = new Audio(url);
-        clickAudio.volume = options.volume || 0.5;
-        clickAudio.play()
-          .then(() => {
-            // Auto-cleanup after playing
-            clickAudio.addEventListener('ended', () => {
-              // Remove references to allow garbage collection
-              clickAudio.src = '';
-            });
-          })
-          .catch(error => {
-            console.warn('Click audio play error:', error);
-          });
-        return;
-      }
-      
-      // Special handling for background music (jingle and opening theme)
-      if (options.loop && (url.includes('jingle.mp3') || url.includes('openingtheme.mp3'))) {
-        console.log(`Attempting to play background music: ${url}`);
-        
-        // Create a fresh audio element for background music
-        const bgMusic = new Audio(url);
-        bgMusic.loop = true;
-        bgMusic.volume = options.volume || 0.5;
-        
-        // Try to play with multiple approaches
-        try {
-          // Method 1: Direct play
-          bgMusic.play()
+    const audio = audioRef.current;
+    if (audio) {
+      try {
+        audio.currentTime = 0;
+        const playPromise = audio.play();
+        if (playPromise) {
+          playPromise
             .then(() => {
-              console.log(`Background music playing: ${url}`);
-              // Replace the cached audio element with this one
-              if (audioRef.current) {
-                audioRef.current.pause();
-              }
-              audioRef.current = bgMusic;
-              setIsPlaying(true);
+              isPlayingRef.current = true;
             })
-            .catch(e => {
-              console.warn(`Background music direct play failed: ${url}`, e);
-              
-              // Method 2: Try with user interaction simulation
-              const simulateInteraction = () => {
-                bgMusic.play()
-                  .then(() => {
-                    console.log(`Background music playing after interaction: ${url}`);
-                    if (audioRef.current) {
-                      audioRef.current.pause();
-                    }
-                    audioRef.current = bgMusic;
-                    setIsPlaying(true);
-                  })
-                  .catch(err => console.warn(`Background music still failed: ${url}`, err));
-              };
-              
-              // Try to play on next user interaction
-              document.addEventListener('click', simulateInteraction, { once: true });
-              document.addEventListener('touchstart', simulateInteraction, { once: true });
+            .catch(error => {
+              console.warn(`Audio play failed for ${url}:`, error);
+              isPlayingRef.current = false;
             });
-        } catch (bgError) {
-          console.error(`Fatal error playing background music: ${url}`, bgError);
         }
-        
-        return;
+      } catch (error) {
+        console.warn(`Audio play error for ${url}:`, error);
       }
-      
-      // For other sounds, use the standard approach
-      // Reset audio to beginning if it's already played
-      if (audioRef.current.currentTime > 0 && !options.loop) {
-        audioRef.current.currentTime = 0;
+    }
+  }, [options.soundEnabled, url]);
+  
+  const controls: SoundControls = {
+    stop: () => {
+      const audio = audioRef.current;
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+        isPlayingRef.current = false;
       }
-      
-      const playPromise = audioRef.current.play();
-      
-      // Handle play promise (required for modern browsers)
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            // Only update state if this was the last play attempt
-            if (lastPlayAttemptRef.current === now) {
-              setIsPlaying(true);
-            }
-          })
-          .catch(error => {
-            console.warn('Audio play error:', error);
-            // Auto-retry once on user interaction
-            const handleInteraction = () => {
-              if (audioRef.current) {
-                audioRef.current.play()
-                  .then(() => {
-                    setIsPlaying(true);
-                    document.removeEventListener('click', handleInteraction);
-                  })
-                  .catch(err => console.warn('Retry audio play error:', err));
-              }
-            };
-            document.addEventListener('click', handleInteraction, { once: true });
-            document.addEventListener('touchstart', handleInteraction, { once: true });
-          });
+    },
+    pause: () => {
+      const audio = audioRef.current;
+      if (audio) {
+        audio.pause();
+        isPlayingRef.current = false;
       }
-    } catch (error) {
-      console.warn('Error playing audio:', error);
-    }
-  }, [options.soundEnabled, options.loop, options.volume, url]);
+    },
+    isPlaying: () => isPlayingRef.current
+  };
   
-  // Stop function
-  const stop = useCallback(() => {
-    if (!audioRef.current) return;
-    
-    try {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setIsPlaying(false);
-    } catch (error) {
-      console.warn('Error stopping audio:', error);
-    }
-  }, []);
-  
-  // Pause function
-  const pause = useCallback(() => {
-    if (!audioRef.current) return;
-    
-    try {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } catch (error) {
-      console.warn('Error pausing audio:', error);
-    }
-  }, []);
-  
-  // Check if playing
-  const checkIsPlaying = useCallback(() => {
-    return isPlaying;
-  }, [isPlaying]);
-  
-  return [play, { stop, pause, isPlaying: checkIsPlaying }];
+  return [play, controls];
 };
 
-// Tracking variables for background music state
+// Global audio state
 let menuAudioPlaying = false;
 let gameAudioPlaying = false;
-let audioInitialized = false; // Track if audio system has been initialized
+let audioInitialized = false;
 
 interface SoundManagerProps {
   isMuted: boolean;
@@ -250,13 +103,67 @@ interface SoundManagerProps {
   onSoundStateChange?: () => void;
 }
 
+// Context for singleton pattern
+const SoundManagerContext = createContext<any>(null);
+
+// Provider component
+export function SoundManagerProvider({ children }: { children: React.ReactNode }) {
+  const soundManager = SoundManager({ 
+    isMuted: false, 
+    gameState: 'menu' 
+  });
+  
+  return (
+    <SoundManagerContext.Provider value={soundManager}>
+      {children}
+    </SoundManagerContext.Provider>
+  );
+}
+
+// Hook to use the sound manager
+export function useSoundManager() {
+  const context = useContext(SoundManagerContext);
+  if (!context) {
+    throw new Error('useSoundManager must be used within a SoundManagerProvider');
+  }
+  return context;
+}
+
+// Singleton instance tracking
+let soundManagerInstance: any = null;
+let instanceCount = 0;
+
 export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundManagerProps) {
-  // Log that we're using the native Audio API
+  const instanceId = useRef(++instanceCount);
+  const isJinglePlaying = useRef(false);
+  
+  // Prevent multiple instances
   useEffect(() => {
-    console.log('SoundManager: Using native Audio API for sound playback');
+    if (instanceId.current > 1) {
+      console.warn(`SoundManager: Blocking duplicate instance #${instanceId.current}`);
+      return;
+    }
+    console.log(`SoundManager: Creating singleton instance #${instanceId.current}`);
   }, []);
   
-  // Use our simple sound hook instead of useSound/Howler
+  // Return empty functions for duplicate instances
+  if (instanceId.current > 1) {
+    return {
+      playClick: () => {},
+      playWinning: () => {},
+      playLosing: () => {},
+      playDrawing: () => {},
+      playGameOver: () => {},
+      playCountdownSound: () => {},
+      stopCountdownSound: () => {},
+      stopGameJingle: () => {},
+      stopOpeningTheme: () => {},
+      playGameJingle: () => {},
+      playOpeningTheme: () => {}
+    };
+  }
+
+  // Sound hooks
   const [playGameJingle, { stop: stopGameJingle }] = useSimpleSound('/sounds/jingle.mp3', { 
     volume: 0.3,
     soundEnabled: !isMuted,
@@ -274,78 +181,10 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
     volume: 0.5
   });
 
-  // Enhanced click sound with better reliability
   const [playClickRaw] = useSimpleSound('/sounds/click.mp3', { 
     volume: 1.0, 
     soundEnabled: !isMuted
   });
-  
-  // Create a more reliable version of playClick that works with rapid clicks
-  const lastClickTime = useRef(0);
-  const clickAudioPool = useRef<HTMLAudioElement[]>([]);
-  
-  // Initialize click audio pool
-  useEffect(() => {
-    // Create a pool of audio elements for click sounds
-    // This allows multiple overlapping click sounds
-    if (clickAudioPool.current.length === 0) {
-      for (let i = 0; i < 5; i++) {
-        const audio = new Audio('/sounds/click.mp3');
-        audio.volume = 1.0;
-        clickAudioPool.current.push(audio);
-      }
-    }
-    
-    return () => {
-      // Clean up pool on unmount
-      clickAudioPool.current.forEach(audio => {
-        audio.pause();
-        audio.src = '';
-      });
-      clickAudioPool.current = [];
-    };
-  }, []);
-  
-  const playClick = useCallback(() => {
-    if (isMuted) return;
-    
-    const now = Date.now();
-    // Reduced debounce time to 50ms to make more clicks audible
-    // while still preventing audio distortion
-    if (now - lastClickTime.current > 50) {
-      lastClickTime.current = now;
-      
-      try {
-        // Try to use audio pool first (most reliable method)
-        if (clickAudioPool.current.length > 0) {
-          // Find an audio element that's not playing
-          const availableAudio = clickAudioPool.current.find(audio => 
-            audio.paused || audio.ended || audio.currentTime === 0
-          );
-          
-          if (availableAudio) {
-            // Reset and play
-            availableAudio.currentTime = 0;
-            availableAudio.play().catch(err => {
-              console.warn('Click pool audio error:', err);
-              // Fallback to regular method
-              setTimeout(() => playClickRaw(), 0);
-            });
-            return;
-          }
-        }
-        
-        // Fallback to regular method with minimal delay
-        setTimeout(() => playClickRaw(), 0);
-      } catch (error) {
-        console.warn('Error in playClick:', error);
-        // Last resort fallback
-        const audio = new Audio('/sounds/click.mp3');
-        audio.volume = 1.0;
-        audio.play().catch(e => console.warn('Last resort click failed:', e));
-      }
-    }
-  }, [isMuted, playClickRaw]);
   
   const [playWinning] = useSimpleSound('/sounds/winning.mp3', { 
     volume: 0.5, 
@@ -362,25 +201,75 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
     soundEnabled: !isMuted
   });
   
-  // Removed reference to non-existent gameover.mp3 file
-  // If you want to add this sound, place the file in the public/sounds directory
-  const playGameOver = () => {
+  // Enhanced click sound with audio pool
+  const lastClickTime = useRef(0);
+  const clickAudioPool = useRef<HTMLAudioElement[]>([]);
+  
+  // Initialize click audio pool
+  useEffect(() => {
+    if (clickAudioPool.current.length === 0) {
+      for (let i = 0; i < 5; i++) {
+        const audio = new Audio('/sounds/click.mp3');
+        audio.volume = 1.0;
+        clickAudioPool.current.push(audio);
+      }
+    }
+    
+    return () => {
+      clickAudioPool.current.forEach(audio => {
+        audio.pause();
+        audio.src = '';
+      });
+      clickAudioPool.current = [];
+    };
+  }, []);
+  
+  const playClick = useCallback(() => {
+    if (isMuted) return;
+    
+    const now = Date.now();
+    if (now - lastClickTime.current > 50) {
+      lastClickTime.current = now;
+      
+      try {
+        if (clickAudioPool.current.length > 0) {
+          const availableAudio = clickAudioPool.current.find(audio => 
+            audio.paused || audio.ended || audio.currentTime === 0
+          );
+          
+          if (availableAudio) {
+            availableAudio.currentTime = 0;
+            availableAudio.play().catch(err => {
+              console.warn('Click pool audio error:', err);
+              setTimeout(() => playClickRaw(), 0);
+            });
+            return;
+          }
+        }
+        
+        setTimeout(() => playClickRaw(), 0);
+      } catch (error) {
+        console.warn('Error in playClick:', error);
+        const audio = new Audio('/sounds/click.mp3');
+        audio.volume = 1.0;
+        audio.play().catch(e => console.warn('Last resort click failed:', e));
+      }
+    }
+  }, [isMuted, playClickRaw]);
+  
+  const playGameOver = useCallback(() => {
     console.log('Game over sound would play here if the file existed');
-  };
-
-  const isJinglePlaying = useRef(false);
+  }, []);
 
   // Track user interaction state for audio playback permission
-  const [hasUserInteracted, setHasUserInteracted] = useState(true); // Force to true by default
+  const [hasUserInteracted, setHasUserInteracted] = useState(true);
   
   // Force user interaction flag to true and set up event listeners
   useEffect(() => {
     console.log('Setting up forced audio interaction');
     
-    // Force the user-interacted class to be added immediately
     document.documentElement.classList.add('user-interacted');
     
-    // Create a silent audio context and try to resume it
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       if (audioContext.state === 'suspended') {
@@ -394,7 +283,6 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
       console.warn('AudioContext not supported:', e);
     }
     
-    // Create and play a silent sound to unlock audio
     const unlockAudio = () => {
       const silentSound = new Audio();
       silentSound.play().then(() => {
@@ -404,10 +292,8 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
       });
     };
     
-    // Try to unlock audio immediately
     unlockAudio();
     
-    // Set up event listeners for user interaction
     const handleInteraction = () => {
       document.documentElement.classList.add('user-interacted');
       setHasUserInteracted(true);
@@ -425,33 +311,19 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
     };
   }, []);
   
+  // Audio state management
   useEffect(() => {
-    // Always consider the user as having interacted
-    const hasInteracted = true;
-    
-    // Function to safely manage audio state transitions
     const manageAudioState = () => {
       try {
-        // Force audio to play regardless of interaction state
-        // We'll handle browser blocking in the play functions
-        
-        // Menu state audio management
         if (gameState === 'menu' && !isMuted) {
-          // Only play opening theme if it's not already playing
           if (!menuAudioPlaying) {
             console.log('Starting menu audio');
             try {
-              // Safe stops with error handling
-              if (typeof stopGameJingle === 'function') stopGameJingle();
-              if (typeof stopCountdownSound === 'function') stopCountdownSound();
+              stopGameJingle();
+              stopCountdownSound();
               
-              // Safe play with error handling
-              if (typeof playOpeningTheme === 'function') {
-                playOpeningTheme();
-                console.log('Menu audio started successfully');
-              } else {
-                console.warn('playOpeningTheme is not a function');
-              }
+              playOpeningTheme();
+              console.log('Menu audio started successfully');
               
               menuAudioPlaying = true;
               gameAudioPlaying = false;
@@ -461,23 +333,15 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
             }
           }
         } 
-        // Game state audio management
         else if (gameState === 'game' && !isMuted) {
-          // Only play game jingle if it's not already playing
           if (!gameAudioPlaying) {
             console.log('Starting game audio');
             try {
-              // Safe stops with error handling
-              if (typeof stopOpeningTheme === 'function') stopOpeningTheme();
-              if (typeof stopCountdownSound === 'function') stopCountdownSound();
+              stopOpeningTheme();
+              stopCountdownSound();
               
-              // Safe play with error handling
-              if (typeof playGameJingle === 'function') {
-                playGameJingle();
-                console.log('Game audio started successfully');
-              } else {
-                console.warn('playGameJingle is not a function');
-              }
+              playGameJingle();
+              console.log('Game audio started successfully');
               
               gameAudioPlaying = true;
               menuAudioPlaying = false;
@@ -487,14 +351,12 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
             }
           }
         } 
-        // Muted state - stop all audio
         else {
           console.log('Stopping all audio (muted or state change)');
           try {
-            // Safe stops with error handling
-            if (typeof stopGameJingle === 'function') stopGameJingle();
-            if (typeof stopOpeningTheme === 'function') stopOpeningTheme();
-            if (typeof stopCountdownSound === 'function') stopCountdownSound();
+            stopGameJingle();
+            stopOpeningTheme();
+            stopCountdownSound();
             
             menuAudioPlaying = false;
             gameAudioPlaying = false;
@@ -505,20 +367,16 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
         }
       } catch (error) {
         console.error('Error managing audio state:', error);
-        // Reset flags on error to allow retry
         menuAudioPlaying = false;
         gameAudioPlaying = false;
       }
     };
     
-    // Attempt immediate playback with multiple retries
     console.log('Attempting immediate audio playback');
     manageAudioState();
     
-    // Add multiple retry attempts for initial autoplay
     const timers: NodeJS.Timeout[] = [];
     
-    // Try again after 500ms
     timers.push(setTimeout(() => {
       console.log('First retry for audio playback');
       if (!audioInitialized) {
@@ -528,29 +386,24 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
       manageAudioState();
     }, 500));
     
-    // Try again after 1.5s
     timers.push(setTimeout(() => {
       console.log('Second retry for audio playback');
       manageAudioState();
     }, 1500));
     
-    // Final attempt after 3s
     timers.push(setTimeout(() => {
       console.log('Final retry for audio playback');
       manageAudioState();
     }, 3000));
 
     return () => {
-      // Clear all retry timers
       timers.forEach(t => clearTimeout(t));
       
-      // Don't stop audio on unmount unless we're changing state or muting
-      // This prevents audio restart when components remount
       if (isMuted) {
         console.log('Cleanup: stopping all audio (muted)');
-        stopGameJingle?.();
-        stopOpeningTheme?.();
-        stopCountdownSound?.();
+        stopGameJingle();
+        stopOpeningTheme();
+        stopCountdownSound();
         menuAudioPlaying = false;
         gameAudioPlaying = false;
         isJinglePlaying.current = false;
@@ -558,7 +411,8 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
     };
   }, [isMuted, gameState, stopGameJingle, stopOpeningTheme, stopCountdownSound, playOpeningTheme, playGameJingle]);
 
-  return {
+  // Return sound controls
+  const soundControls = {
     playClick,
     playWinning,
     playLosing,
@@ -571,4 +425,7 @@ export function SoundManager({ isMuted, gameState, onSoundStateChange }: SoundMa
     playGameJingle,
     playOpeningTheme
   };
+  
+  soundManagerInstance = soundControls;
+  return soundControls;
 }

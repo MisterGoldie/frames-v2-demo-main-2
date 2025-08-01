@@ -130,3 +130,22 @@ export const playSound = (soundUrl: string) => {
     audio.play();
   }
 };
+
+// Add proper image preloading
+export const preloadImages = () => {
+  const images = [
+    '/scarygary.png',
+    '/mainlogo.png', 
+    '/game-board.png',
+    '/podplaylogo.png',
+    '/chili.png',
+    '/fantokenlogo.png'
+  ];
+  
+  images.forEach(src => {
+    const img = new Image();
+    img.onload = () => console.log(`Preloaded: ${src}`);
+    img.onerror = (e) => console.error(`Failed to preload: ${src}`, e);
+    img.src = src;
+  });
+};
