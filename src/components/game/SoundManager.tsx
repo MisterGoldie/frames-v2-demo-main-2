@@ -28,8 +28,19 @@ interface SoundManagerProps {
 // Singleton instance counter
 let instanceCount = 0;
 
+// Add at the top of the file
+let globalSoundManagerInstance: any = null;
+
 export function SoundManager({ isMuted, gameState }: SoundManagerProps) {
+  // Return existing instance if already created
+  if (globalSoundManagerInstance) {
+    console.log('SoundManager: Returning existing instance');
+    return globalSoundManagerInstance;
+  }
+  
   const instanceId = useRef(++instanceCount);
+  
+  console.log(`SoundManager: Creating singleton instance #${instanceId.current}`);
   
   // Block duplicate instances
   useEffect(() => {
@@ -225,7 +236,7 @@ export function SoundManager({ isMuted, gameState }: SoundManagerProps) {
     console.log('Game over sound would play here if the file existed');
   }, []);
 
-  return {
+  const soundFunctions = {
     playClick,
     playWinning,
     playLosing,
@@ -238,4 +249,9 @@ export function SoundManager({ isMuted, gameState }: SoundManagerProps) {
     playGameJingle,
     playOpeningTheme
   };
+  
+  // Store the instance globally
+  globalSoundManagerInstance = soundFunctions;
+  
+  return soundFunctions;
 }

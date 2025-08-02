@@ -154,22 +154,8 @@ export default function Demo({ tokenBalance, frameContext }: DemoProps) {
       stopCountdownSound();
       stopGameJingle();
       if (!isMuted) {
-        // Play timeout sound with direct Audio API for better mobile compatibility
-        try {
-          // First try direct Audio approach for most reliable playback on mobile
-          const timeoutAudio = new Audio('/sounds/losing.mp3');
-          timeoutAudio.volume = 0.5;
-          console.log('Playing timeout sound directly');
-          timeoutAudio.play().catch(e => {
-            console.warn('Direct timeout audio failed, falling back:', e);
-            // Fallback to regular method
-            playLosing();
-          });
-        } catch (directAudioError) {
-          console.error('Error with direct timeout audio:', directAudioError);
-          // Fallback to regular method
-          playLosing();
-        }
+        // Use ONLY the SoundManager function
+        playLosing();
       }
       try {
         if (frameContext?.user?.fid) {
